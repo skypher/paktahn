@@ -5,6 +5,6 @@ unset pkgname pkgver pkgrel arch pkgdesc provides url source install md5sums \
 
 source "$1" &> /dev/null
 
-echo $depends
-echo $makedepends
+echo ${depends[@]}
+echo ${makedepends[@]}
 
