@@ -188,22 +188,13 @@ pairs as cons cells."
         (when (y-or-n-p "Choose another editor")
           (go again))))))
 
-(defun install-binary-package (db-name pkg-name)
-  "Use Pacman to install a package."
-  (format t "Installing binary package ~S from repository ~S." pkg-name db-name)
-  (let* ((fully-qualified-pkg-name (format nil "~A/~A" db-name pkg-name))
-         (return-value (run-program "pacman"
-                                   (list "-S" fully-qualified-pkg-name))))
-    (unless (zerop return-value)
-      (warn "Pacman exited with non-zero status ~D" return-value))))
-
 (defun download-file (uri)
   (tagbody retry
     (let ((return-value (run-program "wget" (list "-c" uri))))
       (unless (zerop return-value)
         (if (y-or-n-p "Download via wget failed with status ~D. Retry?" return-value)
           (go retry)
-          (return-from install-aur-package)))
+          (return-from download-file)))
       t)))
 
 (defun unpack-file (name)
@@ -223,4 +214,7 @@ pairs as cons cells."
      (install-aur-package pkg-name))
     ((member db-name (mapcar #'car *sync-dbs*))
      (install-binary-package db-name pkg-name))))
+
+(defun main ()
+  )
 

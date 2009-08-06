@@ -1,6 +1,16 @@
 
 (in-package :pacman)
 
+
+(defparameter *pacman-lock* "/var/lib/pacman/db.lck")
+
+(defmacro with-pacman-lock (&body body)
+  `(progn
+     (when (probe-file *pacman-lock*)
+       (format t "Pacman is currently in use, waiting for it to finish..."))
+     ,@body))
+
+
 (define-foreign-library libalpm
   (:unix (:or "libalpm.so.3" "libalpm.so"))
   (t (:default "libalpm")))
@@ -31,8 +41,8 @@
     (py-configparser:make-config) '("/etc/pacman.conf")))
 
 (defun get-enabled-repositories (&optional (config (get-pacman-config)))
-  (remove "options" (py-configparser:sections config)
-          :test #'equalp))
+  (remove "options" (reverse (py-configparser:sections config))
+                :test #'equalp))
 
 (defparameter *local-db* (cons "local" (alpm-db-register-local)))
 (defparameter *sync-dbs* (mapcar (lambda (name)
@@ -41,7 +51,7 @@
 
 (defun map-db-packages (fn &key (db-list *sync-dbs*))
   "Search a database for packages. FN will be called for each
-matching package object. DB-LIST may be an atom or a list of database
+matching package object. DB-LIST must be a list of database
 objects."
   (flet ((map-db (db-spec)
            (loop for pkg-iter = (alpm-db-get-pkgcache (cdr db-spec))
@@ -49,6 +59,25 @@ objects."
                  until (null-pointer-p pkg-iter)
                  do (let ((pkg (alpm-list-getdata pkg-iter)))
                       (funcall fn db-spec pkg)))))
-    (dolist (db-spec (ensure-list db-list))
+    (dolist (db-spec db-list)
       (map-db db-spec))))
+
+(defun package-installed-p (pkg-name)
+  ;; TODO: cache names
+  (map-db-packages (lambda (db-spec pkg)
+                     (declare (ignore db-spec))
+                     (when (equalp (alpm-pkg-get-name pkg) pkg-name)
+                       (return-from package-installed-p t)))
+                   :db-list (list *local-db*))
+  nil)
+
+(defun install-binary-package (db-name pkg-name)
+  "Use Pacman to install a package."
+  (format t "Installing binary package ~S from repository ~S." pkg-name db-name)
+  (with-pacman-lock
+    (let* ((fully-qualified-pkg-name (format nil "~A/~A" db-name pkg-name))
+           (return-value (run-program "pacman"
+                                     (list "-S" fully-qualified-pkg-name))))
+      (unless (zerop return-value)
+        (warn "Pacman exited with non-zero status ~D" return-value)))))
 
