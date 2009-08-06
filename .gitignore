@@ -1,0 +1,5 @@
+*.fasl
+Attic
+pacman.git
+*.swp
+*~
