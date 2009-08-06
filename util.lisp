@@ -17,6 +17,10 @@
   #+sbcl(sb-posix:chdir)
   #-sbcl(error "no chdir"))
 
+(defun getenv (dir)
+  #+sbcl(sb-posix:getenv)
+  #-sbcl(error "no chdir"))
+
 (defun run-program (program args &key capture-output-p)
   #+sbcl(let ((result (apply #'sb-ext:run-program program args
                              :wait t :search t
