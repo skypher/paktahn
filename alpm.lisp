@@ -13,7 +13,7 @@
 
 (defcfun "alpm_db_register_local" :pointer)
 (defcfun "alpm_db_register_sync" :pointer (name :string))
-(defcfun "alpm_db_getpkgcache" :pointer (db :pointer))
+(defcfun "alpm_db_get_pkgcache" :pointer (db :pointer))
 
 (defcfun "alpm_list_next" :pointer (pkg-iterator :pointer))
 (defcfun "alpm_list_getdata" :pointer (pkg-iterator :pointer))
@@ -44,7 +44,7 @@
 matching package object. DB-LIST may be an atom or a list of database
 objects."
   (flet ((map-db (db-spec)
-           (loop for pkg-iter = (alpm-db-getpkgcache (cdr db-spec))
+           (loop for pkg-iter = (alpm-db-get-pkgcache (cdr db-spec))
                  then (alpm-list-next pkg-iter)
                  until (null-pointer-p pkg-iter)
                  do (let ((pkg (alpm-list-getdata pkg-iter)))
