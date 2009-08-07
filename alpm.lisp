@@ -1,5 +1,5 @@
 
-(in-package :pacman)
+(in-package :pak)
 
 
 (defparameter *pacman-lock* "/var/lib/pacman/db.lck")
@@ -73,11 +73,17 @@ objects."
 
 (defun install-binary-package (db-name pkg-name)
   "Use Pacman to install a package."
-  (format t "Installing binary package ~S from repository ~S." pkg-name db-name)
+  (when (equalp db-name "local")
+    ;; TODO offer restarts: skip, reinstall from elsewhere
+    (error "Can't install an already installed package."))
+  (format t "Installing binary package ~S from repository ~S.~%"
+          pkg-name db-name)
   (with-pacman-lock
     (let* ((fully-qualified-pkg-name (format nil "~A/~A" db-name pkg-name))
-           (return-value (run-program "pacman"
-                                     (list "-S" fully-qualified-pkg-name))))
+           (return-value (run-program "sudo"
+                                     (list "pacman" "-S"
+                                           "--noconfirm" ; kludge for RUN-PROGRAM bug
+                                           fully-qualified-pkg-name))))
       (unless (zerop return-value)
         (warn "Pacman exited with non-zero status ~D" return-value)))))
 

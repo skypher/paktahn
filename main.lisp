@@ -1,9 +1,12 @@
 
+#+sbcl(require :sb-posix)
 (require :cl-json)
 (require :drakma)
 (require :cffi)
 (require :alexandria)
+(require :split-sequence)
 (require :py-configparser)
+(require :getopt)
 
 (defmacro without-package-variance-warnings (&body body)
   `(eval-when (:compile-toplevel :load-toplevel :execute)
@@ -11,16 +14,20 @@
        ,@body)))
 
 (without-package-variance-warnings
-    (defpackage pacman
+    (defpackage paktahn
+      (:nicknames :pak)
       (:use :cl :cffi)
-      (:import-from :alexandria :compose :curry :rcurry :ensure-list )))
+      (:import-from :alexandria :compose :curry :rcurry :ensure-list)
+      (:import-from :split-sequence :split-sequence)))
 
 
-(in-package :pacman)
+(in-package :pak)
 
 (load "util.lisp")
 (load "alpm.lisp")
 (load "aur.lisp")
+
+(defvar *on-error* :debug)
 
 (defparameter *ansi-colors* '((black . 0) (red . 1) (green . 2) (yellow . 3)
                               (blue . 4) (magenta . 5) (cyan . 6) (white . 7)))
@@ -106,10 +113,6 @@
 
 
 ;;; user interface
-(defun getline ()
-  (finish-output *standard-output*)
-  (or (read-line *standard-input* nil) (quit)))
-
 #+(or) ; not used right now
 (defun valid-range-input-p (s)
   (loop for c across s
@@ -152,6 +155,17 @@ pairs as cons cells."
   (map 'vector (lambda (i) (aref vector i))
        (expand-ranges (parse-ranges rangespec-string 0 (1- (length vector))))))
 
+(defun install-package (db-name pkg-name)
+  ;; TODO: this should be able to pass on multiple packages at once
+  ;; to Pacman
+  (cond
+    ((equalp db-name "local")
+     (error "BUG: trying to install a package from local?"))
+    ((equalp db-name "aur")
+     (install-aur-package pkg-name))
+    ((member db-name (mapcar #'car *sync-dbs*))
+     (install-binary-package db-name pkg-name))))
+
 (defun search-and-install-packages (query)
   (let* ((packages (get-package-results query))
          (total (length packages)))
@@ -168,53 +182,36 @@ pairs as cons cells."
                                                (member id choices))
                                              packages :key #'first))
              (chosen-packages (sort chosen-packages #'< :key #'first)))
-        chosen-packages))))
+        (mapcar (lambda (pkgspec)
+                  (apply #'install-package (cdr pkgspec)))
+                chosen-packages)))))
 
-(defun ask-for-editor ()
-  (format t "You do not have your EDITOR environment variable set.~%
-          Please tell me the name of your preferred editor.")
-  (flet ((show-prompt () (format t " =>")))
-    (loop for input = (progn (show-prompt) (getline))
-          until input
-          finally (return input))))
+(defun parse-options (argv)
+  ;; TODO
+  (getopt:getopt argv nil))
 
-(defun launch-editor (filename)
-  (tagbody again
-    (let* ((editor (or (getenv "EDITOR")
-                       (ask-for-editor)))
-           (return-value (run-program (getenv "EDITOR") filename)))
-      (unless (zerop return-value)
-        (warn "Editor ~S exited with non-zero status ~D" editor return-value)
-        (when (y-or-n-p "Choose another editor")
-          (go again))))))
-
-(defun download-file (uri)
-  (tagbody retry
-    (let ((return-value (run-program "wget" (list "-c" uri))))
-      (unless (zerop return-value)
-        (if (y-or-n-p "Download via wget failed with status ~D. Retry?" return-value)
-          (go retry)
-          (return-from download-file)))
-      t)))
-
-(defun unpack-file (name)
-  (tagbody retry
-    (let ((return-value (run-program "tar" (list "xfvz" name))))
-      (unless (zerop return-value)
-        (if (y-or-n-p "Unpacking failed with status ~D. Retry?" return-value)
-          (go retry)
-          (return-from unpack-file)))
-      t)))
-
-(defun install-package (db-name pkg-name)
-  (cond
-    ((equalp db-name "local")
-     (error "BUG: trying to install a package from local?"))
-    ((equalp db-name "aur")
-     (install-aur-package pkg-name))
-    ((member db-name (mapcar #'car *sync-dbs*))
-     (install-binary-package db-name pkg-name))))
+(defun display-help ()
+  (format t "Usage: pak PACKAGE~%"))
 
 (defun main ()
-  )
+  (setf *on-error* :backtrace) ; TODO
+  (handler-bind ((error (lambda (c)
+                          (case *on-error*
+                            (debug (invoke-debugger c))
+                            (t (format t "Fatal error: ~A~%" c))))))
+    (enable-quit-on-sigint)
+    (let* ((args (cdr (getargv)))
+           (argc (length args)))
+      (cond
+        ((eql argc 1) 
+         (search-and-install-packages (first args)))
+        (t
+         (display-help))))))
+
+
+(defun build-core ()
+  #-sbcl(error "don't know how to build a core image")
+  #+sbcl(sb-ext:save-lisp-and-die "pak"
+                                  :toplevel #'main
+                                  :executable t))
 

@@ -1,7 +1,7 @@
 
-(in-package :pacman)
+(in-package :pak)
 
-(defparameter *pkgbuild-helper* "/home/sky/pacman/pkgbuild-helper.sh")
+(defparameter *pkgbuild-helper* "/home/sky/paktahn/pkgbuild-helper.sh")
 
 ;;; setup simplified json->lisp translation
 (defun simplified-camel-case-to-lisp (camel-string)
@@ -31,7 +31,7 @@
 
 (defun map-aur-packages (fn query)
   "Search AUR for a string"
-  (let ((json:*json-symbols-package* nil))
+  (let ((json:*json-symbols-package* #.*package*))
     (json:with-decoder-simple-clos-semantics
       (let ((json (drakma:http-request "http://aur.archlinux.org/rpc.php"
                                        :parameters `(("type" . "search")
@@ -44,11 +44,17 @@
 
 (defun get-pkgbuild-dependencies (pkgbuild-filename)
   (multiple-value-bind (return-value output-stream)
-      (run-program *pkgbuild-helper* '(name) :capture-output-p t)
+      (run-program *pkgbuild-helper* (list pkgbuild-filename)
+                   :capture-output-p t)
     (unless (zerop return-value)
       (error "Couldn't get dependencies from PKGBUILD :("))
-    ;; TODO: now read output
-    t))
+    (let ((deps (split-sequence #\Space (read-line output-stream)))
+          (makedeps (split-sequence #\Space (read-line output-stream))))
+      ;; TODO everything untested
+      (format t "deps: ~A~%" deps)
+      (format t "makedeps: ~A~%" makedeps)
+      ;; FIXME: need to find repos for the following
+      (mapcar #'install-package (append deps makedeps)))))
 
 (defun aur-tarball-uri (pkg-name)
   ;; TODO
