@@ -3,3 +3,7 @@ Attic
 pacman.git
 *.swp
 *~
+pkg
+pak
+paktahn
+paktahn-*.tar.*

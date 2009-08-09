@@ -14,7 +14,7 @@ source=(${pkgname}-${pkgver}.tar.bz2)
 build() {
   cd $srcdir
 
-  sbcl --noinform --lose-on-corruption --end-toplevel-options \
+  sbcl --noinform --lose-on-corruption --end-runtime-options \
        --load main.lisp \
        --eval "(pak::build-core :forkp nil)"
 
@@ -27,3 +27,4 @@ build() {
   cd $pkgdir/usr/bin
   ln -s paktahn pak
 }
+md5sums=('255a09779158bcaba4b5cb2e6a9223dc')
