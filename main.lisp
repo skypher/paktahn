@@ -4,9 +4,11 @@
 (require :drakma)
 (require :cffi)
 (require :alexandria)
-(require :split-sequence)
-(require :py-configparser)
+(require :metatilities)
 (require :getopt)
+(require :split-sequence)
+(require :cl-ppcre)
+(require :py-configparser)
 
 (defmacro without-package-variance-warnings (&body body)
   `(eval-when (:compile-toplevel :load-toplevel :execute)
@@ -18,6 +20,7 @@
       (:nicknames :pak)
       (:use :cl :cffi)
       (:import-from :alexandria :compose :curry :rcurry :ensure-list)
+      (:import-from :metatilities :push-end)
       (:import-from :split-sequence :split-sequence)))
 
 
@@ -86,7 +89,7 @@
       (format t "[installed]")))
   (format t "~%    ~A~%" description))
 
-(defun get-package-results (query &key quiet)
+(defun get-package-results (query &key (quiet t) exact)
   (declare (string query))
   (let* ((i 0)
          packages ; (ID REPO NAME)
@@ -95,16 +98,18 @@
                              (version (alpm-pkg-get-version pkg))
                              (desc (alpm-pkg-get-desc pkg)))
                         ;; TODO: search in desc, use regex
-                        (when (or (search query name :test #'equalp)
-                                  (search query desc :test #'equalp))
+                        (when (or (and exact (equalp query name))
+                                  (and (not exact)
+                                       (or (search query name :test #'equalp)
+                                           (search query desc :test #'equalp))))
                           (incf i)
-                          (push (list i (car db-spec) name) packages)
+                          (push-end (list i (car db-spec) name) packages)
                           (unless quiet
                             (print-package i (car db-spec) name version desc))))))
          (aur-pkg-fn (lambda (match)
                        (incf i)
                        (with-slots (id name version description) match
-                         (push (list i "aur" name) packages)
+                         (push-end (list i "aur" name) packages)
                          (unless quiet
                            (print-package i "aur" name version description))))))
     (map-db-packages db-pkg-fn)
@@ -155,23 +160,28 @@ pairs as cons cells."
   (map 'vector (lambda (i) (aref vector i))
        (expand-ranges (parse-ranges rangespec-string 0 (1- (length vector))))))
 
-(defun install-package (db-name pkg-name)
-  ;; TODO: this should be able to pass on multiple packages at once
-  ;; to Pacman
+(defun find-package-by-name (pkg-name)
+  ;; TODO multiple hit handling
+  (cdr (first (get-package-results pkg-name :exact t))))
+
+(defun install-package (pkg-name &key (db-name (first (find-package-by-name pkg-name))))
   (cond
+    ((not db-name)
+     (error "Couldn't find package ~S anywhere" pkg-name))
     ((equalp db-name "local")
-     (error "BUG: trying to install a package from local?"))
+     (error "BUG: trying to install a package from local"))
     ((equalp db-name "aur")
      (install-aur-package pkg-name))
     ((member db-name (mapcar #'car *sync-dbs*))
      (install-binary-package db-name pkg-name))))
 
 (defun search-and-install-packages (query)
-  (let* ((packages (get-package-results query))
+  (let* ((packages (get-package-results query :quiet nil))
          (total (length packages)))
     (flet ((show-prompt ()
              (format t "[1-~D] => " total)))
-      (format t "=>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
+      (format t "=>  -----------------------------------------------------------~%~
+                 =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
                  =>  -----------------------------------------------------------~%")
       (let* ((choices (loop for input = (progn (show-prompt)
                                                (getline))
@@ -182,8 +192,10 @@ pairs as cons cells."
                                                (member id choices))
                                              packages :key #'first))
              (chosen-packages (sort chosen-packages #'< :key #'first)))
+        (format t "chosen: ~S~%" chosen-packages)
         (mapcar (lambda (pkgspec)
-                  (apply #'install-package (cdr pkgspec)))
+                  (funcall #'install-package (third pkgspec)
+                           :db-name (second pkgspec)))
                 chosen-packages)))))
 
 (defun parse-options (argv)
@@ -193,25 +205,43 @@ pairs as cons cells."
 (defun display-help ()
   (format t "Usage: pak PACKAGE~%"))
 
-(defun main ()
+(defun main (argv &aux (argc (length argv)))
+  (cond
+    ((eql argc 1) 
+     (search-and-install-packages (first argv)))
+    ((and (eql argc 2) (eql (first argv) "-S"))
+     (install-package (second argv)))
+    (t
+      (display-help))))
+
+(defun core-main ()
   (setf *on-error* :backtrace) ; TODO
   (handler-bind ((error (lambda (c)
                           (case *on-error*
                             (debug (invoke-debugger c))
                             (t (format t "Fatal error: ~A~%" c))))))
+    (init-alpm)
+    (setf *local-db* (init-local-db))
+    (setf *sync-dbs* (init-sync-dbs))
+    (setf *print-pretty* nil)
     (enable-quit-on-sigint)
-    (let* ((args (cdr (getargv)))
-           (argc (length args)))
-      (cond
-        ((eql argc 1) 
-         (search-and-install-packages (first args)))
-        (t
-         (display-help))))))
+    (let ((argv (cdr (getargv))))
+      (main argv))))
 
-
-(defun build-core ()
+(defun build-core (&key forkp)
   #-sbcl(error "don't know how to build a core image")
-  #+sbcl(sb-ext:save-lisp-and-die "pak"
-                                  :toplevel #'main
-                                  :executable t))
+  #+sbcl(flet ((dump ()
+                 (sb-ext:save-lisp-and-die "paktahn"
+                                           :toplevel #'core-main
+                                           :executable t
+                                           :save-runtime-options t)))
+          (if forkp
+            (let ((pid (sb-posix:fork)))
+              (if (zerop pid)
+                (dump)
+                (progn
+                  (format t "INFO: waiting for child to finish building the core...~%")
+                  (sb-posix:waitpid pid 0)
+                  (format t "INFO: ...done~%"))))
+            (dump))))
 

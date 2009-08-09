@@ -1,7 +1,7 @@
 
 (in-package :pak)
 
-(defparameter *pkgbuild-helper* "/home/sky/paktahn/pkgbuild-helper.sh")
+(load "pkgbuild.lisp")
 
 ;;; setup simplified json->lisp translation
 (defun simplified-camel-case-to-lisp (camel-string)
@@ -42,49 +42,56 @@
           (dolist (match (coerce matches 'list))
             (funcall fn match)))))))
 
-(defun get-pkgbuild-dependencies (pkgbuild-filename)
-  (multiple-value-bind (return-value output-stream)
-      (run-program *pkgbuild-helper* (list pkgbuild-filename)
-                   :capture-output-p t)
-    (unless (zerop return-value)
-      (error "Couldn't get dependencies from PKGBUILD :("))
-    (let ((deps (split-sequence #\Space (read-line output-stream)))
-          (makedeps (split-sequence #\Space (read-line output-stream))))
-      ;; TODO everything untested
-      (format t "deps: ~A~%" deps)
-      (format t "makedeps: ~A~%" makedeps)
-      ;; FIXME: need to find repos for the following
-      (mapcar #'install-package (append deps makedeps)))))
+(defun install-dependencies (deps)
+  ;; TODO: error checking
+  (mapcar #'install-package deps))
 
 (defun aur-tarball-uri (pkg-name)
-  ;; TODO
-  (format nil "/~A.tgz" pkg-name))
+  (format nil "http://aur.archlinux.org/packages/~(~A~)/~(~A~).tar.gz"
+          pkg-name pkg-name))
 
 (defun aur-tarball-name (pkg-name)
-  ;; TODO
-  (format nil "/~A.tgz" pkg-name))
+  (format nil "~(~A~).tar.gz" pkg-name))
+
+(defun run-makepkg ()
+  (let ((return-value (run-program "makepkg" nil)))
+    (unless (zerop return-value)
+      ;; TODO restarts?
+      (error "Makepkg failed (status ~D)" return-value))
+    t))
 
 (defun install-aur-package (pkg-name)
   (format t "Installing package ~S from AUR." pkg-name)
   (let ((orig-dir (getcwd)))
     (unwind-protect
       (progn
+        ;; enter temporary directory
+        (chdir (tempdir))
+
         ;; download
         (download-file (aur-tarball-uri pkg-name))
         
         ;; unpack 
         (unpack-file (aur-tarball-name pkg-name))
 
-        (chdir pkg-name) ; FIXME correct?
-
-        ;; get dependencies, display, install
-        (multiple-value-bind (deps make-deps) (get-pkgbuild-dependencies "PKGBUILD")
-          (format t "~%deps: ~S~%makedeps: ~S~%" deps make-deps))
+        (chdir pkg-name)
 
         ;; ask user whether he wishes to edit the PKGBUILD
         (when (y-or-n-p "Edit PKGBUILD")
           (launch-editor "PKGBUILD"))
-        ;; TODO
-        )
-      (chdir orig-dir))))
+
+        (unless (y-or-n-p "Continue building ~S" pkg-name)
+          (return-from install-aur-package))
+
+        ;; get dependencies, display, install
+        (multiple-value-bind (deps make-deps) (get-pkgbuild-dependencies)
+          ;(format t "~%deps: ~S~%makedeps: ~S~%" deps make-deps)
+
+          (install-dependencies (append deps make-deps)))
+
+        (run-makepkg)
+
+        (run-pacman (list "-U" (get-pkgbuild-tarball-name))))
+      (chdir orig-dir))
+    t))
 

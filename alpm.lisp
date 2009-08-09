@@ -32,9 +32,12 @@
 (defcfun "alpm_pkg_get_version" :string (pkg :pointer))
 (defcfun "alpm_pkg_get_desc" :string (pkg :pointer))
 
-(alpm-initialize)
-(alpm-option-set-root "/")
-(alpm-option-set-dbpath "/var/lib/pacman")
+(defun init-alpm ()
+  (alpm-initialize)
+  (alpm-option-set-root "/")
+  (alpm-option-set-dbpath "/var/lib/pacman"))
+
+(init-alpm)
 
 (defun get-pacman-config ()
   (py-configparser:read-files
@@ -44,10 +47,16 @@
   (remove "options" (reverse (py-configparser:sections config))
                 :test #'equalp))
 
-(defparameter *local-db* (cons "local" (alpm-db-register-local)))
-(defparameter *sync-dbs* (mapcar (lambda (name)
-                                   (cons name (alpm-db-register-sync name)))
-                                 (get-enabled-repositories)))
+(defun init-local-db ()
+  (cons "local" (alpm-db-register-local)))
+
+(defun init-sync-dbs ()
+  (mapcar (lambda (name)
+            (cons name (alpm-db-register-sync name)))
+          (get-enabled-repositories)))
+
+(defparameter *local-db* (init-local-db))
+(defparameter *sync-dbs* (init-sync-dbs))
 
 (defun map-db-packages (fn &key (db-list *sync-dbs*))
   "Search a database for packages. FN will be called for each
@@ -71,19 +80,26 @@ objects."
                    :db-list (list *local-db*))
   nil)
 
+(defun run-pacman (args &key capture-output-p)
+  (with-pacman-lock
+    ;; --noconfirm is a kludge because of SBCL's run-program bug
+    ;; later offer interactive control of Pacman when this is fixed.
+    (run-program "sudo" (append (list "pacman" "--noconfirm" "--needed")
+                                args)
+                 :capture-output-p capture-output-p)))
+                 
+
 (defun install-binary-package (db-name pkg-name)
   "Use Pacman to install a package."
+  ;; TODO: check whether it's installed already
+  ;; TODO: take versions into account
   (when (equalp db-name "local")
     ;; TODO offer restarts: skip, reinstall from elsewhere
     (error "Can't install an already installed package."))
   (format t "Installing binary package ~S from repository ~S.~%"
           pkg-name db-name)
-  (with-pacman-lock
     (let* ((fully-qualified-pkg-name (format nil "~A/~A" db-name pkg-name))
-           (return-value (run-program "sudo"
-                                     (list "pacman" "-S"
-                                           "--noconfirm" ; kludge for RUN-PROGRAM bug
-                                           fully-qualified-pkg-name))))
+           (return-value (run-pacman (list "-S" fully-qualified-pkg-name))))
       (unless (zerop return-value)
-        (warn "Pacman exited with non-zero status ~D" return-value)))))
+        (warn "Pacman exited with non-zero status ~D" return-value))))
 
