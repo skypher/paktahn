@@ -26,6 +26,7 @@
 
 (in-package :pak)
 
+(load "readline.lisp")
 (load "util.lisp")
 (load "alpm.lisp")
 (load "aur.lisp")
@@ -178,16 +179,17 @@ pairs as cons cells."
 (defun search-and-install-packages (query)
   (let* ((packages (get-package-results query :quiet nil))
          (total (length packages)))
-    (flet ((show-prompt ()
-             (format t "[1-~D] => " total)))
+    (flet ((make-prompt ()
+             (format nil "[1-~D] => " total)))
       (format t "=>  -----------------------------------------------------------~%~
                  =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
                  =>  -----------------------------------------------------------~%")
-      (let* ((choices (loop for input = (progn (show-prompt)
-                                               (getline))
+      (let* ((choices (loop for input = (getline (make-prompt))
                             for ranges = (expand-ranges (parse-ranges input 0 total))
                             until ranges
-                            finally (return ranges)))
+                            finally (progn
+                                      (add-history input)
+                                      (return ranges))))
              (chosen-packages (remove-if-not (lambda (id)
                                                (member id choices))
                                              packages :key #'first))

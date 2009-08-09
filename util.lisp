@@ -62,17 +62,16 @@
                   (sb-ext:process-output result)))
   #-sbcl(error "no run-program"))
 
-(defun getline ()
+(defun getline (prompt)
   (finish-output *standard-output*)
-  (or (read-line *standard-input* nil) (quit)))
+  (or (readline (the string prompt)) (quit)))
 
 (defun ask-for-editor ()
   (format t "You do not have your EDITOR environment variable set.~%
           Please tell me the name of your preferred editor.")
-  (flet ((show-prompt () (format t " =>")))
-    (loop for input = (progn (show-prompt) (getline))
-          until input
-          finally (return input))))
+  (loop for input = (getline " => ")
+        until input
+        finally (return input)))
 
 (defun launch-editor (filename)
   (format t "INFO: editing is not supported yet, but here's~
