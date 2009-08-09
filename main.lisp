@@ -209,6 +209,8 @@ pairs as cons cells."
 
 (defun main (argv &aux (argc (length argv)))
   (cond
+    ((some (lambda (x) (member x '("-h" "--help") :test #'equalp)) argv)
+     (display-help))
     ((eql argc 1) 
      (search-and-install-packages (first argv)))
     ((and (eql argc 2) (eql (first argv) "-S"))
