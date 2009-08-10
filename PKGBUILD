@@ -15,7 +15,13 @@ source=(${pkgname}-${pkgver}.tar.bz2)
 build() {
   cd $srcdir
 
-  sh /home/sky/sbcl.git.dev/run-sbcl.sh \
+  if [ -d "/home/sky/sbcl.git.dev" ]; then
+    SBCL="sh /home/sky/sbcl.git.dev/run-sbcl.sh"
+  else
+    SBCL=sbcl
+  fi
+
+  $SBCL \
        --noinform --lose-on-corruption --end-runtime-options \
        --load main.lisp \
        --eval "(pak::build-core :forkp nil)"
