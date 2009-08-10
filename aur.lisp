@@ -61,7 +61,7 @@
     t))
 
 (defun install-aur-package (pkg-name)
-  (format t "Installing package ~S from AUR." pkg-name)
+  (format t "Installing package ~S from AUR.~%" pkg-name)
   (let ((orig-dir (getcwd)))
     (unwind-protect
       (progn

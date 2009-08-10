@@ -6,8 +6,11 @@
 
 (defmacro with-pacman-lock (&body body)
   `(progn
-     (when (probe-file *pacman-lock*)
-       (format t "Pacman is currently in use, waiting for it to finish..."))
+     (tagbody again
+       (when (probe-file *pacman-lock*)
+         (format t "Pacman is currently in use, waiting for it to finish...")
+         (sleep 1) ; this is cheap :/ use a cond wait instead.
+         (go again)))
      ,@body))
 
 

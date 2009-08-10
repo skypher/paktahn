@@ -23,8 +23,10 @@
       (:import-from :metatilities :push-end)
       (:import-from :split-sequence :split-sequence)))
 
-
 (in-package :pak)
+
+(declaim (optimize (debug 3) (safety 2) (speed 1) (space 1)))
+
 
 (load "readline.lisp")
 (load "util.lisp")
@@ -99,7 +101,7 @@
                              (version (alpm-pkg-get-version pkg))
                              (desc (alpm-pkg-get-desc pkg)))
                         ;; TODO: search in desc, use regex
-                        (when (or (and exact (equalp query name))
+                        (when (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
                                   (and (not exact)
                                        (or (search query name :test #'equalp)
                                            (search query desc :test #'equalp))))
@@ -205,7 +207,7 @@ pairs as cons cells."
   (getopt:getopt argv nil))
 
 (defun display-help ()
-  (format t "Usage: pak PACKAGE~%"))
+  (format t "Usage: paktahn PACKAGE~%"))
 
 (defun main (argv &aux (argc (length argv)))
   (cond
@@ -213,7 +215,7 @@ pairs as cons cells."
      (display-help))
     ((eql argc 1) 
      (search-and-install-packages (first argv)))
-    ((and (eql argc 2) (eql (first argv) "-S"))
+    ((and (eql argc 2) (equal (first argv) "-S"))
      (install-package (second argv)))
     (t
       (display-help))))
@@ -223,7 +225,8 @@ pairs as cons cells."
   (handler-bind ((error (lambda (c)
                           (case *on-error*
                             (debug (invoke-debugger c))
-                            (t (format t "Fatal error: ~A~%" c))))))
+                            (t (format t "Fatal error: ~A~%" c)
+                               (quit))))))
     (init-alpm)
     (setf *local-db* (init-local-db))
     (setf *sync-dbs* (init-sync-dbs))
@@ -238,7 +241,7 @@ pairs as cons cells."
                  (sb-ext:save-lisp-and-die "paktahn"
                                            :toplevel #'core-main
                                            :executable t
-                                           :save-runtime-options t)))
+                                           :save-runtime-options nil)))
           (if forkp
             (let ((pid (sb-posix:fork)))
               (if (zerop pid)

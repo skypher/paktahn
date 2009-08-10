@@ -46,9 +46,11 @@
          ;; TODO: use another separator in case someone used spaces
          ;; in the dep specs themselves.
       (let ((deps (mapcar #'parse-dep
-                          (split-sequence #\Space (field "depends"))))
+                          (split-sequence #\Space (field "depends")
+                                          :remove-empty-subseqs t)))
             (makedeps (mapcar #'parse-dep
-                              (split-sequence #\Space (field "makedepends")))))
+                              (split-sequence #\Space (field "makedepends")
+                                              :remove-empty-subseqs t))))
         ;(format t "deps: ~A~%" deps)
         ;(format t "makedeps: ~A~%" makedeps)
         ;; TODO: for now we just ignore version information

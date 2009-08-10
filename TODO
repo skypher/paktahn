@@ -1,6 +1,7 @@
 before initial release:
 
-  * editlin integration
+  * only install/upgrade packages if they're not in local already;
+    but check versions!
   * better support for standardized colored output
   * proper getopt support
   * support building from source (get deps, invoke sbcl)
