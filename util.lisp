@@ -107,8 +107,9 @@
              the PKGBUILD for review:~%==========~%")
   (tagbody again
     ;; FIXME: run-program kludge again, can't do interactive I/O.
-    (let* ((editor "cat" #+(or)(or (getenv "EDITOR")
-                                   (ask-for-editor)))
+    (let* ((editor #-run-program-fix "cat"
+                   #+run-program-fix (or (getenv "EDITOR")
+                                         (ask-for-editor)))
            (return-value (run-program editor filename)))
       (unless (zerop return-value)
         (warn "Editor ~S exited with non-zero status ~D" editor return-value)

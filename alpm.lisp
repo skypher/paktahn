@@ -85,9 +85,11 @@ objects."
 
 (defun run-pacman (args &key capture-output-p)
   (with-pacman-lock
-    ;; --noconfirm is a kludge because of SBCL's run-program bug
-    ;; later offer interactive control of Pacman when this is fixed.
-    (run-program "sudo" (append (list "pacman" "--noconfirm" "--needed")
+    ;; --noconfirm is a kludge because of SBCL's run-program bug.
+    ;; The fix for this problem is not in upstream yet.
+    (run-program "sudo" (append (list "pacman"
+                                      #-run-program-fix "--noconfirm"
+                                      "--needed")
                                 args)
                  :capture-output-p capture-output-p)))
                  
