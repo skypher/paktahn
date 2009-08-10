@@ -5,16 +5,18 @@ pkgver=0.8
 pkgrel=1
 pkgdesc="Package manager similar to yaourt and tupac"
 arch=('i686' 'x86_64')
-depends=('pacman' 'readline')
+depends=('pacman' 'readline' 'sudo')
 license=('GPL')
 url="http://gitorious.org/paktahn"
 makedepends=('sbcl')
+options=(!strip)
 source=(${pkgname}-${pkgver}.tar.bz2)
 
 build() {
   cd $srcdir
 
-  sbcl --noinform --lose-on-corruption --end-runtime-options \
+  sh /home/sky/sbcl.git.dev/run-sbcl.sh \
+       --noinform --lose-on-corruption --end-runtime-options \
        --load main.lisp \
        --eval "(pak::build-core :forkp nil)"
 
@@ -27,4 +29,6 @@ build() {
   cd $pkgdir/usr/bin
   ln -s paktahn pak
 }
-md5sums=('255a09779158bcaba4b5cb2e6a9223dc')
+md5sums=('214c6b2991fded15e05a7e04499bf5ad')
+md5sums=('546490c1a9337fd6a9587548f13e8f52')
+md5sums=('f89cc70f2d8d15f072a222960b4c9fd7')
