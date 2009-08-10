@@ -77,10 +77,10 @@
         (chdir pkg-name)
 
         ;; ask user whether he wishes to edit the PKGBUILD
-        (when (y-or-n-p "Edit PKGBUILD")
+        (when (ask-y/n "Edit PKGBUILD" t)
           (launch-editor "PKGBUILD"))
 
-        (unless (y-or-n-p "Continue building ~S" pkg-name)
+        (unless (ask-y/n (format nil "Continue building ~S" pkg-name) t)
           (return-from install-aur-package))
 
         ;; get dependencies, display, install

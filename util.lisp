@@ -66,6 +66,35 @@
   (finish-output *standard-output*)
   (or (readline (the string prompt)) (quit)))
 
+(defun ask-y/n (question-string &optional (default nil default-supplied-p))
+  (assert (member default '(t nil)))
+  (let ((y-ch (if (and default-supplied-p (eq default t)) #\Y #\y))
+        (n-ch (if (and default-supplied-p (eq default nil)) #\N #\n)))
+    (labels ((maybe-print-query (hint format-string &rest format-args)
+               (fresh-line *query-io*)
+               (when format-string
+                 (apply #'format *query-io* format-string format-args)
+                 (write-char #\Space *query-io*))
+               (format *query-io* "~A " hint)
+               (finish-output *query-io*))
+             (print-query ()
+               (maybe-print-query (format nil "(~C/~C)" y-ch n-ch)
+                                  question-string))
+             (query-read-char ()
+               (clear-input *query-io*)
+               (prog1 (read-char *query-io*)
+                 (clear-input *query-io*)))
+             (clarify-legal-query-input ()
+               (format *query-io* "~&Please type \"y\" for yes or \"n\" for no.~:[~; Hit RETURN for the default.~]~%" default-supplied-p)))
+      (loop (print-query)
+            (let ((ch (query-read-char)))
+              (cond 
+                ((member ch '(#\y #\Y)) (return t))
+                ((member ch '(#\n #\N)) (return nil))
+                ((and default-supplied-p (char-equal ch #\Newline))
+                 (return default))
+                (t (clarify-legal-query-input))))))))
+
 (defun ask-for-editor ()
   (format t "You do not have your EDITOR environment variable set.~%
           Please tell me the name of your preferred editor.")
@@ -83,7 +112,7 @@
            (return-value (run-program editor filename)))
       (unless (zerop return-value)
         (warn "Editor ~S exited with non-zero status ~D" editor return-value)
-        (when (y-or-n-p "Choose another editor")
+        (when (ask-y/n "Choose another editor?" t)
           (go again)))))
   (format t "~&==========~%"))
 
@@ -91,7 +120,7 @@
   (tagbody retry
     (let ((return-value (run-program "wget" (list "-c" uri))))
       (unless (zerop return-value)
-        (if (y-or-n-p "Download via wget failed with status ~D. Retry?" return-value)
+        (if (ask-y/n (format nil "Download via wget failed with status ~D. Retry?" return-value))
           (go retry)
           (return-from download-file)))
       t)))
@@ -100,7 +129,7 @@
   (tagbody retry
     (let ((return-value (run-program "tar" (list "xfvz" name))))
       (unless (zerop return-value)
-        (if (y-or-n-p "Unpacking failed with status ~D. Retry?" return-value)
+        (if (ask-y/n (format nil "Unpacking failed with status ~D. Retry?" return-value))
           (go retry)
           (return-from unpack-file)))
       t)))
