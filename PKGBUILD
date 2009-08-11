@@ -38,3 +38,5 @@ build() {
 md5sums=('214c6b2991fded15e05a7e04499bf5ad')
 md5sums=('546490c1a9337fd6a9587548f13e8f52')
 md5sums=('f89cc70f2d8d15f072a222960b4c9fd7')
+md5sums=('742dcfd8c2dc94a6ef70f2d3ce6a1bf2')
+md5sums=('812e911a0224439f30e555868282a269')

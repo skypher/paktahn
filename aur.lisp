@@ -37,10 +37,12 @@
                                        :parameters `(("type" . "search")
                                                      ("arg" . ,query)))))
         (check-type json string)
-        (let* ((result (json:decode-json-from-string json))
-               (matches (slot-value result 'results)))
-          (dolist (match (coerce matches 'list))
-            (funcall fn match)))))))
+        (let* ((response (json:decode-json-from-string json))
+               (results (slot-value response 'results)))
+          (if (equalp (slot-value response 'type) "search")
+            (dolist (match (coerce results 'list))
+              (funcall fn match))
+            (format t "INFO: AUR: ~A~%" results)))))))
 
 (defun install-dependencies (deps)
   ;; TODO: error checking

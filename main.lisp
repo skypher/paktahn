@@ -181,26 +181,28 @@ pairs as cons cells."
 (defun search-and-install-packages (query)
   (let* ((packages (get-package-results query :quiet nil))
          (total (length packages)))
-    (flet ((make-prompt ()
-             (format nil "[1-~D] => " total)))
-      (format t "=>  -----------------------------------------------------------~%~
-                 =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
-                 =>  -----------------------------------------------------------~%")
-      (let* ((choices (loop for input = (getline (make-prompt))
-                            for ranges = (expand-ranges (parse-ranges input 0 total))
-                            until ranges
-                            finally (progn
-                                      (add-history input)
-                                      (return ranges))))
-             (chosen-packages (remove-if-not (lambda (id)
-                                               (member id choices))
-                                             packages :key #'first))
-             (chosen-packages (sort chosen-packages #'< :key #'first)))
-        (format t "chosen: ~S~%" chosen-packages)
-        (mapcar (lambda (pkgspec)
-                  (funcall #'install-package (third pkgspec)
-                           :db-name (second pkgspec)))
-                chosen-packages)))))
+    (if (null packages)
+      (format t "INFO: Sorry, no packages matched ~S~%" query)
+      (flet ((make-prompt ()
+               (format nil "[1-~D] => " total)))
+        (format t "=>  -----------------------------------------------------------~%~
+                   =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
+                   =>  -----------------------------------------------------------~%")
+        (let* ((choices (loop for input = (getline (make-prompt))
+                              for ranges = (expand-ranges (parse-ranges input 0 total))
+                              until ranges
+                              finally (progn
+                                        (add-history input)
+                                        (return ranges))))
+               (chosen-packages (remove-if-not (lambda (id)
+                                                 (member id choices))
+                                               packages :key #'first))
+               (chosen-packages (sort chosen-packages #'< :key #'first)))
+          ;(format t "chosen: ~S~%" chosen-packages)
+          (mapcar (lambda (pkgspec)
+                    (funcall #'install-package (third pkgspec)
+                             :db-name (second pkgspec)))
+                  chosen-packages))))))
 
 (defun parse-options (argv)
   ;; TODO
@@ -218,7 +220,7 @@ pairs as cons cells."
     ((and (eql argc 2) (equal (first argv) "-S"))
      (install-package (second argv)))
     (t
-      (display-help))))
+     (display-help))))
 
 (defun core-main ()
   (setf *on-error* :backtrace) ; TODO

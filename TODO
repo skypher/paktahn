@@ -1,5 +1,7 @@
 before initial release:
 
+  * debug mode (backtrace on error and sigint)
+  * support for config file
   * only install/upgrade packages if they're not in local already;
     but check versions!
   * better support for standardized colored output
@@ -15,3 +17,6 @@ before initial release:
       continue/ignore
       sync-database
 
+later:
+
+  * proper SIGINT handling: http://www.cons.org/cracauer/sigint.html
