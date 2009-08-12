@@ -142,7 +142,7 @@ pairs as cons cells."
      (error "BUG: trying to install a package from local"))
     ((equalp db-name "aur")
      (install-aur-package pkg-name))
-    ((member db-name (mapcar #'car *sync-dbs*))
+    ((member db-name (mapcar #'car *sync-dbs*) :test #'equalp)
      (install-binary-package db-name pkg-name))))
 
 (defun search-and-install-packages (query)

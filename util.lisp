@@ -103,8 +103,10 @@
         finally (return input)))
 
 (defun launch-editor (filename)
-  (format t "INFO: editing is not supported yet, but here's~
-             the PKGBUILD for review:~%==========~%")
+  #-run-program-fix
+  (format t "INFO: editing is not supported because you're using Paktahn~%~
+             with an unpatched SBCL, but here's the PKGBUILD for review:~%~
+             ==========~%")
   (tagbody again
     ;; FIXME: run-program kludge again, can't do interactive I/O.
     (let* ((editor #-run-program-fix "cat"

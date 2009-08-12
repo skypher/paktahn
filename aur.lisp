@@ -46,7 +46,7 @@
 
 (defun install-dependencies (deps)
   ;; TODO: error checking
-  (mapcar #'install-package deps))
+  (mapcar 'install-package deps))
 
 (defun aur-tarball-uri (pkg-name)
   (format nil "http://aur.archlinux.org/packages/~(~A~)/~(~A~).tar.gz"
