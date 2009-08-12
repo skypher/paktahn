@@ -5,8 +5,15 @@
 
 (defparameter *cache-format-version* 0)
 
-(defparameter *cache-meta-file* "/var/cache/paktahn/meta")
-(defparameter *cache-contents-file* "/var/cache/paktahn/contents")
+(defparameter *cache-meta-file* nil)
+(defparameter *cache-contents-file* nil)
+
+(defun init-cache-paths ()
+  (flet ((conf (name)
+           (config-file (make-pathname :directory '(:relative "cache")
+                                       :name name))))
+  (setf *cache-meta-file* (conf "meta"))
+  (setf *cache-contents-file* (conf "contents"))))
 
 (defvar *cache-meta* nil
   "Cache meta information, a plist of the cache format version and the
@@ -61,6 +68,7 @@ contains a list of sublists (PKGNAME VERSION DESC).")
   #-sbcl(error "no get-alpm-last-update-time"))
 
 (defun init-cache ()
+  (init-cache-paths)
   (load-cache-meta)
   (cond
     ((null *cache-meta*)

@@ -33,6 +33,20 @@
   #+sbcl(sb-posix:getenv dir)
   #-sbcl(error "no getenv"))
 
+(defun homedir ()
+  (parse-namestring
+    (concatenate 'string (getenv "HOME") "/")))
+
+(defun home-relative (path)
+  (merge-pathnames (parse-namestring path) (homedir)))
+
+(defun config-file (path)
+  (let ((result (merge-pathnames
+                  (parse-namestring path)
+                  (home-relative ".paktahn/"))))
+    (ensure-directories-exist result)
+    result))
+
 (defun tempdir ()
   (let ((dir (or (getenv "PAKTAHN_TMPDIR") (getenv "TMPDIR") *default-tempdir*)))
     (unless (probe-file dir)
