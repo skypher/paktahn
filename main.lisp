@@ -1,5 +1,6 @@
 
 #+sbcl(require :sb-posix)
+(require :osicat)
 (require :cl-json)
 (require :drakma)
 (require :cffi)
