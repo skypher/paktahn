@@ -36,3 +36,5 @@ build() {
   ln -s paktahn pak
 }
 md5sums=('c7da0fd0e05a9df4da1adf7fb721f8e8')
+md5sums=('58f78e6645a3ef88ea328fc35310c6bc')
+md5sums=('333e3fa90c1737243ebc1dbd2a9bf771')
