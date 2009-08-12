@@ -28,6 +28,7 @@
 (declaim (optimize (debug 3) (safety 2) (speed 1) (space 1)))
 
 
+(load "pyconfig-fix.lisp")
 (load "readline.lisp")
 (load "util.lisp")
 (load "alpm.lisp")
