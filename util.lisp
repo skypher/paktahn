@@ -11,6 +11,8 @@
 (defun enable-quit-on-sigint ()
   #+sbcl(sb-sys:enable-interrupt sb-unix:sigint 
           (lambda (&rest args) (declare (ignore args))
+            (default-error-handler (make-condition 'simple-error
+                                                   :format-control "Interrupt"))
             (quit))))
 
 (defun getargv ()
@@ -174,3 +176,13 @@
   (let ((conf (config-file "config.lisp")))
     (when (probe-file conf)
       (load conf))))
+
+(defvar *on-error* :debug)
+
+(defun default-error-handler (c)
+  (ecase *on-error*
+    (:debug (invoke-debugger c))
+    (:backtrace (trivial-backtrace:print-backtrace c))
+    (:quit (format t "Fatal error: ~A~%" c)
+           (quit))))
+

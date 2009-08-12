@@ -1,6 +1,7 @@
 
 #+sbcl(require :sb-posix)
 (require :osicat)
+(require :trivial-backtrace)
 (require :cl-store)
 (require :cl-json)
 (require :drakma)
@@ -37,8 +38,6 @@
 (load "alpm.lisp")
 (load "aur.lisp")
 (load "cache.lisp")
-
-(defvar *on-error* :debug)
 
 (defun package-installed-p (pkg-name)
   (map-cached-packages (lambda (db-name pkg)
@@ -201,12 +200,9 @@ pairs as cons cells."
      (display-help))))
 
 (defun core-main ()
-  (setf *on-error* :backtrace) ; TODO
-  (handler-bind ((error (lambda (c)
-                          (case *on-error*
-                            (debug (invoke-debugger c))
-                            (t (format t "Fatal error: ~A~%" c)
-                               (quit))))))
+  "Primary entry point for the binary."
+  (setf *on-error* :quit)
+  (handler-bind ((error #'default-error-handler))
     (init-alpm)
     (setf *local-db* (init-local-db))
     (setf *sync-dbs* (init-sync-dbs))
