@@ -135,4 +135,22 @@
           (return-from unpack-file)))
       t)))
 
+(defparameter *info-fmt-prefix* "INFO: ")
+(defparameter *info-fmt-suffix* "~%")
+
+(defun info (fmt &rest args)
+  (with-term-colors (:fg 'white)
+    ;; TODO recursive format
+    (apply #'format t (concatenate 'string *info-fmt-prefix* fmt *info-fmt-suffix*)
+           args))
+  (finish-output *standard-output*))
+
+(defmacro with-progress-info ((fmt &rest args) &body body)
+  ;; TODO: support nested progress infos
+  `(progn
+     (let ((*info-fmt-suffix* ""))
+       (info (format nil "~A... " ,fmt) ,@args))
+     ,@body
+     (let ((*info-fmt-prefix* ""))
+       (info "done."))))
 
