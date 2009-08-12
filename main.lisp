@@ -1,6 +1,7 @@
 
 #+sbcl(require :sb-posix)
 (require :osicat)
+(require :cl-store)
 (require :cl-json)
 (require :drakma)
 (require :cffi)
@@ -35,9 +36,19 @@
 (load "util.lisp")
 (load "alpm.lisp")
 (load "aur.lisp")
+(load "cache.lisp")
 
 (defvar *on-error* :debug)
 
+(defun package-installed-p (pkg-name)
+  (map-cached-packages (lambda (db-name pkg)
+                         (declare (ignore db-name))
+                         (destructuring-bind (name version desc) pkg
+                           (declare (ignore version desc))
+                           (when (equalp name pkg-name)
+                             (return-from package-installed-p t))))
+                       :db-list (list *local-db*))
+  nil)
 
 (defun print-package (id db-name name version description)
   ;; TODO: out of date indicator, votes
@@ -63,26 +74,24 @@
   (declare (string query))
   (let* ((i 0)
          packages ; (ID REPO NAME)
-         (db-pkg-fn (lambda (db-spec pkg)
-                      (let* ((name (alpm-pkg-get-name pkg))
-                             (version (alpm-pkg-get-version pkg))
-                             (desc (alpm-pkg-get-desc pkg)))
+         (db-pkg-fn (lambda (db-name pkg)
+                      (destructuring-bind (name version desc) pkg
                         ;; TODO: search in desc, use regex
                         (when (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
                                   (and (not exact)
                                        (or (search query name :test #'equalp)
                                            (search query desc :test #'equalp))))
                           (incf i)
-                          (push-end (list i (car db-spec) name) packages)
+                          (push-end (list i db-name name) packages)
                           (unless quiet
-                            (print-package i (car db-spec) name version desc))))))
+                            (print-package i db-name name version desc))))))
          (aur-pkg-fn (lambda (match)
                        (incf i)
                        (with-slots (id name version description) match
                          (push-end (list i "aur" name) packages)
                          (unless quiet
                            (print-package i "aur" name version description))))))
-    (map-db-packages db-pkg-fn)
+    (map-cached-packages db-pkg-fn)
     (map-aur-packages aur-pkg-fn query)
     packages))
 

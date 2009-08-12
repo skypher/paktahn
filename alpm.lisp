@@ -74,15 +74,6 @@ objects."
     (dolist (db-spec db-list)
       (map-db db-spec))))
 
-(defun package-installed-p (pkg-name)
-  ;; TODO: cache names
-  (map-db-packages (lambda (db-spec pkg)
-                     (declare (ignore db-spec))
-                     (when (equalp (alpm-pkg-get-name pkg) pkg-name)
-                       (return-from package-installed-p t)))
-                   :db-list (list *local-db*))
-  nil)
-
 (defun run-pacman (args &key capture-output-p)
   (with-pacman-lock
     ;; --noconfirm is a kludge because of SBCL's run-program bug.
