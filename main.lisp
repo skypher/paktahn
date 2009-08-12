@@ -188,6 +188,8 @@ pairs as cons cells."
   (format t "Usage: paktahn PACKAGE~%"))
 
 (defun main (argv &aux (argc (length argv)))
+  "Secondary entry point: process config and command line."
+  (load-config)
   (cond
     ((some (lambda (x) (member x '("-h" "--help") :test #'equalp)) argv)
      (display-help))

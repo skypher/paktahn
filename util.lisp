@@ -170,3 +170,7 @@
      (let ((*info-fmt-prefix* ""))
        (info "done."))))
 
+(defun load-config ()
+  (let ((conf (config-file "config.lisp")))
+    (when (probe-file conf)
+      (load conf))))
