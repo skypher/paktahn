@@ -88,12 +88,13 @@
         ;; get dependencies, display, install
         (multiple-value-bind (deps make-deps) (get-pkgbuild-dependencies)
           ;(format t "~%deps: ~S~%makedeps: ~S~%" deps make-deps)
-
           (install-dependencies (append deps make-deps)))
 
         (run-makepkg)
 
         (run-pacman (list "-U" (get-pkgbuild-tarball-name))))
-      (chdir orig-dir))
+      ;; clean up
+      (chdir orig-dir)
+      (osicat:delete-directory-and-files pkg-name))
     t))
 
