@@ -3,6 +3,15 @@
 
 (defparameter *default-tempdir* "/var/tmp") ; TODO: separate subdir for Paktahn
 
+(defvar *on-error* :debug)
+
+(defun default-error-handler (c)
+  (ecase *on-error*
+    (:debug (invoke-debugger c))
+    (:backtrace (trivial-backtrace:print-backtrace c))
+    (:quit (format t "~&Fatal error: ~A~%" c)
+           (quit))))
+
 
 (defun quit ()
   #+sbcl(sb-ext:quit))
@@ -176,13 +185,4 @@
   (let ((conf (config-file "config.lisp")))
     (when (probe-file conf)
       (load conf))))
-
-(defvar *on-error* :debug)
-
-(defun default-error-handler (c)
-  (ecase *on-error*
-    (:debug (invoke-debugger c))
-    (:backtrace (trivial-backtrace:print-backtrace c))
-    (:quit (format t "Fatal error: ~A~%" c)
-           (quit))))
 
