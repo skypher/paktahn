@@ -62,9 +62,12 @@ contains a list of sublists (PKGNAME VERSION DESC).")
 (defun get-alpm-last-update-time ()
   "Get the date of the last ALPM db update, in universal time."
   #+sbcl
-    (+ (sb-posix:stat-mtime
-         (sb-posix:stat "/var/lib/pacman"))
-       sb-impl::unix-to-universal-time)
+  (flet ((mod-time/ut (file)
+           (+ (sb-posix:stat-mtime
+                (sb-posix:stat file))
+              sb-impl::unix-to-universal-time)))
+    (max (mod-time/ut "/var/lib/pacman/local")
+         (mod-time/ut "/var/lib/pacman/sync")))
   #-sbcl(error "no get-alpm-last-update-time"))
 
 (defun init-cache ()
