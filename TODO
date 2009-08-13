@@ -1,13 +1,13 @@
 before initial release:
 
+  * only refresh caches of dbs that have actually changed.
+  * -S must support multiple args
   * use OSICAT for file/dir ops
-  * debug mode (backtrace on error and sigint)
-  * support for config file
   * only install/upgrade packages if they're not in local already;
     but check versions!
   * better support for standardized colored output
   * proper getopt support
-  * support building from source (get deps, invoke sbcl)
+  * support convenient building from source (get deps, invoke sbcl)
   * website
   * proper help
   * actively support versioned deps

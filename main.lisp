@@ -142,7 +142,9 @@ pairs as cons cells."
   ;; TODO multiple hit handling
   (cdr (first (get-package-results pkg-name :exact t))))
 
-(defun install-package (pkg-name &key (db-name (first (find-package-by-name pkg-name))))
+(defun install-package (pkg-name &key (db-name (first (find-package-by-name pkg-name))) force)
+  (when (and (package-installed-p pkg-name) (not force))
+    (info "Package ~S is already installed, skipping." pkg-name))
   (cond
     ((not db-name)
      (error "Couldn't find package ~S anywhere" pkg-name))
