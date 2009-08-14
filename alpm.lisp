@@ -3,6 +3,7 @@
 
 
 (defparameter *pacman-lock* "/var/lib/pacman/db.lck")
+(defparameter *pacman-binary* "pacman")
 
 (defmacro with-pacman-lock (&body body)
   `(progn
@@ -78,7 +79,7 @@ objects."
   (with-pacman-lock
     ;; --noconfirm is a kludge because of SBCL's run-program bug.
     ;; The fix for this problem is not in upstream yet.
-    (run-program "sudo" (append (list "pacman"
+    (run-program "sudo" (append (list *pacman-binary*
                                       #-run-program-fix "--noconfirm"
                                       "--needed")
                                 args)
