@@ -1,5 +1,7 @@
 before initial release:
 
+  * record PKGBUILD md5 so we don't present the same file
+    repeatedly to the user for review
   * only refresh caches of dbs that have actually changed.
   * -S must support multiple args
   * use OSICAT for file/dir ops
