@@ -1,7 +1,7 @@
 
 (in-package :pak)
 
-(defparameter *default-tempdir* "/var/tmp") ; TODO: separate subdir for Paktahn
+(defparameter *default-tempdir* "/var/tmp/paktahn")
 
 (defvar *on-error* :debug)
 
@@ -47,6 +47,7 @@
         finally (return (nth n restarts))))
 
 (defun default-error-handler (c)
+  (term-reset-colors)
   (ecase *on-error*
     (:debug
      (invoke-debugger c))

@@ -94,6 +94,8 @@
         (run-pacman (list "-U" (get-pkgbuild-tarball-name))))
       ;; clean up
       (chdir orig-dir)
-      (osicat:delete-directory-and-files pkg-name))
+      (let ((pkg-pathname (make-pathname :directory `(:relative ,pkg-name))))
+        (when (probe-file pkg-pathname)
+          (osicat:delete-directory-and-files pkg-pathname))))
     t))
 

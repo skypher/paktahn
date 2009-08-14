@@ -26,6 +26,8 @@ build() {
        --load main.lisp \
        --eval "(pak::build-core :forkp nil)"
 
+  mkdir -p $pkgdir/var/tmp/paktahn # FIXME: should create dynamically
+
   mkdir -p $pkgdir/usr/bin
   install -m755 paktahn $pkgdir/usr/bin
 
@@ -36,3 +38,5 @@ build() {
   ln -s paktahn pak
 }
 md5sums=('1e9fb1bfb963d73ad741b6209afdf046')
+md5sums=('b8644caee7cf7a801ee062cc5db89a7a')
+md5sums=('0417044d9d8ac99f383455dce02cc59f')
