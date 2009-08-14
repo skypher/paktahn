@@ -150,7 +150,7 @@
       (unless (zerop return-value)
         (if (ask-y/n (format nil "Download via wget failed with status ~D. Retry?" return-value))
           (go retry)
-          (return-from download-file)))
+          (error "Failed to download file ~S" uri)))
       t)))
 
 (defun unpack-file (name)
@@ -159,7 +159,7 @@
       (unless (zerop return-value)
         (if (ask-y/n (format nil "Unpacking failed with status ~D. Retry?" return-value))
           (go retry)
-          (return-from unpack-file)))
+          (error "Failed to unpack file ~S" name)))
       t)))
 
 (defparameter *info-fmt-prefix* "INFO: ")
