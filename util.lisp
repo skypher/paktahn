@@ -51,7 +51,7 @@
      (invoke-debugger c))
     ((:backtrace :quit)
      (flet ((bail-out ()
-              (format t "~&Fatal error: ~A~%" c)
+              (format t "~&Fatal: ~A~%" c)
               (ecase *on-error*
                 (:backtrace
                  (trivial-backtrace:print-backtrace c)
@@ -63,7 +63,7 @@
                                                     muffle-warning)))
                                   (compute-restarts c) :key #'restart-name)))
          ;(format t "preprocessed restarts: ~S~%" restarts)
-         (when restarts
+         (and restarts (> (length restarts) 1)
            (let ((restart (ask-for-restart restarts)))
              (invoke-restart restart)))
          ;; out of options
@@ -212,12 +212,18 @@
 (defparameter *info-fmt-prefix* "==> ")
 (defparameter *info-fmt-suffix* "~%")
 
+(defun %info (fmt &rest args)
+  ;; TODO recursive format
+  (apply #'format t (concatenate 'string *info-fmt-prefix* fmt *info-fmt-suffix*) args)
+  (finish-output *standard-output*))
+
 (defun info (fmt &rest args)
   (with-term-colors (:fg 'white)
-    ;; TODO recursive format
-    (apply #'format t (concatenate 'string *info-fmt-prefix* fmt *info-fmt-suffix*)
-           args))
-  (finish-output *standard-output*))
+    (apply #'%info fmt args)))
+
+(defun note (fmt &rest args)
+  (with-term-colors (:fg 'white :boldp nil)
+    (apply #'%info fmt args)))
 
 (defmacro with-progress-info ((fmt &rest args) &body body)
   ;; TODO: support nested progress infos

@@ -93,8 +93,8 @@ objects."
   (when (equalp db-name "local")
     ;; TODO offer restarts: skip, reinstall from elsewhere
     (error "Can't install an already installed package."))
-  (format t "Installing binary package ~S from repository ~S.~%"
-          pkg-name db-name)
+  (info "Installing binary package ~S from repository ~S.~%"
+        pkg-name db-name)
     (let* ((fully-qualified-pkg-name (format nil "~A/~A" db-name pkg-name))
            (return-value (run-pacman (list "-S" fully-qualified-pkg-name))))
       (unless (zerop return-value)

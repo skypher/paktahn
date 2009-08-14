@@ -36,7 +36,7 @@
                (sleep 0.5)
                (go retry))
               (t
-               (info "Cache lock ~S grabbed by pid ~D is stale, removing it."
+               (note "Cache lock ~S grabbed by pid ~D is stale, removing it."
                      lock-file pid)
                (delete-file lock-file)))))))
     (with-open-file (lf lock-file :direction :output
@@ -157,23 +157,23 @@ contains a list of sublists (PKGNAME VERSION DESC).")
                   ;; old meta format
                   ((not (hash-table-p *cache-meta*))
                    (setf *cache-meta* nil)
-                   (info "Cache ~S not in proper format, rebuilding it from scratch."
+                   (note "Cache ~S not in proper format, rebuilding it from scratch."
                          db-name)
                    t)
                   ;; no meta info found
                   ((or (null *cache-meta*)
                        (null (gethash db-name *cache-meta*)))
-                   (info "Cache ~S not found, building it." db-name)
+                   (note "Cache ~S not found, building it." db-name)
                    t)
                   ;; stale
                   ((> (get-alpm-last-update-time db-name)
                       (getf (gethash db-name *cache-meta*) :last-update -1))
-                   (info "Cache ~S is out of date, refreshing." db-name)
+                   (note "Cache ~S is out of date, refreshing." db-name)
                    t)
                   ;; old format denoted by version
                   ((not (eql *cache-format-version*
                              (getf (gethash db-name *cache-meta*) :version -1)))
-                   (info "Cache is not compatible, rebuilding.")
+                   (note "Cache is not compatible, rebuilding.")
                    t))))
           (when needs-update-p
             (update-cache db-spec)

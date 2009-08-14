@@ -23,6 +23,7 @@ build() {
 
   $SBCL \
        --noinform --lose-on-corruption --end-runtime-options \
+       --eval "(pushnew :paktahn-deploy *features*)" \
        --load main.lisp \
        --eval "(pak::build-core :forkp nil)"
 

@@ -42,7 +42,7 @@
           (if (equalp (slot-value response 'type) "search")
             (dolist (match (coerce results 'list))
               (funcall fn match))
-            (format t "INFO: AUR: ~A~%" results)))))))
+            (note "AUR message: ~A" results)))))))
 
 (defun install-dependencies (deps)
   (mapcar 'install-package deps))
@@ -62,7 +62,7 @@
     t))
 
 (defun install-aur-package (pkg-name)
-  (format t "Installing package ~S from AUR.~%" pkg-name)
+  (info "Installing package ~S from AUR.~%" pkg-name)
   (let ((orig-dir (current-directory)))
     (unwind-protect
       (progn

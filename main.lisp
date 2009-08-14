@@ -233,7 +233,6 @@ pairs as cons cells."
 (defun core-main ()
   "Primary entry point for the binary."
   (setf *on-error* :quit)
-  (pushnew :paktahn-deploy *features*)
   (handler-bind ((error #'default-error-handler))
     (init-alpm)
     (setf *local-db* (init-local-db))
