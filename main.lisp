@@ -142,18 +142,46 @@ pairs as cons cells."
   ;; TODO multiple hit handling
   (cdr (first (get-package-results pkg-name :exact t))))
 
-(defun install-package (pkg-name &key (db-name (first (find-package-by-name pkg-name))) force)
-  (when (and (package-installed-p pkg-name) (not force))
-    (info "Package ~S is already installed, skipping." pkg-name))
-  (cond
-    ((not db-name)
-     (error "Couldn't find package ~S anywhere" pkg-name))
-    ((equalp db-name "local")
-     (error "BUG: trying to install a package from local"))
-    ((equalp db-name "aur")
-     (install-aur-package pkg-name))
-    ((member db-name (mapcar #'car *sync-dbs*) :test #'equalp)
-     (install-binary-package db-name pkg-name))))
+(defun install-package (pkg-name &key (db-name
+                                        (first (find-package-by-name pkg-name)))
+                                      force)
+  (labels ((do-install ()
+             (cond
+               ((and (package-installed-p pkg-name) (not force))
+                (info "Package ~S is already installed, skipping." pkg-name))
+               ((not db-name)
+                (restart-case
+                    (error "Couldn't find package ~S anywhere" pkg-name)
+                  (resync-db ()
+                    :report "Resync pacman databases (-Sy) and try again"
+                    (run-pacman '("-Sy"))
+                    (do-install))))
+               ((equalp db-name "local")
+                (error "BUG: trying to install a package from local"))
+               ((equalp db-name "aur")
+                (install-aur-package pkg-name))
+               ((member db-name (mapcar #'car *sync-dbs*) :test #'equalp)
+                (install-binary-package db-name pkg-name)))))
+    ;; either we're installing a root package and need to set up our
+    ;; environment to reflect this, or we're installing a dep and
+    ;; should check that the environment has been set up properly.
+    (declare (special *root-package*))
+    (cond
+      ;; installing a dep
+      ((boundp '*root-package*)
+       (assert *root-package*)
+       (check-type *root-package* string)
+       (do-install))
+      ;; installing an explicitly requested package
+      (t
+       (let ((*root-package* pkg-name))
+         (declare (special *root-package*))
+         (restart-case
+             (do-install)
+           (skip-package ()
+             :report (lambda (s)
+                       (format s "Skip package ~S and continue" *root-package*))
+             (values nil 'skipped))))))))
 
 (defun search-and-install-packages (query)
   (let* ((packages (get-package-results query :quiet nil))
@@ -212,7 +240,11 @@ pairs as cons cells."
     (setf *print-pretty* nil)
     (enable-quit-on-sigint)
     (let ((argv (cdr (getargv))))
-      (main argv))))
+      (restart-case
+          (main argv)
+        (quit ()
+          :report "Quit Paktahn"
+          (quit))))))
 
 (defun build-core (&key forkp)
   #-sbcl(error "don't know how to build a core image")

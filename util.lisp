@@ -5,12 +5,70 @@
 
 (defvar *on-error* :debug)
 
+(defun show-restarts (restarts s)
+  (cond ((null restarts)
+         (format s
+                 "~&(no restarts: If you didn't do this on purpose, ~
+                  please report it as a bug.)~%"))
+        (t
+         (format s "~&Please choose how you want to proceed:~%")
+         (let ((count 0)
+               (names-used '(nil))
+               (max-name-len 0))
+           (dolist (restart restarts)
+             (let ((name (restart-name restart)))
+               (when name
+                 (let ((len (length (princ-to-string name))))
+                   (when (> len max-name-len)
+                     (setf max-name-len len))))))
+           (unless (zerop max-name-len)
+             (incf max-name-len 3))
+           (dolist (restart restarts)
+             (let ((name (restart-name restart)))
+               ;; FIXME: maybe it would be better to display later names
+               ;; in parens instead of brakets, not just omit them fully.
+               ;; Call BREAK, call BREAK in the debugger, and tell me
+               ;; it's not confusing looking. --NS 20050310
+               (cond ((member name names-used)
+                      (format s "~& ~2D: ~V@T~A~%" count max-name-len restart))
+                     (t
+                      (format s "~& ~2D: [~VA] ~A~%"
+                              count (- max-name-len 3) name restart)
+                      (push name names-used))))
+             (incf count))))))
+
+(defun ask-for-restart (restarts)
+  ;; TODO should be *query-io* but GETLINE needs to be modified
+  (show-restarts restarts *standard-output*)
+  ;(trace parse-integer read-char)
+  (loop for x = (getline (format nil "~&[0-~D] ==> " (1- (length restarts))))
+        for n = (ignore-errors (parse-integer x))
+        until (and n (>= n 0) (< n (length restarts)))
+        finally (return (nth n restarts))))
+
 (defun default-error-handler (c)
   (ecase *on-error*
-    (:debug (invoke-debugger c))
-    (:backtrace (trivial-backtrace:print-backtrace c))
-    (:quit (format t "~&Fatal error: ~A~%" c)
-           (quit))))
+    (:debug
+     (invoke-debugger c))
+    ((:backtrace :quit)
+     (flet ((bail-out ()
+              (format t "~&Fatal error: ~A~%" c)
+              (ecase *on-error*
+                (:backtrace
+                 (trivial-backtrace:print-backtrace c)
+                 (quit))
+                (:quit
+                 (quit)))))
+       (let ((restarts (remove-if (lambda (name)
+                                    (member name '(abort use-value store-value
+                                                    muffle-warning)))
+                                  (compute-restarts c) :key #'restart-name)))
+         ;(format t "preprocessed restarts: ~S~%" restarts)
+         (when restarts
+           (let ((restart (ask-for-restart restarts)))
+             (invoke-restart restart)))
+         ;; out of options
+         (bail-out))))))
 
 
 (defun quit ()

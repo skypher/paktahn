@@ -14,10 +14,6 @@ before initial release:
   * actively support versioned deps
   * lightbg color scheme
   * add arch=i686 automatically, x86_64 after asking
-  * support generic restarts/cerror
-      exit
-      continue/ignore
-      sync-database
 
 later:
 
