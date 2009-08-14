@@ -196,14 +196,15 @@ pairs as cons cells."
      (display-help))
     ((eql argc 1) 
      (search-and-install-packages (first argv)))
-    ((and (eql argc 2) (equal (first argv) "-S"))
-     (install-package (second argv)))
+    ((and (>= argc 2) (equal (first argv) "-S"))
+     (mapcar #'install-package (cdr argv)))
     (t
      (display-help))))
 
 (defun core-main ()
   "Primary entry point for the binary."
   (setf *on-error* :quit)
+  (pushnew :paktahn-deploy *features*)
   (handler-bind ((error #'default-error-handler))
     (init-alpm)
     (setf *local-db* (init-local-db))

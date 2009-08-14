@@ -45,7 +45,6 @@
             (format t "INFO: AUR: ~A~%" results)))))))
 
 (defun install-dependencies (deps)
-  ;; TODO: error checking
   (mapcar 'install-package deps))
 
 (defun aur-tarball-uri (pkg-name)

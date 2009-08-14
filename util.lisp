@@ -14,7 +14,8 @@
 
 
 (defun quit ()
-  #+sbcl(sb-ext:quit))
+  #+paktahn-deploy
+    #+sbcl(sb-ext:quit))
 
 #+sbcl
 (defun enable-quit-on-sigint ()
@@ -162,7 +163,7 @@
           (error "Failed to unpack file ~S" name)))
       t)))
 
-(defparameter *info-fmt-prefix* "INFO: ")
+(defparameter *info-fmt-prefix* "==> ")
 (defparameter *info-fmt-suffix* "~%")
 
 (defun info (fmt &rest args)
