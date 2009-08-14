@@ -87,6 +87,10 @@
   #+sbcl sb-ext:*posix-argv*
   #-sbcl(error "no argv"))
 
+(defun getpid ()
+  #+sbcl(sb-posix:getpid)
+  #-sbcl(error "no getpid"))
+
 (defun getcwd ()
   #+sbcl(sb-posix:getcwd)
   #-sbcl(error "no getcwd"))
