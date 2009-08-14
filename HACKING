@@ -1,0 +1,15 @@
+
+development:
+
+First download the dependency tarball.
+
+Then:
+
+  % cd paktahn
+  % sbcl
+  * (require :asdf)
+  * (push "/path/to/clbuild.paktahn/" asdf:*central-registry*) ; mind trailing slash
+  * (load "main.lisp") ; repeat this line when you changed the source code
+  * (in-package :pak)
+  * ;; execute functions here (e.g. SEARCH-AND-INSTALL-PACKAGE)
+
