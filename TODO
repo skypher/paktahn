@@ -1,18 +1,19 @@
 before initial release:
 
+  * cache lock
   * record PKGBUILD md5 so we don't present the same file
     repeatedly to the user for review
   * only refresh caches of dbs that have actually changed.
   * use OSICAT for file/dir ops
   * only install/upgrade packages if they're not in local already;
     but check versions!
+  * actively support versioned deps
   * better support for standardized colored output
+  * lightbg color scheme
   * proper getopt support
-  * support convenient building from source (get deps, invoke sbcl)
+  * support convenient building of Paktahn from source (get deps, invoke sbcl)
   * website
   * proper help
-  * actively support versioned deps
-  * lightbg color scheme
   * add arch=i686 automatically, x86_64 after asking
 
 later:
