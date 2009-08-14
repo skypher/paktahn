@@ -63,11 +63,11 @@
 
 (defun install-aur-package (pkg-name)
   (format t "Installing package ~S from AUR.~%" pkg-name)
-  (let ((orig-dir (getcwd)))
+  (let ((orig-dir (current-directory)))
     (unwind-protect
       (progn
         ;; enter temporary directory
-        (chdir (tempdir))
+        (setf (current-directory) (tempdir))
 
         ;; download
         (download-file (aur-tarball-uri pkg-name))
@@ -75,7 +75,7 @@
         ;; unpack 
         (unpack-file (aur-tarball-name pkg-name))
 
-        (chdir pkg-name)
+        (setf (current-directory) pkg-name)
 
         ;; ask user whether he wishes to edit the PKGBUILD
         (when (ask-y/n "Edit PKGBUILD" t)
@@ -93,9 +93,17 @@
 
         (run-pacman (list "-U" (get-pkgbuild-tarball-name))))
       ;; clean up
-      (chdir orig-dir)
-      (let ((pkg-pathname (make-pathname :directory `(:relative ,pkg-name))))
-        (when (probe-file pkg-pathname)
-          (osicat:delete-directory-and-files pkg-pathname))))
+      (setf (current-directory) "..")
+      (let ((pkgdir (merge-pathnames
+                      (make-pathname :directory `(:relative ,pkg-name))
+                      (current-directory)))
+            (tarball (merge-pathnames
+                       (make-pathname :name (aur-tarball-name pkg-name))
+                       (current-directory))))
+        (when (probe-file pkgdir)
+          (osicat:delete-directory-and-files pkgdir))
+        (when (probe-file tarball)
+          (delete-file tarball)))
+      (setf (current-directory) orig-dir))
     t))
 

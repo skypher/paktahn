@@ -26,13 +26,13 @@
       (when (probe-file lock-file)
         (with-open-file (lf lock-file :direction :input
                                       :if-does-not-exist :error)
-          (let ((pid (parse-integer (read lf))))
+          (let ((pid (read lf)))
             (cond
               ((pid-active-p pid)
                (unless feedback-given-p
                  (setf feedback-given-p t)
                  (info "Another Paktahn instance (pid ~D) is currently accessing the ~
-                       disk cache for ~S, please wait..." db-name))
+                       disk cache for ~S, please wait..." pid db-name))
                (sleep 0.5)
                (go retry))
               (t
@@ -45,14 +45,21 @@
       (print (getpid) lf))))
 
 (defun release-cache-lock (db-name)
-  (delete-file (cache-lock-file db-name)))
+  (when (probe-file (cache-lock-file db-name))
+    (delete-file (cache-lock-file db-name))))
 
 (defmacro with-cache-lock (db-name &body body)
-  `(unwind-protect
-     (progn
-       (grab-cache-lock ,db-name)
-       ,@body)
-     (release-cache-lock ,db-name)))
+  `(locally
+     (declare (special *cache-lock-grabbed*))
+     (if (boundp '*cache-lock-grabbed*)
+       (progn
+         ,@body)
+       (unwind-protect
+         (let ((*cache-lock-grabbed* t)) 
+           (declare (special *cache-lock-grabbed*))
+           (grab-cache-lock ,db-name)
+           ,@body)
+         (release-cache-lock ,db-name)))))
 
 
 (defvar *cache-meta* nil
@@ -80,8 +87,10 @@ contains a list of sublists (PKGNAME VERSION DESC).")
 
 (defun update-cache (db-spec)
   "Update/build *cache-meta* and *cache-contents*."
-  (check-type *cache-meta* hash-table)
-  (check-type *cache-contents* hash-table)
+  (unless *cache-meta*
+    (setf *cache-meta* (make-hash-table :test #'equalp)))
+  (unless *cache-contents*
+    (setf *cache-contents* (make-hash-table :test #'equalp)))
   (let ((db-name (car db-spec)))
     (setf (gethash db-name *cache-meta*) nil)
     (setf (gethash db-name *cache-contents*) nil)

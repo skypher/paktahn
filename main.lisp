@@ -24,7 +24,8 @@
       (:use :cl :cffi)
       (:import-from :alexandria :compose :curry :rcurry :ensure-list)
       (:import-from :metatilities :push-end)
-      (:import-from :split-sequence :split-sequence)))
+      (:import-from :split-sequence :split-sequence)
+      (:import-from :osicat :current-directory :environment-variable)))
 
 (in-package :pak)
 

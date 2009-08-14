@@ -1,8 +1,6 @@
 
 (in-package :pak)
 
-(defparameter *default-tempdir* "/var/tmp/paktahn")
-
 (defvar *on-error* :debug)
 
 (defun show-restarts (restarts s)
@@ -92,25 +90,14 @@
   #+sbcl(sb-posix:getpid)
   #-sbcl(error "no getpid"))
 
-(defun getcwd ()
-  #+sbcl(sb-posix:getcwd)
-  #-sbcl(error "no getcwd"))
-
-(defun chdir (dir)
-  #+sbcl(sb-posix:chdir dir)
-  #-sbcl(error "no chdir"))
-
 (defun mkdir (dir &optional (mode #o755))
+  ;; TODO: ensure-directories-exist
   #+sbcl(sb-posix:mkdir dir mode)
   #-sbcl(error "no mkdir"))
 
-(defun getenv (dir)
-  #+sbcl(sb-posix:getenv dir)
-  #-sbcl(error "no getenv"))
-
 (defun homedir ()
   (parse-namestring
-    (concatenate 'string (getenv "HOME") "/")))
+    (concatenate 'string (environment-variable "HOME") "/")))
 
 (defun home-relative (path)
   (merge-pathnames (parse-namestring path) (homedir)))
@@ -123,13 +110,9 @@
     result))
 
 (defun tempdir ()
-  (let ((dir (or (getenv "PAKTAHN_TMPDIR") (getenv "TMPDIR") *default-tempdir*)))
-    (unless (probe-file dir)
-      ;; TODO: offer restarts CREATE, SPECIFY, DEFAULT
-      (warn "Temporary directory ~S doesn't exist, using default ~S"
-            dir *default-tempdir*)
-      (assert *default-tempdir*)
-      (setf dir *default-tempdir*))
+  (let ((dir (or (environment-variable "PAKTAHN_TMPDIR")
+                 (environment-variable "TMPDIR")
+                 (config-file "aur/"))))
     dir))
 
 (defun getuid ()
@@ -199,7 +182,7 @@
   (tagbody again
     ;; FIXME: run-program kludge again, can't do interactive I/O.
     (let* ((editor #-run-program-fix "cat"
-                   #+run-program-fix (or (getenv "EDITOR")
+                   #+run-program-fix (or (environment-variable "EDITOR")
                                          (ask-for-editor)))
            (return-value (run-program editor filename)))
       (unless (zerop return-value)
