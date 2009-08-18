@@ -9,7 +9,8 @@
 
 
 (defun term-set (modes)
-  (format t "~C[~Dm" #\Escape modes))
+  (format t "~C[~Dm" #\Escape modes)
+  (finish-output *standard-output*))
 
 (defun term-set-fg-color (colorname &key (boldp t))
   (let ((colid (cdr (assoc colorname *ansi-colors*))))

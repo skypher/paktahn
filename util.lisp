@@ -1,6 +1,33 @@
 
 (in-package :pak)
 
+;;;; infos, notes, progress
+(defparameter *info-fmt-prefix* "==> ")
+(defparameter *info-fmt-suffix* "~%")
+
+(defun %info (fmt &rest args)
+  ;; TODO recursive format
+  (apply #'format t (concatenate 'string *info-fmt-prefix* fmt *info-fmt-suffix*) args)
+  (finish-output *standard-output*))
+
+(defun info (fmt &rest args)
+  (with-term-colors (:fg 'white)
+    (apply #'%info fmt args)))
+
+(defun note (fmt &rest args)
+  (with-term-colors (:fg 'white :boldp nil)
+    (apply #'%info fmt args)))
+
+(defmacro with-progress-info ((fmt &rest args) &body body)
+  ;; TODO: support nested progress infos
+  `(progn
+     (let ((*info-fmt-suffix* ""))
+       (info (format nil "~A... " ,fmt) ,@args))
+     ,@body
+     (let ((*info-fmt-prefix* ""))
+       (info "done."))))
+
+;;;; error handling
 (defvar *on-error* :debug)
 
 (defun show-restarts (restarts s)
@@ -38,20 +65,22 @@
 (defun ask-for-restart (restarts)
   ;; TODO should be *query-io* but GETLINE needs to be modified
   (show-restarts restarts *standard-output*)
+  (format *standard-output* "~%")
   ;(trace parse-integer read-char)
   (loop for x = (getline (format nil "~&[0-~D] ==> " (1- (length restarts))))
         for n = (ignore-errors (parse-integer x))
         until (and n (>= n 0) (< n (length restarts)))
         finally (return (nth n restarts))))
 
-(defun default-error-handler (c)
+(defun default-error-handler (c &key before-invoke-restart-fn)
   (term-reset-colors)
+  (let ((*info-fmt-prefix* "~&~%==> "))
+    (info "~A" c))
   (ecase *on-error*
     (:debug
      (invoke-debugger c))
     ((:backtrace :quit)
      (flet ((bail-out ()
-              (format t "~&Fatal: ~A~%" c)
               (ecase *on-error*
                 (:backtrace
                  (trivial-backtrace:print-backtrace c)
@@ -65,23 +94,42 @@
          ;(format t "preprocessed restarts: ~S~%" restarts)
          (and restarts (> (length restarts) 1)
            (let ((restart (ask-for-restart restarts)))
+             (when before-invoke-restart-fn
+               (funcall before-invoke-restart-fn))
              (invoke-restart restart)))
          ;; out of options
          (bail-out))))))
 
 
+;;;; quit and interruptions
 (defun quit ()
   #+paktahn-deploy
     #+sbcl(sb-ext:quit))
 
 #+sbcl
 (defun enable-quit-on-sigint ()
-  #+sbcl(sb-sys:enable-interrupt sb-unix:sigint 
-          (lambda (&rest args) (declare (ignore args))
-            (default-error-handler (make-condition 'simple-error
-                                                   :format-control "Interrupt"))
-            (quit))))
+  #+sbcl(labels ((install-handler (handler)
+                   (sb-sys:enable-interrupt sb-unix:sigint handler))
+                 (level2-handler (&rest args)
+                   "No messing around, the user's serious this time."
+                   (declare (ignore args))
+                   (quit))
+                 (level1-handler (&rest args)
+                   "Present restarts if applicable."
+                   (declare (ignore args))
+                   (install-handler #'level2-handler)
+                   (sb-sys:with-interrupts
+                     (default-error-handler
+                       (make-condition 'simple-error
+                                       :format-control "Interrupt")
+                       :before-invoke-restart-fn (lambda ()
+                                                   (install-handler
+                                                     #'level2-handler))))
+                   (quit)))
+          (install-handler #'level1-handler)))
 
+
+;;;; posix and friends
 (defun getargv ()
   #+sbcl sb-ext:*posix-argv*
   #-sbcl(error "no argv"))
@@ -134,6 +182,8 @@
                   (sb-ext:process-output result)))
   #-sbcl(error "no run-program"))
 
+
+;;;; interactive stuff
 (defun getline (prompt)
   (finish-output *standard-output*)
   (or (readline (the string prompt)) (quit)))
@@ -145,9 +195,13 @@
     (labels ((maybe-print-query (hint format-string &rest format-args)
                (fresh-line *query-io*)
                (when format-string
-                 (apply #'format *query-io* format-string format-args)
-                 (write-char #\Space *query-io*))
-               (format *query-io* "~A " hint)
+                 (let ((*info-fmt-suffix* ""))
+                   (apply #'info format-string format-args)) ; FIXME: *query-io*
+                 (write-char #\Space *query-io*)
+                 (finish-output *query-io*))
+               (let ((*info-fmt-prefix* "")
+                     (*info-fmt-suffix* ""))
+                   (info "~A " hint)) ; FIXME: *query-io*
                (finish-output *query-io*))
              (print-query ()
                (maybe-print-query (format nil "(~C/~C)" y-ch n-ch)
@@ -189,7 +243,8 @@
         (warn "Editor ~S exited with non-zero status ~D" editor return-value)
         (when (ask-y/n "Choose another editor?" t)
           (go again)))))
-  (format t "~&==========~%"))
+  #-run-program-fix
+    (format t "~&==========~%"))
 
 (defun download-file (uri)
   (tagbody retry
@@ -209,31 +264,8 @@
           (error "Failed to unpack file ~S" name)))
       t)))
 
-(defparameter *info-fmt-prefix* "==> ")
-(defparameter *info-fmt-suffix* "~%")
 
-(defun %info (fmt &rest args)
-  ;; TODO recursive format
-  (apply #'format t (concatenate 'string *info-fmt-prefix* fmt *info-fmt-suffix*) args)
-  (finish-output *standard-output*))
-
-(defun info (fmt &rest args)
-  (with-term-colors (:fg 'white)
-    (apply #'%info fmt args)))
-
-(defun note (fmt &rest args)
-  (with-term-colors (:fg 'white :boldp nil)
-    (apply #'%info fmt args)))
-
-(defmacro with-progress-info ((fmt &rest args) &body body)
-  ;; TODO: support nested progress infos
-  `(progn
-     (let ((*info-fmt-suffix* ""))
-       (info (format nil "~A... " ,fmt) ,@args))
-     ,@body
-     (let ((*info-fmt-prefix* ""))
-       (info "done."))))
-
+;;;; configuration
 (defun load-config ()
   (let ((conf (config-file "config.lisp")))
     (when (probe-file conf)
