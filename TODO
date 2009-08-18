@@ -1,6 +1,5 @@
 before initial release:
 
-  * support convenient building of Paktahn from source (get deps, invoke sbcl)
 
   * record PKGBUILD md5 so we don't present the same file
     repeatedly to the user for review
