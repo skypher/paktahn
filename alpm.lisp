@@ -6,11 +6,13 @@
 (defparameter *pacman-binary* "pacman")
 
 (defmacro with-pacman-lock (&body body)
-  `(progn
+  `(let (notified)
      (tagbody again
        (when (probe-file *pacman-lock*)
-         (format t "Pacman is currently in use, waiting for it to finish...")
-         (sleep 1) ; this is cheap :/ use a cond wait instead.
+         (unless notified
+           (info "Pacman is currently in use, waiting for it to finish...")
+           (setf notified t))
+         (sleep 1) ; maybe there's a better way? some ioctl?
          (go again)))
      ,@body))
 
