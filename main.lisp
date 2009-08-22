@@ -50,29 +50,31 @@
                        :db-list (list *local-db*))
   nil)
 
-(defun print-package (id db-name name version description)
+(defun print-package (id db-name name version description &key (stream *standard-output*))
   ;; TODO: out of date indicator, votes
-  (with-term-colors (:fg 'yellow :invertp t)
-    (format t "~D" id))
-  (format t " ")
-  (with-term-colors (:fg (or (cdr (assoc db-name *db-colors*
-                                         :test #'string-equal))
-                             'magenta))
-    (format t "~A/" db-name))
-  (with-term-colors (:fg 'white)
-    (format t "~A" name))
-  (format t " ")
-  (with-term-colors (:fg 'green)
-    (format t "~A" version))
-  (when (package-installed-p name)
-    (format t " ")
+  (let ((*standard-output* stream))
     (with-term-colors (:fg 'yellow :invertp t)
-      (format t "[installed]")))
-  (format t "~%    ~A~%" description))
+      (format t "~D" id))
+    (format t " ")
+    (with-term-colors (:fg (or (cdr (assoc db-name *db-colors*
+                                           :test #'string-equal))
+                               'magenta))
+      (format t "~A/" db-name))
+    (with-term-colors (:fg 'white)
+      (format t "~A" name))
+    (format t " ")
+    (with-term-colors (:fg 'green)
+      (format t "~A" version))
+    (when (package-installed-p name)
+      (format t " ")
+      (with-term-colors (:fg 'yellow :invertp t)
+        (format t "[installed]")))
+    (format t "~%    ~A~%" description)))
 
-(defun get-package-results (query &key (quiet t) exact)
+(defun get-package-results (query &key (quiet t) exact (stream *standard-output*))
   (declare (string query))
-  (let* ((i 0)
+  (let* ((*print-pretty* nil)
+         (i 0)
          packages ; (ID REPO NAME)
          (db-pkg-fn (lambda (db-name pkg)
                       (destructuring-bind (name version desc) pkg
@@ -84,13 +86,13 @@
                           (incf i)
                           (push-end (list i db-name name) packages)
                           (unless quiet
-                            (print-package i db-name name version desc))))))
+                            (print-package i db-name name version desc :stream stream))))))
          (aur-pkg-fn (lambda (match)
                        (incf i)
                        (with-slots (id name version description) match
                          (push-end (list i "aur" name) packages)
                          (unless quiet
-                           (print-package i "aur" name version description))))))
+                           (print-package i "aur" name version description :stream stream))))))
     (map-cached-packages db-pkg-fn)
     (map-aur-packages aur-pkg-fn query)
     packages))
@@ -185,18 +187,28 @@ pairs as cons cells."
              (values nil 'skipped))))))))
 
 (defun search-and-install-packages (query)
-  (let* ((packages (get-package-results query :quiet nil))
+  (let* ((pkglist (make-string-output-stream))
+         (packages (get-package-results query :quiet nil :stream pkglist))
+         (pkglist (get-output-stream-string pkglist))
          (total (length packages)))
     (if (null packages)
-      (format t "INFO: Sorry, no packages matched ~S~%" query)
-      (flet ((make-prompt ()
+      (info "Sorry, no packages matched ~S~%" query)
+      (flet ((print-list ()
+               (format *standard-output* "~A" pkglist)) ; TODO: use write
+             (make-prompt ()
                (format nil "[1-~D] => " total)))
+        (print-list)
         (format t "=>  -----------------------------------------------------------~%~
                    =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
+                   =>  Empty line prints the package list again.~%~
                    =>  -----------------------------------------------------------~%")
         (let* ((choices (loop for input = (getline (make-prompt))
-                              for ranges = (expand-ranges (parse-ranges input 0 total))
+                              for got-input-p = (and input (not (equal input "")))
+                              for ranges = (when got-input-p
+                                             (expand-ranges (parse-ranges input 0 total)))
                               until ranges
+                              unless got-input-p
+                                do (print-list)
                               finally (progn
                                         (add-history input)
                                         (return ranges))))
