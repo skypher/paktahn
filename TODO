@@ -1,24 +1,27 @@
 before initial release:
 
-  * "retry" restart in install-package
+  * -G: just download and unpack AUR tarball of package
+
+  * URI: download pkgbuild or tarball and process it
+
+  * banner (and config option to disable it)
+
+  * highlight [X-X]
+
+  * support for pkg groups
+
+  * color schemes/lightbg color scheme
+
+  * better support for standardized colored output
+    (e.g. highlight repos in info messages, support nested progress levels)
 
   * show backtrace/enter debugger restart
 
   * basic versioning support (package-installed-p)
 
-  * check cache build/update interrupt behavior
-
-  * support for pkg groups
-
-  * highlight [X-X]
-
-  * deps: sudo, fakeroot
+  * patched sbcl, OSICAT fix
 
   * $EDITOR: other than vim, invalid
-
-  * AUR: show package description
-
-  * patched sbcl, OSICAT fix
 
   * record PKGBUILD md5 so we don't present the same file
     repeatedly to the user for review
@@ -26,10 +29,6 @@ before initial release:
   * add arch=i686 automatically, x86_64 after asking
 
   * add md5/sha1 (makepkg -g) if they are missing, after asking the user
-
-  * better support for standardized colored output
-
-  * color schemes/lightbg color scheme
 
   * proper getopt support, -Sy, -Q, -Ql, -Qs
 
@@ -43,7 +42,7 @@ later:
   * sorting the output of an AUR search ie. alphabetically, votes,
     date submitted, last updated etc. (by quigybo)
 
-  * actively support versioned deps, [out of date] marker
+  * actively support versioned deps
 
   * support su (and friends) besides sudo
 
