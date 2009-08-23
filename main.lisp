@@ -189,7 +189,13 @@ pairs as cons cells."
       ((boundp '*root-package*)
        (assert *root-package*)
        (check-type *root-package* string)
-       (do-install))
+       (tagbody retry
+         (restart-case
+             (do-install)
+           (retry ()
+             :report (lambda (s)
+                       (format s "Retry installation of package ~S" pkg-name))
+             (go retry)))))
       ;; installing an explicitly requested package
       (t
        (let ((*root-package* pkg-name))
