@@ -37,6 +37,9 @@ build() {
   mkdir -p $pkgdir/usr/lib/paktahn
   install -m755 pkgbuild-helper.sh $pkgdir/usr/lib/paktahn
 
+  install -m644 $srcdir/clbuild.paktahn/source/osicat/posix/libosicat.so \
+                $pkgdir/usr/lib
+
   cd $pkgdir/usr/bin
   ln -s paktahn pak
 }

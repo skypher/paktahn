@@ -242,10 +242,19 @@ pairs as cons cells."
     (t
      (display-help))))
 
+;; osicat so hack
+(define-foreign-library libosicat (:unix "libosicat.so"))
+
+(defun init-osicat ()
+  (load-foreign-library 'libosicat))
+
+(init-osicat)
+
 (defun core-main ()
   "Primary entry point for the binary."
   (setf *on-error* :quit)
   (handler-bind ((error #'default-error-handler))
+    (init-osicat)
     (init-alpm)
     (setf *local-db* (init-local-db))
     (setf *sync-dbs* (init-sync-dbs))
@@ -260,18 +269,20 @@ pairs as cons cells."
 
 (defun build-core (&key forkp)
   #-sbcl(error "don't know how to build a core image")
-  #+sbcl(flet ((dump ()
-                 (sb-ext:save-lisp-and-die "paktahn"
-                                           :toplevel #'core-main
-                                           :executable t
-                                           :save-runtime-options nil)))
-          (if forkp
-            (let ((pid (sb-posix:fork)))
-              (if (zerop pid)
-                (dump)
-                (progn
-                  (format t "INFO: waiting for child to finish building the core...~%")
-                  (sb-posix:waitpid pid 0)
-                  (format t "INFO: ...done~%"))))
-            (dump))))
+  #+sbcl(progn
+          (cffi:close-foreign-library 'libosicat)
+          (flet ((dump ()
+                       (sb-ext:save-lisp-and-die "paktahn"
+                                                 :toplevel #'core-main
+                                                 :executable t
+                                                 :save-runtime-options nil)))
+            (if forkp
+              (let ((pid (sb-posix:fork)))
+                (if (zerop pid)
+                  (dump)
+                  (progn
+                    (format t "INFO: waiting for child to finish building the core...~%")
+                    (sb-posix:waitpid pid 0)
+                    (format t "INFO: ...done~%"))))
+              (dump)))))
 
