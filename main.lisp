@@ -40,12 +40,14 @@
 (load "aur.lisp")
 (load "cache.lisp")
 
-(defun package-installed-p (pkg-name)
+(defun package-installed-p (pkg-name &optional pkg-version)
   (map-cached-packages (lambda (db-name pkg)
                          (declare (ignore db-name))
                          (destructuring-bind (name version desc) pkg
-                           (declare (ignore version desc))
-                           (when (equalp name pkg-name)
+                           (declare (ignore desc))
+                           (when (and (equalp name pkg-name)
+                                      (or (null pkg-version)
+                                          (equalp pkg-version version)))
                              (return-from package-installed-p t))))
                        :db-list (list *local-db*))
   nil)
