@@ -40,7 +40,9 @@
         (let* ((response (json:decode-json-from-string json))
                (results (slot-value response 'results)))
           (if (equalp (slot-value response 'type) "search")
-            (dolist (match (coerce results 'list))
+            (dolist (match (sort (coerce results 'list) #'string<
+                                 :key (lambda (result)
+                                        (slot-value result 'name))))
               (funcall fn match))
             (note "AUR message: ~A" results)))))))
 
