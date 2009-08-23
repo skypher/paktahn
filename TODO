@@ -6,8 +6,6 @@ before initial release:
 
   * banner (and config option to disable it)
 
-  * highlight [X-X]
-
   * support for pkg groups
 
   * color schemes/lightbg color scheme
@@ -19,7 +17,7 @@ before initial release:
 
   * basic versioning support (package-installed-p)
 
-  * patched sbcl, OSICAT fix
+  * patched sbcl
 
   * $EDITOR: other than vim, invalid
 

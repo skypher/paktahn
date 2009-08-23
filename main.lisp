@@ -217,7 +217,8 @@ pairs as cons cells."
       (flet ((print-list ()
                (format *standard-output* "~A" pkglist)) ; TODO: use write
              (make-prompt ()
-               (format nil "[1-~D] => " total)))
+               (with-term-colors (:fg 'white)
+                 (format nil "[1-~D] => " total))))
         (print-list)
         (format t "=>  -----------------------------------------------------------~%~
                    =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
