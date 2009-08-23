@@ -50,25 +50,36 @@
                        :db-list (list *local-db*))
   nil)
 
-(defun print-package (id db-name name version description &key (stream *standard-output*))
-  ;; TODO: out of date indicator, votes
+(defun print-package (id db-name name version description &key (stream *standard-output*) out-of-date-p)
+  ;; TODO: votes
   (let ((*standard-output* stream))
+    ;; id
     (with-term-colors (:fg 'yellow :invertp t)
       (format t "~D" id))
     (format t " ")
+    ;; db
     (with-term-colors (:fg (or (cdr (assoc db-name *db-colors*
                                            :test #'string-equal))
                                'magenta))
       (format t "~A/" db-name))
+    ;; name
     (with-term-colors (:fg 'white)
       (format t "~A" name))
+    ;; version
     (format t " ")
     (with-term-colors (:fg 'green)
       (format t "~A" version))
-    (when (package-installed-p name)
+    ;; installation status
+    (when (package-installed-p name) ; TODO: version
       (format t " ")
       (with-term-colors (:fg 'yellow :invertp t)
         (format t "[installed]")))
+    ;; out of date? (aur-only)
+    (when out-of-date-p
+      (format t " ")
+      (with-term-colors (:fg 'red :invertp t)
+        (format t "[out of date]")))
+    ;; description
     (format t "~%    ~A~%" description)))
 
 (defun get-package-results (query &key (quiet t) exact (stream *standard-output*))
@@ -89,10 +100,12 @@
                             (print-package i db-name name version desc :stream stream))))))
          (aur-pkg-fn (lambda (match)
                        (incf i)
-                       (with-slots (id name version description) match
+                       (with-slots (id name version description out-of-date) match
                          (push-end (list i "aur" name) packages)
                          (unless quiet
-                           (print-package i "aur" name version description :stream stream))))))
+                           (print-package i "aur" name version description
+                                          :stream stream
+                                          :out-of-date-p (equal out-of-date "1")))))))
     (map-cached-packages db-pkg-fn)
     (map-aur-packages aur-pkg-fn query)
     packages))
