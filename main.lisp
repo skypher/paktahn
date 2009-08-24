@@ -270,7 +270,7 @@ pairs as cons cells."
 (defun init-osicat ()
   (load-foreign-library 'libosicat))
 
-(init-osicat)
+#-paktahn-deploy(init-osicat)
 
 (defun core-main ()
   "Primary entry point for the binary."
