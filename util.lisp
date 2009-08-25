@@ -138,6 +138,18 @@
   #+sbcl(sb-posix:getpid)
   #-sbcl(error "no getpid"))
 
+(defun current-directory ()
+  (let ((cwd (sb-posix:getcwd)))
+    (if cwd
+      (pathname (concatenate 'string cwd "/"))
+      (error "Could not get current directory."))))
+
+(defun (setf current-directory) (pathspec)
+  (sb-posix:chdir pathspec))
+
+(defun environment-variable (name)
+  (sb-posix:getenv name))
+
 (defun mkdir (dir &optional (mode #o755))
   ;; TODO: ensure-directories-exist
   #+sbcl(sb-posix:mkdir dir mode)
@@ -270,4 +282,10 @@
   (let ((conf (config-file "config.lisp")))
     (when (probe-file conf)
       (load conf))))
+
+(defun delete-directory-and-files (dir)
+  (let ((result (run-program "rm" (list "-rf" "--" (namestring dir)))))
+    (unless (zerop result)
+      (cerror "Continue anyway" "Could't remove directory ~S recursively" dir))
+    t))
 

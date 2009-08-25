@@ -103,7 +103,7 @@
                        (make-pathname :name (aur-tarball-name pkg-name))
                        (current-directory))))
         (when (probe-file pkgdir)
-          (osicat:delete-directory-and-files pkgdir))
+          (delete-directory-and-files pkgdir))
         (when (probe-file tarball)
           (delete-file tarball)))
       (setf (current-directory) orig-dir))

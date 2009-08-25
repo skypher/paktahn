@@ -1,6 +1,5 @@
 
 #+sbcl(require :sb-posix)
-(require :osicat)
 (require :trivial-backtrace)
 (require :cl-store)
 (require :cl-json)
@@ -24,8 +23,7 @@
       (:use :cl :cffi)
       (:import-from :alexandria :compose :curry :rcurry :ensure-list)
       (:import-from :metatilities :push-end)
-      (:import-from :split-sequence :split-sequence)
-      (:import-from :osicat :current-directory :environment-variable)))
+      (:import-from :split-sequence :split-sequence)))
 
 (in-package :pak)
 
@@ -264,19 +262,10 @@ pairs as cons cells."
     (t
      (display-help))))
 
-;; osicat so hack
-(define-foreign-library libosicat (:unix "libosicat.so"))
-
-(defun init-osicat ()
-  (load-foreign-library 'libosicat))
-
-#-paktahn-deploy(init-osicat)
-
 (defun core-main ()
   "Primary entry point for the binary."
   (setf *on-error* :quit)
   (handler-bind ((error #'default-error-handler))
-    (init-osicat)
     (init-alpm)
     (setf *local-db* (init-local-db))
     (setf *sync-dbs* (init-sync-dbs))
@@ -292,7 +281,6 @@ pairs as cons cells."
 (defun build-core (&key forkp)
   #-sbcl(error "don't know how to build a core image")
   #+sbcl(progn
-          (cffi:close-foreign-library 'libosicat)
           (flet ((dump ()
                        (sb-ext:save-lisp-and-die "paktahn"
                                                  :toplevel #'core-main
