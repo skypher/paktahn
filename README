@@ -1,0 +1,44 @@
+Paktahn is designed to be a successor to the popular Yaourt
+package manager.
+
+It's a Pacman wrapper that also knows how to search and install
+packages from AUR.
+
+
+Current advantages over Yaourt:
+
+  * allows use of alternative Pacman binaries (e.g. Powerpill)
+
+  * caches local dbs for exceptional speed (soon for AUR too!)
+
+  * way better security and extensibility
+
+
+Hints:
+
+== Shortcut: pak
+
+Paktahn comes with a symlink called "pak".
+
+
+== Interactive search/install mode
+
+  pak SEARCH
+
+will search all dbs from pacman.conf (excluding local)
+and AUR for SEARCH in the name and description of packages.
+
+
+== Install a specific package
+
+  pak -S PKG
+
+will find and install PKG from sync dbs or AUR.
+
+
+== Use Powerpill instead of Pacman:
+
+  (setf *pacman-binary* "powerpill")
+
+This assumes that powerpill is in your $PATH.
+

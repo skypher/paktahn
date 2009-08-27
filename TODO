@@ -1,8 +1,6 @@
-before initial release:
+for initial release:
 
-  * -G: just download and unpack AUR tarball of package
-
-  * URI: download pkgbuild or tarball and process it
+  * $EDITOR: test other than vim, invalid
 
   * banner (and config option to disable it)
 
@@ -10,23 +8,7 @@ before initial release:
 
   * color schemes/lightbg color scheme
 
-  * better support for standardized colored output
-    (e.g. highlight repos in info messages, support nested progress levels)
-
-  * show backtrace/enter debugger restart
-
-  * basic versioning support (package-installed-p)
-
-  * patched sbcl
-
-  * $EDITOR: other than vim, invalid
-
-  * record PKGBUILD md5 so we don't present the same file
-    repeatedly to the user for review
-
   * add arch=i686 automatically, x86_64 after asking
-
-  * add md5/sha1 (makepkg -g) if they are missing, after asking the user
 
   * proper getopt support, -Sy, -Q, -Ql, -Qs
 
@@ -34,6 +16,20 @@ before initial release:
 
 
 later:
+
+  * record PKGBUILD md5 so we don't present the same file
+    repeatedly to the user for review
+
+  * add md5/sha1 (makepkg -g) if they are missing, after asking the user
+
+  * -G: just download and unpack AUR tarball of package
+
+  * URI: download pkgbuild or tarball and process it
+
+  * better support for standardized colored output
+    (e.g. highlight repos in info messages, support nested progress levels)
+
+  * basic versioning support (package-installed-p)
 
   * proper SIGINT handling: http://www.cons.org/cracauer/sigint.html
 
@@ -46,3 +42,17 @@ later:
 
   * show dep chain
 
+  * don't offer restarts if there are no packages left in the
+    install queue and the only restarts are SKIP and QUIT.
+
+  * remove stale pacman locks as part of RUN-PACMAN's unwind-protect
+
+  * detect stale pacman locks
+
+  * interrupt: offer continue restart
+
+  * show backtrace/enter debugger restart
+
+  * patched sbcl
+
+  * AUR cache
