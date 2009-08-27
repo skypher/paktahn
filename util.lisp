@@ -113,6 +113,7 @@
                  (level2-handler (&rest args)
                    "No messing around, the user's serious this time."
                    (declare (ignore args))
+                   (sb-sys:enable-interrupt sb-unix:sigint :default)
                    (quit))
                  (level1-handler (&rest args)
                    "Present restarts if applicable."
