@@ -1,12 +1,10 @@
 for initial release:
 
-  * $EDITOR: test other than vim, invalid
-
-  * banner (and config option to disable it)
-
   * support for pkg groups
 
   * color schemes/lightbg color scheme
+
+  * banner (and config option to disable it)
 
   * add arch=i686 automatically, x86_64 after asking
 

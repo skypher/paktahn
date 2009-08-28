@@ -1,4 +1,20 @@
 # Contributor: Leslie P. Polzer <polzer@gnu.org>
+# Maintainer: Leslie P. Polzer <polzer@gnu.org>
+
+### IMPORTANT ###
+#
+# current SBCL versions require a patch to make Pacman
+# and interactive editors work fully. Find it in
+# sbcl.patched.
+#
+# I've submitted a patch to upstream but it's not in yet.
+# Additionally the current SBCL PKGBUILD is broken so I
+# can't provide a patched PKGBUILD either. :/
+#
+# Somewhat good news: you can build Paktahn without a
+# patched SBCL; it will use Pacman in non-interactive
+# mode and use `cat' instead of an editor.
+#
 
 pkgname=paktahn
 pkgver=0.8
@@ -16,8 +32,9 @@ source=("http://viridian-project.de/~sky/paktahn-makedeps.tbz2"
 build() {
   cd "$srcdir"
 
-  if [ -d "/home/sky/sbcl.git.dev" ]; then
-    SBCL="sh /home/sky/sbcl.git.dev/run-sbcl.sh"
+  # put your custom patched SBCL here!
+  if [ -d "/home/sky/sbcl.git" ]; then
+    SBCL="sh /home/sky/sbcl.git/run-sbcl.sh"
   else
     SBCL=sbcl
   fi

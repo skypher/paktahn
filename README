@@ -14,7 +14,8 @@ Current advantages over Yaourt:
   * way better security and extensibility
 
 
-Hints:
+Usage hints
+===========
 
 == Shortcut: pak
 
@@ -41,4 +42,20 @@ will find and install PKG from sync dbs or AUR.
   (setf *pacman-binary* "powerpill")
 
 This assumes that powerpill is in your $PATH.
+
+
+URIs
+====
+Git:
+  git://git.berlios.de/paktahn 
+  git://github.com/skypher/paktahn.git
+  git://gitorious.org/paktahn/paktahn.git
+  
+Report bugs, request features, send patches:
+  http://developer.berlios.de/projects/paktahn/
+
+
+How do I build this thing?!
+===========================
+See PKGBUILD.
 
