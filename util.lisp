@@ -235,7 +235,7 @@
                 (t (clarify-legal-query-input))))))))
 
 (defun ask-for-editor ()
-  (format t "You do not have your EDITOR environment variable set.~%
+  (format t "You do not have your EDITOR environment variable set.~%~
           Please tell me the name of your preferred editor.")
   (loop for input = (getline " => ")
         until input

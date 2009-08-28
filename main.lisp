@@ -72,13 +72,13 @@
     ;; installation status
     (when (package-installed-p name) ; TODO: version
       (format t " ")
-      (with-term-colors (:fg 'yellow :invertp t)
+      (with-term-colors (:fg 'green :invertp t)
         (format t "[installed]")))
     ;; out of date? (aur-only)
     (when out-of-date-p
       (format t " ")
-      (with-term-colors (:fg 'red :invertp t)
-        (format t "[out of date]")))
+      (with-term-colors (:fg 'red)
+          (format t "(out of date)")))
     ;; description
     (format t "~%    ~A~%" description)))
 
