@@ -2,11 +2,11 @@ for initial release:
 
   * color schemes/lightbg color scheme
 
-  * banner (and config option to disable it)
+  * proper getopt support, -Sy, -Q, -Ql, -Qs
 
   * add arch=i686 automatically, x86_64 after asking
 
-  * proper getopt support, -Sy, -Q, -Ql, -Qs
+  * short banner (and config option to disable it)
 
   * website, proper help/docs
 
@@ -14,6 +14,9 @@ for initial release:
 later:
 
   * list package group members
+
+  * allow Ctrl+C to stop searching and present the choices gathered
+    up to that point right away
 
   * record PKGBUILD md5 so we don't present the same file
     repeatedly to the user for review

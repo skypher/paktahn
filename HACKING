@@ -13,3 +13,5 @@ Then:
   * (in-package :pak)
   * ;; execute functions here (e.g. SEARCH-AND-INSTALL-PACKAGE)
 
+
+Also see dev-install.sh
