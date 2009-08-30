@@ -37,8 +37,11 @@ and AUR for SEARCH in the name and description of packages.
 will find and install PKG from sync dbs or AUR.
 
 
-== Use Powerpill instead of Pacman:
+== Use Powerpill instead of Pacman
 
+In your ~/.paktahn/config.lisp:
+
+  (in-package :pak)
   (setf *pacman-binary* "powerpill")
 
 This assumes that powerpill is in your $PATH.

@@ -11,6 +11,8 @@ for initial release:
 
 later:
 
+  * align result ids
+
   * list package group members
 
   * allow Ctrl+C to stop searching and present the choices gathered
