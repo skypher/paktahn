@@ -5,8 +5,29 @@
 (defparameter *ansi-colors* '((black . 0) (red . 1) (green . 2) (yellow . 3)
                               (blue . 4) (magenta . 5) (cyan . 6) (white . 7)))
 
-(defparameter *db-colors* '((core . green) (extra . green) (unstable . red)))
+(defparameter *color-scheme-darkbg* '(:info white
+                                      :db ((core . green)
+                                           (extra . green)
+                                           (unstable . red))
+                                      :pkg-result-id (:fg yellow :invertp t)
+                                      :pkg-name white
+                                      :pkg-version green
+                                      :pkg-installed (:fg green :invertp t)
+                                      :pkg-outofdate red
+                                      :pkg-description nil))
 
+(defparameter *color-scheme-lightbg* '(:info black
+                                       :db ((core . green)
+                                            (extra . green)
+                                            (unstable . red))
+                                       :pkg-result-id (:fg blue :invertp t)
+                                       :pkg-name black
+                                       :pkg-version green
+                                       :pkg-installed (:fg green :invertp t)
+                                       :pkg-outofdate red
+                                       :pkg-description nil))
+
+(defvar *color-scheme* *color-scheme-darkbg*)
 
 (defun term-set (modes)
   (format t "~C[~Dm" #\Escape modes)
@@ -28,14 +49,34 @@
 (defun term-invert ()
   (term-set 7))
 
+(defun set-term-colors (&key fg bg (boldp t) invertp)
+  (when invertp
+    (term-invert))
+  (when fg
+    (term-set-fg-color fg :boldp boldp))
+  (when bg
+    (term-set-bg-color bg :boldp boldp)))
+
 (defmacro with-term-colors ((&key fg bg (boldp t) invertp) &body body)
   `(progn
-     ,(when invertp
-        `(term-invert))
-     ,(when fg
-        `(term-set-fg-color ,fg :boldp ,boldp))
-     ,(when bg
-        `(term-set-bg-color ,bg :boldp ,boldp))
-     (unwind-protect (progn ,@body)
+     (set-term-colors :fg ,fg :bg ,bg :boldp ,boldp :invertp ,invertp)
+     (unwind-protect
+         (progn ,@body)
+       (term-reset-colors))))
+
+(defmacro with-term-colors/id (id &body body)
+  `(progn
+     (let ((attrs ,(etypecase id
+                     (atom `(getf *color-scheme* ,id))
+                     (cons `(or (cdr (assoc ,(cadr id) (getf *color-scheme* :db)
+                                            :test #'string-equal))
+                                '(:fg magenta)))))) ; FIXME don't hardcode this
+       (etypecase attrs
+         (atom
+           (set-term-colors :fg attrs :boldp t))
+         (cons 
+           (apply #'set-term-colors attrs))))
+     (unwind-protect
+         (progn ,@body)
        (term-reset-colors))))
 

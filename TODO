@@ -1,7 +1,5 @@
 for initial release:
 
-  * color schemes/lightbg color scheme
-
   * proper getopt support, -Sy, -Q, -Ql, -Qs
 
   * add arch=i686 automatically, x86_64 after asking

@@ -54,52 +54,49 @@
 (defun print-group (id db-name name &key (stream *standard-output*))
   (let ((*standard-output* stream))
     ;; id
-    (with-term-colors (:fg 'yellow :invertp t)
+    (with-term-colors/id :pkg-result-id
       (format t "~D" id))
     (format t " ")
     ;; db
-    (with-term-colors (:fg (or (cdr (assoc db-name *db-colors*
-                                           :test #'string-equal))
-                               'magenta))
+    (with-term-colors/id (:db db-name)
       (format t "~A/" db-name))
     ;; name
-    (with-term-colors (:fg 'white)
+    (with-term-colors/id :pkg-name
       (format t "~A" name))
     (format t " ")
-    (with-term-colors (:fg 'green)
+    (with-term-colors/id :pkg-version
       (format t "[group]~%")))) ; TODO: show group members
 
 (defun print-package (id db-name name version description &key (stream *standard-output*) out-of-date-p)
   ;; TODO: votes
   (let ((*standard-output* stream))
     ;; id
-    (with-term-colors (:fg 'yellow :invertp t)
+    (with-term-colors/id :pkg-result-id
       (format t "~D" id))
     (format t " ")
     ;; db
-    (with-term-colors (:fg (or (cdr (assoc db-name *db-colors*
-                                           :test #'string-equal))
-                               'magenta))
+    (with-term-colors/id (:db db-name)
       (format t "~A/" db-name))
     ;; name
-    (with-term-colors (:fg 'white)
+    (with-term-colors/id :pkg-name
       (format t "~A" name))
     ;; version
     (format t " ")
-    (with-term-colors (:fg 'green)
+    (with-term-colors/id :pkg-version
       (format t "~A" version))
     ;; installation status
     (when (package-installed-p name) ; TODO: version
       (format t " ")
-      (with-term-colors (:fg 'green :invertp t)
+      (with-term-colors/id :pkg-installed
         (format t "[installed]")))
     ;; out of date? (aur-only)
     (when out-of-date-p
       (format t " ")
-      (with-term-colors (:fg 'red)
-          (format t "(out of date)")))
+      (with-term-colors/id :pkg-outofdate
+        (format t "(out of date)")))
     ;; description
-    (format t "~%    ~A~%" description)))
+    (with-term-colors/id :pkg-description
+      (format t "~%    ~A~%" description))))
 
 (defun get-package-results (query &key (quiet t) exact (stream *standard-output*))
   (declare (string query))

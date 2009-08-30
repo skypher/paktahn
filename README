@@ -44,6 +44,17 @@ will find and install PKG from sync dbs or AUR.
 This assumes that powerpill is in your $PATH.
 
 
+== Set a different color scheme
+
+In your ~/.paktahn/config.lisp:
+
+  (in-package :pak)
+  (setf *color-scheme* *color-scheme-lightbg*)
+
+Available color schemes are *color-scheme-darkbg* (the default)
+and *color-scheme-lightbg*.
+
+
 URIs
 ====
 Git:
