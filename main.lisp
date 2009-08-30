@@ -38,17 +38,36 @@
 (load "aur.lisp")
 (load "cache.lisp")
 
-(defun package-installed-p (pkg-name &optional pkg-version)
+(defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
   (map-cached-packages (lambda (db-name pkg)
                          (declare (ignore db-name))
-                         (destructuring-bind (name version desc) pkg
-                           (declare (ignore desc))
-                           (when (and (equalp name pkg-name)
-                                      (or (null pkg-version)
-                                          (equalp pkg-version version)))
-                             (return-from package-installed-p t))))
+                         (unless (stringp pkg) ; ignore groups
+                             (destructuring-bind (name version desc) pkg
+                               (declare (ignore desc))
+                               (when (and (equalp name pkg-name)
+                                          (or (null pkg-version)
+                                              (equalp pkg-version version)))
+                                 (return-from package-installed-p t)))))
                        :db-list (list *local-db*))
   nil)
+
+(defun print-group (id db-name name &key (stream *standard-output*))
+  (let ((*standard-output* stream))
+    ;; id
+    (with-term-colors (:fg 'yellow :invertp t)
+      (format t "~D" id))
+    (format t " ")
+    ;; db
+    (with-term-colors (:fg (or (cdr (assoc db-name *db-colors*
+                                           :test #'string-equal))
+                               'magenta))
+      (format t "~A/" db-name))
+    ;; name
+    (with-term-colors (:fg 'white)
+      (format t "~A" name))
+    (format t " ")
+    (with-term-colors (:fg 'green)
+      (format t "[group]~%")))) ; TODO: show group members
 
 (defun print-package (id db-name name version description &key (stream *standard-output*) out-of-date-p)
   ;; TODO: votes
@@ -87,17 +106,28 @@
   (let* ((*print-pretty* nil)
          (i 0)
          packages ; (ID REPO NAME)
-         (db-pkg-fn (lambda (db-name pkg)
-                      (destructuring-bind (name version desc) pkg
-                        ;; TODO: search in desc, use regex
-                        (when (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
-                                  (and (not exact)
-                                       (or (search query name :test #'equalp)
-                                           (search query desc :test #'equalp))))
-                          (incf i)
-                          (push-end (list i db-name name) packages)
-                          (unless quiet
-                            (print-package i db-name name version desc :stream stream))))))
+         (db-pkg-and-grp-fn (lambda (db-name pkg)
+                              (etypecase pkg
+                                (string
+                                  (let ((name pkg))
+                                    (when (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
+                                              (and (not exact)
+                                                   (search query name :test #'equalp)))
+                                      (incf i)
+                                      (push-end (list i 'group name) packages)
+                                      (unless quiet
+                                        (print-group i db-name name :stream stream)))))
+                                (cons
+                                  (destructuring-bind (name version desc) pkg
+                                    ;; TODO: search in desc, use regex
+                                    (when (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
+                                              (and (not exact)
+                                                   (or (search query name :test #'equalp)
+                                                       (search query desc :test #'equalp))))
+                                      (incf i)
+                                      (push-end (list i db-name name) packages)
+                                      (unless quiet
+                                        (print-package i db-name name version desc :stream stream))))))))
          (aur-pkg-fn (lambda (match)
                        (incf i)
                        (with-slots (id name version description out-of-date) match
@@ -106,7 +136,7 @@
                            (print-package i "aur" name version description
                                           :stream stream
                                           :out-of-date-p (equal out-of-date "1")))))))
-    (map-cached-packages db-pkg-fn)
+    (map-cached-packages db-pkg-and-grp-fn)
     (map-aur-packages aur-pkg-fn query)
     packages))
 
@@ -176,7 +206,8 @@ pairs as cons cells."
                 (error "BUG: trying to install a package from local"))
                ((equalp db-name "aur")
                 (install-aur-package pkg-name))
-               ((member db-name (mapcar #'car *sync-dbs*) :test #'equalp)
+               ((or (eq db-name 'group)
+                    (member db-name (mapcar #'car *sync-dbs*) :test #'equalp))
                 (install-binary-package db-name pkg-name)))))
     ;; either we're installing a root package and need to set up our
     ;; environment to reflect this, or we're installing a dep and

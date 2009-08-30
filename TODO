@@ -1,7 +1,5 @@
 for initial release:
 
-  * support for pkg groups
-
   * color schemes/lightbg color scheme
 
   * banner (and config option to disable it)
@@ -14,6 +12,8 @@ for initial release:
 
 
 later:
+
+  * list package group members
 
   * record PKGBUILD md5 so we don't present the same file
     repeatedly to the user for review

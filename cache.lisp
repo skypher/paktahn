@@ -96,6 +96,7 @@ contains a list of sublists (PKGNAME VERSION DESC).")
     (setf (gethash db-name *cache-contents*) nil)
     (handler-case
       (progn
+        ;; packages
         (map-db-packages (lambda (db-spec pkg)
                            (declare (ignore db-spec))
                            (push (list (alpm-pkg-get-name pkg)
@@ -103,6 +104,14 @@ contains a list of sublists (PKGNAME VERSION DESC).")
                                        (alpm-pkg-get-desc pkg))
                                  (gethash db-name *cache-contents*)))
                          :db-list (list db-spec))
+
+        ;; groups
+        (map-groups (lambda (db-spec grp)
+                      (declare (ignore db-spec))
+                      (push (alpm-grp-get-name grp) (gethash db-name *cache-contents*)))
+                    :db-list (list db-spec))
+
+        ;; update time
         (setf (gethash db-name *cache-meta*)
               (list :last-update (get-universal-time)
                     :version *cache-format-version*)))

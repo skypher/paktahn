@@ -77,6 +77,24 @@ objects."
     (dolist (db-spec db-list)
       (map-db db-spec))))
 
+
+;;;; groups
+(defcfun "alpm_db_get_grpcache" :pointer (db :pointer))
+(defcfun "alpm_grp_get_name" :string (grp :pointer))
+
+(defun map-groups (fn &key (db-list *sync-dbs*))
+  "Search a database for groups. FN will be called for each
+matching package group object. DB-LIST must be a list of database
+objects."
+  (flet ((map-db (db-spec)
+           (loop for grp-iter = (alpm-db-get-grpcache (cdr db-spec))
+                 then (alpm-list-next grp-iter)
+                 until (null-pointer-p grp-iter)
+                 do (let ((grp (alpm-list-getdata grp-iter)))
+                      (funcall fn db-spec grp)))))
+    (dolist (db-spec db-list)
+      (map-db db-spec))))
+
 (defun run-pacman (args &key capture-output-p)
   (with-pacman-lock
     ;; --noconfirm is a kludge because of SBCL's run-program bug.
@@ -95,10 +113,19 @@ objects."
   (when (equalp db-name "local")
     ;; TODO offer restarts: skip, reinstall from elsewhere
     (error "Can't install an already installed package."))
-  (info "Installing binary package ~S from repository ~S.~%"
-        pkg-name db-name)
-    (let* ((fully-qualified-pkg-name (format nil "~A/~A" db-name pkg-name))
-           (return-value (run-pacman (list "-S" fully-qualified-pkg-name))))
-      (unless (zerop return-value)
-        (warn "Pacman exited with non-zero status ~D" return-value))))
+  (flet ((check-return-value (value)
+           (unless (zerop value)
+             (error "Pacman exited with non-zero status ~D" value))))
+    (cond
+      ((eq db-name 'group)
+       (info "Installing group ~S.~%" pkg-name)
+       (let ((return-value (run-pacman (list "-S" pkg-name))))
+         (check-return-value return-value)))
+      (t
+       (info "Installing binary package ~S from repository ~S.~%"
+             pkg-name db-name)
+       (let* ((fully-qualified-pkg-name (format nil "~A/~A" db-name pkg-name))
+              (return-value (run-pacman (list "-S" fully-qualified-pkg-name))))
+         (check-return-value return-value))))
+    t))
 
