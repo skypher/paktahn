@@ -290,3 +290,10 @@
       (cerror "Continue anyway" "Could't remove directory ~S recursively" dir))
     t))
 
+(defun file-mod-time (file)
+  "Return FILE's time of last modification (mtime) as universal time."
+  #+sbcl(+ (sb-posix:stat-mtime
+             (sb-posix:stat file))
+           sb-impl::unix-to-universal-time)
+  #-sbcl(error "no file-mod-time"))
+

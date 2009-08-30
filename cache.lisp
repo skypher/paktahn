@@ -74,7 +74,9 @@ contains a list of sublists (PKGNAME VERSION DESC).")
 (defun load-cache-meta (db-name)
   (unless *cache-meta*
     (setf *cache-meta* (make-hash-table :test #'equalp)))
-  (when (probe-file (cache-meta-file db-name))
+  (when (and (probe-file (cache-meta-file db-name))
+             (> (file-mod-time (cache-meta-file db-name))
+                (get-universal-time)))
     (setf (gethash db-name *cache-meta*)
           (cl-store:restore (cache-meta-file db-name)))))
 
@@ -146,15 +148,9 @@ contains a list of sublists (PKGNAME VERSION DESC).")
 
 (defun get-alpm-last-update-time (db-name)
   "Get the date of the last ALPM db update, in universal time."
-  #+sbcl
-  (flet ((mod-time/ut (file)
-           (+ (sb-posix:stat-mtime
-                (sb-posix:stat file))
-              sb-impl::unix-to-universal-time)))
-    (mod-time/ut (alpm-db-folder db-name)))
-  #-sbcl(error "no get-alpm-last-update-time"))
+  (file-mod-time (alpm-db-folder db-name)))
 
-(defun init-cache ()
+(defun init-cache (&optional force)
   (dolist (db-spec (cons *local-db* *sync-dbs*))
     (let ((db-name (car db-spec)))
       (with-cache-lock db-name
@@ -163,6 +159,10 @@ contains a list of sublists (PKGNAME VERSION DESC).")
         ;; check meta information
         (let ((needs-update-p
                 (cond
+                  (force
+                   (setf *cache-meta* nil)
+                   (note "~S: Forcing cache rebuild." db-name)
+                   t)
                   ;; old meta format
                   ((not (hash-table-p *cache-meta*))
                    (setf *cache-meta* nil)
@@ -187,9 +187,9 @@ contains a list of sublists (PKGNAME VERSION DESC).")
           (when needs-update-p
             (update-cache db-spec)
             (sync-disk-cache db-name)
-            (load-cache-meta db-name)))
-        ;; load contents
-        (load-cache-contents db-name)))))
+            (load-cache-meta db-name)
+            ;; load contents
+            (load-cache-contents db-name)))))))
 
 (defun map-cached-packages (fn &key (db-list *sync-dbs*))
   (init-cache)

@@ -252,7 +252,7 @@ pairs as cons cells."
                  (format nil "[1-~D] => " total))))
         (format t "=>  -----------------------------------------------------------~%~
                    =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
-                   =>  Empty line prints the package list again.~%~
+                   =>  Empty line prints the package list again. Hit Ctrl+C to abort.~%~
                    =>  -----------------------------------------------------------~%")
         (let* ((choices (loop for input = (getline (make-prompt))
                               for got-input-p = (and input (not (equal input "")))
