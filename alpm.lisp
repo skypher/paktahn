@@ -2,21 +2,6 @@
 (in-package :pak)
 
 
-(defparameter *pacman-lock* "/var/lib/pacman/db.lck")
-(defparameter *pacman-binary* "pacman")
-
-(defmacro with-pacman-lock (&body body)
-  `(let (notified)
-     (tagbody again
-       (when (probe-file *pacman-lock*)
-         (unless notified
-           (info "Pacman is currently in use, waiting for it to finish...")
-           (setf notified t))
-         (sleep 1) ; maybe there's a better way? some ioctl?
-         (go again)))
-     ,@body))
-
-
 (define-foreign-library libalpm
   (:unix (:or "libalpm.so.3" "libalpm.so"))
   (t (:default "libalpm")))
@@ -29,14 +14,9 @@
 
 (defcfun "alpm_db_register_local" :pointer)
 (defcfun "alpm_db_register_sync" :pointer (name :string))
-(defcfun "alpm_db_get_pkgcache" :pointer (db :pointer))
 
 (defcfun "alpm_list_next" :pointer (pkg-iterator :pointer))
 (defcfun "alpm_list_getdata" :pointer (pkg-iterator :pointer))
-
-(defcfun "alpm_pkg_get_name" :string (pkg :pointer))
-(defcfun "alpm_pkg_get_version" :string (pkg :pointer))
-(defcfun "alpm_pkg_get_desc" :string (pkg :pointer))
 
 (defun init-alpm ()
   (alpm-initialize)
@@ -63,6 +43,13 @@
 
 (defparameter *local-db* (init-local-db))
 (defparameter *sync-dbs* (init-sync-dbs))
+
+;;;; packages
+(defcfun "alpm_db_get_pkgcache" :pointer (db :pointer))
+
+(defcfun "alpm_pkg_get_name" :string (pkg :pointer))
+(defcfun "alpm_pkg_get_version" :string (pkg :pointer))
+(defcfun "alpm_pkg_get_desc" :string (pkg :pointer))
 
 (defun map-db-packages (fn &key (db-list *sync-dbs*))
   "Search a database for packages. FN will be called for each
@@ -95,6 +82,22 @@ objects."
     (dolist (db-spec db-list)
       (map-db db-spec))))
 
+
+;;;; Pacman
+(defparameter *pacman-lock* "/var/lib/pacman/db.lck")
+(defparameter *pacman-binary* "pacman")
+
+(defmacro with-pacman-lock (&body body)
+  `(let (notified)
+     (tagbody again
+       (when (probe-file *pacman-lock*)
+         (unless notified
+           (info "Pacman is currently in use, waiting for it to finish...")
+           (setf notified t))
+         (sleep 1) ; maybe there's a better way? some ioctl?
+         (go again)))
+     ,@body))
+
 (defun run-pacman (args &key capture-output-p)
   (with-pacman-lock
     ;; --noconfirm is a kludge because of SBCL's run-program bug.
@@ -106,6 +109,7 @@ objects."
                  :capture-output-p capture-output-p)))
                  
 
+;;;; Lisp interface
 (defun install-binary-package (db-name pkg-name)
   "Use Pacman to install a package."
   ;; TODO: check whether it's installed already

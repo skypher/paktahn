@@ -238,7 +238,9 @@ pairs as cons cells."
 
 (defun search-and-install-packages (query)
   (let* ((pkglist (make-string-output-stream))
-         (packages (get-package-results query :quiet nil :stream pkglist))
+         (bstream (make-broadcast-stream *standard-output* pkglist))
+         (packages (get-package-results query :quiet nil
+                                              :stream bstream))
          (pkglist (get-output-stream-string pkglist))
          (total (length packages)))
     (if (null packages)
@@ -248,7 +250,6 @@ pairs as cons cells."
              (make-prompt ()
                (with-term-colors (:fg 'white)
                  (format nil "[1-~D] => " total))))
-        (print-list)
         (format t "=>  -----------------------------------------------------------~%~
                    =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
                    =>  Empty line prints the package list again.~%~
