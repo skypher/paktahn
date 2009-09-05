@@ -188,6 +188,7 @@ pairs as cons cells."
 (defun install-package (pkg-name &key (db-name
                                         (first (find-package-by-name pkg-name)))
                                       force)
+  (maybe-refresh-cache)
   (labels ((do-install ()
              (cond
                ((and (package-installed-p pkg-name) (not force))
@@ -234,6 +235,7 @@ pairs as cons cells."
              (values nil 'skipped))))))))
 
 (defun search-and-install-packages (query)
+  (maybe-refresh-cache)
   (let* ((pkglist (make-string-output-stream))
          (bstream (make-broadcast-stream *standard-output* pkglist))
          (packages (get-package-results query :quiet nil

@@ -44,6 +44,12 @@
 (defparameter *local-db* (init-local-db))
 (defparameter *sync-dbs* (init-sync-dbs))
 
+(defun db-name->db-spec (db-name)
+  (let ((db-spec (assoc db-name (cons *local-db* *sync-dbs*)
+                        :test #'equalp)))
+    (assert db-spec)
+    db-spec))
+
 ;;;; packages
 (defcfun "alpm_db_get_pkgcache" :pointer (db :pointer))
 

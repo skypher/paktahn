@@ -4,7 +4,7 @@
 
 (setf cl-store:*check-for-circs* nil)
 
-(defparameter *cache-format-version* 1)
+(defparameter *cache-format-version* 2)
 
 (flet ((conf (type name)
          (config-file (make-pathname :directory '(:relative "cache")
@@ -65,35 +65,36 @@
 (defvar *cache-meta* nil
   "Cache meta information hash table. The key is the repo name,
 the value is a plist of the cache format version and the date
-this cache was built.")
+this cache was built. Initially NIL.")
 
 (defvar *cache-contents* nil
   "Table of cached packages. The key is the repo name, the value
-contains a list of sublists (PKGNAME VERSION DESC).")
+contains a list of sublists (PKGNAME VERSION DESC). Initially NIL.")
+
+(defun init-cache-vars ()
+  (values
+    (unless (hash-table-p *cache-meta*)
+      (setf *cache-meta* (make-hash-table :test #'equalp)))
+    (unless (hash-table-p *cache-contents*)
+      (setf *cache-contents* (make-hash-table :test #'equalp)))))
 
 (defun load-cache-meta (db-name)
-  (unless *cache-meta*
-    (setf *cache-meta* (make-hash-table :test #'equalp)))
-  (when (and (probe-file (cache-meta-file db-name))
-             (> (file-mod-time (cache-meta-file db-name))
-                (get-universal-time)))
-    (setf (gethash db-name *cache-meta*)
-          (cl-store:restore (cache-meta-file db-name)))))
+  (setf (gethash db-name *cache-meta*)
+        (cl-store:restore (cache-meta-file db-name))))
 
 (defun load-cache-contents (db-name)
-  (unless *cache-contents*
-    (setf *cache-contents* (make-hash-table :test #'equalp)))
-  (when (probe-file (cache-contents-file db-name))
-    (setf (gethash db-name *cache-contents*)
-          (cl-store:restore (cache-contents-file db-name)))))
+  (setf (gethash db-name *cache-contents*)
+        (cl-store:restore (cache-contents-file db-name))))
 
-(defun update-cache (db-spec)
+(defun load-memory-cache-from-disk (db-name)
+  (setf (gethash db-name *cache-meta*) nil)
+  (setf (gethash db-name *cache-contents*) nil)
+  (load-cache-meta db-name)
+  (load-cache-contents db-name))
+
+(defun build-memory-cache (db-name)
   "Update/build *cache-meta* and *cache-contents*."
-  (unless *cache-meta*
-    (setf *cache-meta* (make-hash-table :test #'equalp)))
-  (unless *cache-contents*
-    (setf *cache-contents* (make-hash-table :test #'equalp)))
-  (let ((db-name (car db-spec)))
+  (let ((db-spec (db-name->db-spec db-name)))
     (setf (gethash db-name *cache-meta*) nil)
     (setf (gethash db-name *cache-contents*) nil)
     (handler-case
@@ -124,7 +125,8 @@ contains a list of sublists (PKGNAME VERSION DESC).")
 
 
 (defun sync-disk-cache (db-name)
-  "Write the in-memory cache for a db to disk."
+  "Write the in-memory cache (which must exist at this point in time)
+for a db to disk."
   (assert (and *cache-meta* *cache-contents*))
   (check-type *cache-meta* hash-table)
   (check-type *cache-contents* hash-table)
@@ -150,49 +152,57 @@ contains a list of sublists (PKGNAME VERSION DESC).")
   "Get the date of the last ALPM db update, in universal time."
   (file-mod-time (alpm-db-folder db-name)))
 
-(defun init-cache (&optional force)
+(defun maybe-refresh-cache ()
   (dolist (db-spec (cons *local-db* *sync-dbs*))
     (let ((db-name (car db-spec)))
       (with-cache-lock db-name
-        ;; load metadata
-        (load-cache-meta db-name)
-        ;; check meta information
-        (let ((needs-update-p
-                (cond
-                  (force
-                   (setf *cache-meta* nil)
-                   (note "~S: Forcing cache rebuild." db-name)
-                   t)
-                  ;; old meta format
-                  ((not (hash-table-p *cache-meta*))
-                   (setf *cache-meta* nil)
-                   (note "Cache ~S not in proper format, rebuilding it from scratch."
-                         db-name)
-                   t)
-                  ;; no meta info found
-                  ((or (null *cache-meta*)
-                       (null (gethash db-name *cache-meta*)))
-                   (note "Cache ~S not found, building it." db-name)
-                   t)
-                  ;; stale
-                  ((> (get-alpm-last-update-time db-name)
-                      (getf (gethash db-name *cache-meta*) :last-update -1))
-                   (note "Cache ~S is out of date, refreshing." db-name)
-                   t)
-                  ;; old format denoted by version
-                  ((not (eql *cache-format-version*
-                             (getf (gethash db-name *cache-meta*) :version -1)))
-                   (note "Cache is not compatible, rebuilding.")
-                   t))))
-          (when needs-update-p
-            (update-cache db-spec)
-            (sync-disk-cache db-name)
-            (load-cache-meta db-name)
-            ;; load contents
-            (load-cache-contents db-name)))))))
+        ;; first ensure that the disk cache is synced to dbs
+        (maybe-update-disk-cache db-name)
+        ;; now we can be sure to have a valid disk cache. Use it
+        ;; to update the memory cache unless it is already synced
+        ;; to the disk cache.
+        (when (or (null *cache-meta*)
+                  (null (nth-value 1 (gethash db-name *cache-meta*))))
+          (init-cache-vars)
+          (load-memory-cache-from-disk db-name))))))
 
+(defun rebuild-disk-cache (db-name)
+  "Update the in-memory cache and write it to disk."
+  (init-cache-vars)
+  (build-memory-cache db-name)
+  (sync-disk-cache db-name))
+
+(defun maybe-update-disk-cache (db-name)
+  "Check if the disk cache is stale and update it if necessary."
+  (let* ((meta-present-p (probe-file (cache-meta-file db-name)))
+         (content-present-p (probe-file (cache-contents-file db-name)))
+         (needs-update-p
+           (or (when (or (not meta-present-p) (not content-present-p))
+                 (note "Cache ~S not found, building it." db-name)
+                 t)
+               ;; TODO check file mod times to avoid restoring the metadata
+               ;;      every time.
+               ;; TODO: don't update when Pacman is running
+               (let* ((meta (cl-store:restore (cache-meta-file db-name)))
+                      (meta-version (getf meta :version -1))
+                      (last-update (getf meta :last-update -1)))
+                 (cond
+                   ;; stale
+                   ((> (get-alpm-last-update-time db-name)
+                       last-update)
+                    (note "Cache ~S is out of date, refreshing." db-name)
+                    t)
+                   ;; old format denoted by version
+                   ((not (eql meta-version *cache-format-version*))
+                    (note "Cache ~S is not compatible, rebuilding." db-name)
+                    t))))))
+    (when needs-update-p
+      (rebuild-disk-cache db-name)
+      t)))
+
+
+;;;; accessing the cache
 (defun map-cached-packages (fn &key (db-list *sync-dbs*))
-  (init-cache)
   (dolist (db-spec db-list)
     (let ((db-name (car db-spec)))
       (dolist (pkg-spec (gethash db-name *cache-contents*))
