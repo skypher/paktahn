@@ -8,10 +8,17 @@ for initial release:
 
   * website, proper help/docs
 
+  * edit http://wiki.archlinux.org/index.php/AUR_Helpers#yaourt
+     and http://wiki.archlinux.org/index.php/Yaourt
+
 
 later:
 
-  * align result ids
+  * smart regexp/wildcard mode (detect ^ $ * ?)
+
+  * add arch=i686 automatically, x86_64 after asking
+
+  * proper getopt support, -Sy, -Q, -Ql, -Qs
 
   * list package group members
 
@@ -31,8 +38,6 @@ later:
     (e.g. highlight repos in info messages, support nested progress levels)
 
   * basic versioning support (package-installed-p)
-
-  * proper SIGINT handling: http://www.cons.org/cracauer/sigint.html
 
   * sorting the output of an AUR search ie. alphabetically, votes,
     date submitted, last updated etc. (by quigybo)

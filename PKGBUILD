@@ -34,8 +34,8 @@ build() {
   cd "$srcdir"
 
   # put your custom patched SBCL here!
-  if [ -d "/home/sky/sbcl.git" ]; then
-    SBCL="sh /home/sky/sbcl.git/run-sbcl.sh"
+  if [ -d "/home/sky/sbcl.git.dev" ]; then
+    SBCL="sh /home/sky/sbcl.git.dev/run-sbcl.sh"
   else
     SBCL=sbcl
   fi
