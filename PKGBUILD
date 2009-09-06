@@ -26,6 +26,7 @@ license=('GPL')
 url="http://gitorious.org/paktahn"
 makedepends=('sbcl')
 options=(!strip)
+install="paktahn.install"
 source=("http://viridian-project.de/~sky/paktahn-makedeps.tbz2"
         "${pkgname}-${pkgver}.tar.bz2")
 
