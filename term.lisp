@@ -6,6 +6,7 @@
                               (blue . 4) (magenta . 5) (cyan . 6) (white . 7)))
 
 (defparameter *color-scheme-darkbg* '(:info white
+                                      :note (:fg white :boldp nil)
                                       :db ((core . green)
                                            (extra . green)
                                            (unstable . red))
@@ -17,6 +18,7 @@
                                       :pkg-description nil))
 
 (defparameter *color-scheme-lightbg* '(:info black
+                                       :note (:fg black :boldp nil)
                                        :db ((core . green)
                                             (extra . green)
                                             (unstable . red))

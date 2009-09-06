@@ -11,11 +11,11 @@
   (finish-output *standard-output*))
 
 (defun info (fmt &rest args)
-  (with-term-colors (:fg 'white)
+  (with-term-colors/id :info
     (apply #'%info fmt args)))
 
 (defun note (fmt &rest args)
-  (with-term-colors (:fg 'white :boldp nil)
+  (with-term-colors/id :note
     (apply #'%info fmt args)))
 
 (defmacro with-progress-info ((fmt &rest args) &body body)
