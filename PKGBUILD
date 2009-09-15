@@ -27,18 +27,13 @@ url="http://gitorious.org/paktahn"
 makedepends=('sbcl-run-program-fix')
 options=(!strip)
 install="paktahn.install"
-source=("http://viridian-project.de/~sky/paktahn-makedeps.tbz2"
-        "${pkgname}-${pkgver}.tar.bz2")
+source=("http://viridian-project.de/~sky/paktahn/paktahn-makedeps-$pkgver.tbz2"
+        "http://viridian-project.de/~sky/paktahn/paktahn-${pkgver}.tar.bz2")
 
 build() {
   cd "$srcdir"
 
-  # put your custom patched SBCL here!
-  if [ -d "/home/sky/sbcl.git.dev" ]; then
-    SBCL="sh /home/sky/sbcl.git.dev/run-sbcl.sh"
-  else
-    SBCL=sbcl
-  fi
+  SBCL=sbcl
 
   $SBCL \
        --noinform --lose-on-corruption --end-runtime-options \
@@ -60,3 +55,23 @@ build() {
 }
 md5sums=('1c1336880231e88a4e90b32222272ed1'
          '917b43168bf1c99e0904693d4d9141e7')
+md5sums=('1c1336880231e88a4e90b32222272ed1'
+         '2f8393ee50da2131c634a26de3daec6e')
+sha1sums=('643e60fe54c56038e03823280e6d9173ad273f00'
+          '744ba299db8711a59b89a50c51da2299eedf4e5c')
+md5sums=('1c1336880231e88a4e90b32222272ed1'
+         '2f8393ee50da2131c634a26de3daec6e')
+sha1sums=('643e60fe54c56038e03823280e6d9173ad273f00'
+          '744ba299db8711a59b89a50c51da2299eedf4e5c')
+md5sums=('1c1336880231e88a4e90b32222272ed1'
+         '2f8393ee50da2131c634a26de3daec6e')
+sha1sums=('643e60fe54c56038e03823280e6d9173ad273f00'
+          '744ba299db8711a59b89a50c51da2299eedf4e5c')
+md5sums=('1c1336880231e88a4e90b32222272ed1'
+         '2f8393ee50da2131c634a26de3daec6e')
+sha1sums=('643e60fe54c56038e03823280e6d9173ad273f00'
+          '744ba299db8711a59b89a50c51da2299eedf4e5c')
+md5sums=('1c1336880231e88a4e90b32222272ed1'
+         '2f8393ee50da2131c634a26de3daec6e')
+sha1sums=('643e60fe54c56038e03823280e6d9173ad273f00'
+          '744ba299db8711a59b89a50c51da2299eedf4e5c')

@@ -1,8 +1,6 @@
-for initial release:
+for next release:
 
-  * proper getopt support, -Sy, -Q, -Ql, -Qs
-
-  * add arch=i686 automatically, x86_64 after asking
+  * offer binary repo
 
   * short banner (and config option to disable it)
 
@@ -10,6 +8,12 @@ for initial release:
 
   * edit http://wiki.archlinux.org/index.php/AUR_Helpers#yaourt
      and http://wiki.archlinux.org/index.php/Yaourt
+
+  * proper getopt support, -Sy, -Q, -Ql, -Qs
+
+  * add arch=i686 automatically, x86_64 after asking
+
+  * compile packages from repos (yaourt -Sb)
 
 
 later:

@@ -13,6 +13,7 @@ makedepends=('sbcl' 'texinfo')
 depends=('glibc')
 provides=('common-lisp' 'cl-asdf' 'sbcl')
 conflicts=('sbcl')
+replaces=('sbcl')
 source=("http://downloads.sourceforge.net/project/sbcl/sbcl/$pkgver/sbcl-$pkgver-source.tar.bz2" "fix-source-path.lisp"
 "run-program.diff")
 
