@@ -6,7 +6,7 @@
 pkgname=sbcl-run-program-fix
 pkgver=1.0.31
 pkgrel=2
-pkgdesc="Steel Bank Common Lisp"
+pkgdesc="Steel Bank Common Lisp with a fix to allow passing interactive input to a subprocess invoked via RUN-PROGRAM."
 arch=(i686 x86_64)
 license=('custom')
 makedepends=('sbcl' 'texinfo')
