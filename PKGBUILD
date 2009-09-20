@@ -3,17 +3,12 @@
 
 ### IMPORTANT ###
 #
-# current SBCL versions require a patch to make Pacman
-# and interactive editors work fully. Find it in
-# sbcl.patched.
+# Current SBCL versions require a patch to make Pacman
+# and interactive editors work fully.
 #
 # I've submitted a patch to upstream but it's not in yet.
-# Additionally the current SBCL PKGBUILD is broken so I
-# can't provide a patched PKGBUILD either. :/
 #
-# Somewhat good news: you can build Paktahn without a
-# patched SBCL; it will use Pacman in non-interactive
-# mode and use `cat' instead of an editor.
+# For now install sbcl-run-program-fix to compile Paktahn.
 #
 
 pkgname=paktahn
@@ -23,7 +18,7 @@ pkgdesc="Package manager similar to yaourt and tupac"
 arch=('i686' 'x86_64')
 depends=('pacman' 'readline' 'sudo')
 license=('GPL')
-url="http://gitorious.org/paktahn"
+url="http://blog.viridian-project.de/2009/09/19/announcement-paktahn-a-successor-to-yaourt/"
 makedepends=('sbcl-run-program-fix')
 options=(!strip)
 install="paktahn.install"
@@ -33,6 +28,7 @@ source=("http://viridian-project.de/~sky/paktahn/paktahn-makedeps-$pkgver.tbz2"
 build() {
   cd "$srcdir"
 
+  # compile
   SBCL=sbcl
 
   $SBCL \
@@ -44,12 +40,15 @@ build() {
        --load main.lisp \
        --eval "(pak::build-core :forkp nil)"
 
+  # install binary
   mkdir -p $pkgdir/usr/bin
   install -m755 paktahn $pkgdir/usr/bin
 
+  # install helper scripts
   mkdir -p $pkgdir/usr/lib/paktahn
   install -m755 pkgbuild-helper.sh $pkgdir/usr/lib/paktahn
 
+  # create convenience symlink
   cd $pkgdir/usr/bin
   ln -s paktahn pak
 }
