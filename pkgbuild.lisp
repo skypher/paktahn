@@ -1,8 +1,20 @@
 
 (in-package :pak)
 
-(defparameter *pkgbuild-helper* "/usr/lib/paktahn/pkgbuild-helper.sh")
+(defparameter *pkgbuild-helper* "/usr/lib/paktahn/pkgbuild-helper.sh"
+  "Script to extract PKGBUILD values.")
+(defparameter *makepkg-helper* "/usr/lib/paktahn/makepkg-helper.sh"
+  "Script to extract makepkg.conf values.")
 
+(defun parse-helper-output (stream)
+  (loop for line = (read-line stream nil nil)
+        with key
+        while line
+        if key
+          collect (cons key line)
+          and do (setf key nil)
+        else
+          do (setf key line)))
 
 (defun get-pkgbuild-data (&optional (pkgbuild-filename "./PKGBUILD"))
   (multiple-value-bind (return-value output-stream)
@@ -10,21 +22,27 @@
                    :capture-output-p t)
     (unless (zerop return-value)
       (error "Couldn't extract PKGBUILD data (error ~D)" return-value))
-    (loop for line = (read-line output-stream nil nil)
-          with key
-          while line
-          if key
-            collect (cons key line)
-            and do (setf key nil)
-          else
-            do (setf key line))))
+    (parse-helper-output output-stream)))
+
+(defun get-makepkg-data ()
+  (multiple-value-bind (return-value output-stream)
+      (run-program *makepkg-helper* nil :capture-output-p t)
+    (unless (zerop return-value)
+      (error "Couldn't extract makepkg.conf data (error ~D)" return-value))
+    (parse-helper-output output-stream)))
+
+(defun get-carch ()
+  (let ((data (get-makepkg-data)))
+    (flet ((field (name)
+             (cdr (assoc name data :test #'equalp))))
+      (field "carch"))))
 
 (defun get-pkgbuild-tarball-name (&optional (pkgbuild-filename "./PKGBUILD"))
   (let ((data (get-pkgbuild-data pkgbuild-filename)))
     (flet ((field (name)
              (cdr (assoc name data :test #'equalp))))
       (format nil "~A-~A-~A-~A.pkg.tar.gz" (field "pkgname") (field "pkgver")
-              (field "pkgrel") (field "arch")))))
+              (field "pkgrel") (get-carch)))))
 
 (defun parse-dep (dep-spec)
   "Parse a versioned dependency specification into a list

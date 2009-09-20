@@ -46,7 +46,9 @@ build() {
 
   # install helper scripts
   mkdir -p $pkgdir/usr/lib/paktahn
-  install -m755 pkgbuild-helper.sh $pkgdir/usr/lib/paktahn
+  for helper in pkgbuild-helper.sh makepkg-helper.sh; do
+    install -m755 "$helper" $pkgdir/usr/lib/paktahn
+  done
 
   # create convenience symlink
   cd $pkgdir/usr/bin
