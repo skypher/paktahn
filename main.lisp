@@ -276,6 +276,22 @@ pairs as cons cells."
                              :db-name (second pkgspec)))
                   chosen-packages))))))
 
+(defun remove-package (pkg-name)
+  (maybe-refresh-cache)
+    (labels ((do-remove ()
+               ;; TODO: support removal of group, provides(?)
+               (cond
+                 ((not (package-installed-p pkg-name))
+                  (info "Package ~S is not installed, skipping removal." pkg-name))
+                 (t
+                  (run-pacman (list "-R" pkg-name))))))
+      (restart-case
+          (do-remove)
+        (skip-package ()
+          :report (lambda (s)
+                    (format s "Skip removal of package ~S and continue" pkg-name))
+          (values nil 'skipped)))))
+
 (defun parse-options (argv)
   ;; TODO
   (getopt:getopt argv nil))
@@ -293,6 +309,8 @@ pairs as cons cells."
      (search-and-install-packages (first argv)))
     ((and (>= argc 2) (equal (first argv) "-S"))
      (mapcar #'install-package (cdr argv)))
+    ((and (>= argc 2) (equal (first argv) "-R"))
+     (mapcar #'remove-package (cdr argv)))
     (t
      (display-help))))
 
