@@ -1,0 +1,6 @@
+0.8.1
+  * Package removal support.
+  * Support for provider packages.
+
+0.8
+  * Initial release.
