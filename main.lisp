@@ -186,12 +186,17 @@ pairs as cons cells."
   (cdr (first (get-package-results pkg-name :exact t))))
 
 (defun install-package (pkg-name &key db-name force)
+  (declare (special *root-package*))
   (maybe-refresh-cache)
   (let ((db-name (or db-name (first (find-package-by-name pkg-name)))))
     (labels ((do-install ()
                (cond
                  ((and (package-installed-p pkg-name) (not force))
-                  (info "Package ~S is already installed, skipping." pkg-name))
+                  (info "Package ~S is already installed." pkg-name)
+                  (when (and (equalp *root-package* pkg-name)
+                             (ask-y/n "Reinstall it" nil))
+                    (setf force t)
+                    (do-install)))
                  ((not db-name)
                   (restart-case
                       (error "Couldn't find package ~S anywhere" pkg-name)
@@ -209,7 +214,6 @@ pairs as cons cells."
       ;; either we're installing a root package and need to set up our
       ;; environment to reflect this, or we're installing a dep and
       ;; should check that the environment has been set up properly.
-      (declare (special *root-package*))
       (cond
         ;; installing a dep
         ((boundp '*root-package*)
