@@ -147,3 +147,18 @@ objects."
          (check-return-value return-value))))
     t))
 
+(defcfun "alpm_pkg_get_provides" :pointer (pkg :pointer))
+
+(defun find-providing-packages (provides-name)
+  ;; TODO: aur support
+  (maybe-refresh-cache)
+  (let (providers)
+    (map-cached-packages
+      (lambda (db-name pkg-spec)
+        (destructuring-bind (name version desc provides) pkg-spec
+          (declare (ignore version desc))
+          (when (member provides-name provides :test #'equalp :key (compose #'first #'parse-dep))
+            (push (cons db-name name) providers))))
+      :include-groups nil)
+    providers))
+

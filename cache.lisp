@@ -4,7 +4,7 @@
 
 (setf cl-store:*check-for-circs* nil)
 
-(defparameter *cache-format-version* 2)
+(defparameter *cache-format-version* 3)
 
 (flet ((conf (type name)
          (config-file (make-pathname :directory '(:relative "cache")
@@ -102,9 +102,11 @@ contains a list of sublists (PKGNAME VERSION DESC). Initially NIL.")
         ;; packages
         (map-db-packages (lambda (db-spec pkg)
                            (declare (ignore db-spec))
+                           ;(format t "~A ~A~%" (alpm-pkg-get-name pkg) (alpm-pkg-get-version pkg))
                            (push (list (alpm-pkg-get-name pkg)
                                        (alpm-pkg-get-version pkg)
-                                       (alpm-pkg-get-desc pkg))
+                                       (alpm-pkg-get-desc pkg)
+                                       (mapcar #'foreign-string-to-lisp (alpm-list->lisp (alpm-pkg-get-provides pkg))))
                                  (gethash db-name *cache-contents*)))
                          :db-list (list db-spec))
 

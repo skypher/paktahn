@@ -22,7 +22,7 @@
       (:nicknames :pak)
       (:use :cl :cffi)
       (:import-from :alexandria :compose :curry :rcurry :ensure-list)
-      (:import-from :metatilities :push-end)
+      (:import-from :metatilities :push-end :aif :it)
       (:import-from :split-sequence :split-sequence)))
 
 (in-package :pak)
@@ -42,12 +42,16 @@
   (map-cached-packages (lambda (db-name pkg)
                          (declare (ignore db-name))
                          (unless (stringp pkg) ; ignore groups
-                             (destructuring-bind (name version desc) pkg
+                             (destructuring-bind (name version desc provides) pkg
                                (declare (ignore desc))
                                (when (and (equalp name pkg-name)
                                           (or (null pkg-version)
                                               (equalp pkg-version version)))
-                                 (return-from package-installed-p t)))))
+                                 (return-from package-installed-p (values t :installed)))
+                               (when (member pkg-name provides
+                                             :test #'equalp
+                                             :key (compose #'first #'parse-dep))
+                                 (return-from package-installed-p (values t :provided))))))
                        :db-list (list *local-db*))
   nil)
 
@@ -98,7 +102,7 @@
     (with-term-colors/id :pkg-description
       (format t "~%    ~A~%" description))))
 
-(defun get-package-results (query &key (quiet t) exact (stream *standard-output*))
+(defun get-package-results (query &key (quiet t) exact (stream *standard-output*) query-for-providers)
   (declare (string query))
   (let* ((*print-pretty* nil)
          (i 0)
@@ -107,17 +111,21 @@
                               (etypecase pkg
                                 (string
                                   (let ((name pkg))
-                                    (when (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
-                                              (and (not exact)
-                                                   (search query name :test #'equalp)))
+                                    (when (and (not query-for-providers) ; groups can't be providers
+                                               (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
+                                                   (and (not exact)
+                                                        (search query name :test #'equalp))))
                                       (incf i)
                                       (push-end (list i 'group name) packages)
                                       (unless quiet
                                         (print-group i db-name name :stream stream)))))
                                 (cons
-                                  (destructuring-bind (name version desc) pkg
+                                  (destructuring-bind (name version desc provides) pkg
                                     ;; TODO: search in desc, use regex
-                                    (when (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
+                                    (when (or (and query-for-providers (member query provides
+                                                                               :test #'equalp
+                                                                               :key (compose #'first #'parse-dep)))
+                                              (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
                                               (and (not exact)
                                                    (or (search query name :test #'equalp)
                                                        (search query desc :test #'equalp))))
@@ -188,7 +196,7 @@ pairs as cons cells."
 (defun install-package (pkg-name &key db-name force)
   (declare (special *root-package*))
   (maybe-refresh-cache)
-  (let ((db-name (or db-name (first (find-package-by-name pkg-name)))))
+  (let ((db-name (or db-name (first (find-package-by-name pkg-name))))) ; FIXME: show all packages that provide PKG-NAME too (?)
     (labels ((do-install ()
                (cond
                  ((and (package-installed-p pkg-name) (not force))
@@ -198,14 +206,14 @@ pairs as cons cells."
                     (setf force t)
                     (do-install)))
                  ((not db-name)
-                  (restart-case
-                      (error "Couldn't find package ~S anywhere" pkg-name)
-                    (resync-db ()
-                      :report "Resync pacman databases (-Sy) and try again"
-                      (run-pacman '("-Sy"))
-                      (do-install))))
-                 ((equalp db-name "local")
-                  (error "BUG: trying to install a package from local"))
+                  (aif (search-and-install-packages pkg-name :query-for-providers t)
+                    (install-package (cdr it) :db-name (car it))
+                    (restart-case
+                        (error "Couldn't find package ~S anywhere" pkg-name)
+                      (resync-db ()
+                        :report "Resync pacman databases (-Sy) and try again"
+                        (run-pacman '("-Sy"))
+                        (do-install)))))
                  ((equalp db-name "aur")
                   (install-aur-package pkg-name))
                  ((or (eq db-name 'group)
@@ -237,11 +245,12 @@ pairs as cons cells."
                          (format s "Skip installation of package ~S and continue" *root-package*))
                (values nil 'skipped)))))))))
 
-(defun search-and-install-packages (query)
+(defun search-and-install-packages (query &key query-for-providers)
   (maybe-refresh-cache)
   (let* ((pkglist (make-string-output-stream))
          (bstream (make-broadcast-stream *standard-output* pkglist))
          (packages (get-package-results query :quiet nil
+                                              :query-for-providers query-for-providers
                                               :stream bstream))
          (pkglist (get-output-stream-string pkglist))
          (total (length packages)))
@@ -252,14 +261,22 @@ pairs as cons cells."
              (make-prompt ()
                (with-term-colors/id :info ; FIXME use INFO
                  (format nil "[1-~D] => " total))))
-        (format t "=>  -----------------------------------------------------------~%~
-                   =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
-                   =>  Empty line prints the package list again. Hit Ctrl+C to abort.~%~
-                   =>  -----------------------------------------------------------~%")
+        (if query-for-providers
+          (format t "=>  --------------------------------------------------------------~%~
+                     =>  Please choose a package that provides '~A' from this list.~%~
+                     =>  Empty line prints the package list again. Hit Ctrl+C to abort.~%~
+                     =>  --------------------------------------------------------------~%"
+                     query)
+          (format t "=>  ------------------------------------~%~
+                     =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
+                     =>  Empty line prints the package list again. Hit Ctrl+C to abort.~%~
+                     =>  --------------------------------------------------------------~%"))
         (let* ((choices (loop for input = (getline (make-prompt))
                               for got-input-p = (and input (not (equal input "")))
                               for ranges = (when got-input-p
-                                             (expand-ranges (parse-ranges input 0 total)))
+                                             (if query-for-providers
+                                               (list (parse-integer-between input 0 total))
+                                               (expand-ranges (parse-ranges input 0 total))))
                               until ranges
                               unless got-input-p
                                 do (print-list)
@@ -271,6 +288,10 @@ pairs as cons cells."
                                                packages :key #'first))
                (chosen-packages (sort chosen-packages #'< :key #'first)))
           ;(format t "chosen: ~S~%" chosen-packages)
+          (when query-for-providers
+            ;; remove other providers since these usually conflict
+            (mapcar (compose #'remove-package #'third) (remove (car chosen-packages) packages
+                                                               :test #'equalp :key #'first)))
           (mapcar (lambda (pkgspec)
                     (funcall #'install-package (third pkgspec)
                              :db-name (second pkgspec)))
