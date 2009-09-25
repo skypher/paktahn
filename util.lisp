@@ -68,7 +68,7 @@
   (format *standard-output* "~%")
   ;(trace parse-integer read-char)
   (loop for x = (getline (format nil "~&[0-~D] ==> " (1- (length restarts))))
-        for n = (ignore-errors (parse-integer x))
+        for n = (handler-case (parse-integer x) (parse-error () nil))
         until (and n (>= n 0) (< n (length restarts)))
         finally (return (nth n restarts))))
 
@@ -296,4 +296,9 @@
              (sb-posix:stat file))
            sb-impl::unix-to-universal-time)
   #-sbcl(error "no file-mod-time"))
+
+(defun parse-integer-between (s min max)
+  (let ((i (handler-case (parse-integer s)
+             (parse-error () nil))))
+    (and i (>= i min) (<= i max) i)))
 
