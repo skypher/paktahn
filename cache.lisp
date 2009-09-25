@@ -202,9 +202,10 @@ for a db to disk."
 
 
 ;;;; accessing the cache
-(defun map-cached-packages (fn &key (db-list *sync-dbs*))
+(defun map-cached-packages (fn &key (db-list *sync-dbs*) (include-groups t))
   (dolist (db-spec db-list)
     (let ((db-name (car db-spec)))
       (dolist (pkg-spec (gethash db-name *cache-contents*))
-        (funcall fn (car db-spec) pkg-spec)))))
+        (when (or include-groups (consp pkg-spec))
+          (funcall fn (car db-spec) pkg-spec))))))
   

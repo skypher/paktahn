@@ -234,7 +234,7 @@ pairs as cons cells."
                (do-install)
              (skip-package ()
                :report (lambda (s)
-                         (format s "Skip package ~S and continue" *root-package*))
+                         (format s "Skip installation of package ~S and continue" *root-package*))
                (values nil 'skipped)))))))))
 
 (defun search-and-install-packages (query)

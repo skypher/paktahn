@@ -8,15 +8,23 @@
 
 (use-foreign-library libalpm)
 
+;;; lists helper
+(defcfun "alpm_list_next" :pointer (pkg-iterator :pointer))
+(defcfun "alpm_list_getdata" :pointer (pkg-iterator :pointer))
+
+(defun alpm-list->lisp (alpm-list)
+  (loop for iter = alpm-list
+        then (alpm-list-next iter)
+        until (null-pointer-p iter)
+          collect (alpm-list-getdata iter)))
+
+;;; main alpm
 (defcfun "alpm_initialize" :int)
 (defcfun "alpm_option_set_root" :int (root :string))
 (defcfun "alpm_option_set_dbpath" :int (root :string))
 
 (defcfun "alpm_db_register_local" :pointer)
 (defcfun "alpm_db_register_sync" :pointer (name :string))
-
-(defcfun "alpm_list_next" :pointer (pkg-iterator :pointer))
-(defcfun "alpm_list_getdata" :pointer (pkg-iterator :pointer))
 
 (defun init-alpm ()
   (alpm-initialize)
