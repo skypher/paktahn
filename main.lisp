@@ -247,6 +247,8 @@ pairs as cons cells."
 
 (defun search-and-install-packages (query &key query-for-providers)
   (maybe-refresh-cache)
+  (when query-for-providers
+    (info "You need to select a package providing ~S" query))
   (let* ((pkglist (make-string-output-stream))
          (bstream (make-broadcast-stream *standard-output* pkglist))
          (packages (get-package-results query :quiet nil
