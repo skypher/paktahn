@@ -65,6 +65,9 @@
 
 (defun install-aur-package (pkg-name)
   (info "Installing package ~S from AUR.~%" pkg-name)
+  (when (rootp)
+    (error "You're running Paktahn as root; makepkg will not work.~%~
+            Try running as a normal user and Paktahn will invoke `sudo' as necessary."))
   (let ((orig-dir (current-directory)))
     (unwind-protect
       (progn
