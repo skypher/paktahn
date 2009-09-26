@@ -1,6 +1,7 @@
 0.8.1
-  * Package removal support.
-  * Support for provider packages.
+  * package removal support.
+  * support for provider packages.
+  * throw an error when the user attempts to build an AUR package as root.
 
 0.8
   * Initial release.
