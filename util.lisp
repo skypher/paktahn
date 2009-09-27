@@ -302,3 +302,8 @@
              (parse-error () nil))))
     (and i (>= i min) (<= i max) i)))
 
+(defmacro show-result (&body body)
+  `(let ((result (progn ,@body)))
+     (format t "result of form ~S: ~S~%" ',body result)
+     result))
+

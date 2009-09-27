@@ -194,6 +194,9 @@ pairs as cons cells."
   (cdr (first (get-package-results pkg-name :exact t))))
 
 (defun install-package (pkg-name &key db-name force)
+  "Install package PKG-NAME from AUR or sync databases. PKG-NAME
+may also be a group name or the name of a provider package.
+Returns T upon successful installation, NIL otherwise."
   (declare (special *root-package*))
   (maybe-refresh-cache)
   (let ((db-name (or db-name (first (find-package-by-name pkg-name))))) ; FIXME: show all packages that provide PKG-NAME too (?)
@@ -201,13 +204,14 @@ pairs as cons cells."
                (cond
                  ((and (package-installed-p pkg-name) (not force))
                   (info "Package ~S is already installed." pkg-name)
-                  (when (and (equalp *root-package* pkg-name)
-                             (ask-y/n "Reinstall it" nil))
-                    (setf force t)
-                    (do-install)))
+                  (if (and (equalp *root-package* pkg-name)
+                           (ask-y/n "Reinstall it" nil))
+                    (progn
+                      (setf force t)
+                      (do-install))
+                    t))
                  ((not db-name)
-                  (aif (search-and-install-packages pkg-name :query-for-providers t)
-                    (install-package (cdr it) :db-name (car it))
+                  (unless (search-and-install-packages pkg-name :query-for-providers t)
                     (restart-case
                         (error "Couldn't find package ~S anywhere" pkg-name)
                       (resync-db ()
@@ -218,7 +222,10 @@ pairs as cons cells."
                   (install-aur-package pkg-name))
                  ((or (eq db-name 'group)
                       (member db-name (mapcar #'car *sync-dbs*) :test #'equalp))
-                  (install-binary-package db-name pkg-name)))))
+                  (install-binary-package db-name pkg-name))
+                 #+(or)
+                 (t
+                  (error "BUG: missing DO-INSTALL case")))))
       ;; either we're installing a root package and need to set up our
       ;; environment to reflect this, or we're installing a dep and
       ;; should check that the environment has been set up properly.
@@ -228,12 +235,13 @@ pairs as cons cells."
          (assert *root-package*)
          (check-type *root-package* string)
          (tagbody retry
-           (restart-case
-               (do-install)
-             (retry ()
-               :report (lambda (s)
-                         (format s "Retry installation of package ~S" pkg-name))
-               (go retry)))))
+           (return-from install-package
+             (restart-case
+                 (do-install)
+               (retry ()
+                 :report (lambda (s)
+                           (format s "Retry installation of package ~S" pkg-name))
+                 (go retry))))))
         ;; installing an explicitly requested package
         (t
          (let ((*root-package* pkg-name))
@@ -248,7 +256,7 @@ pairs as cons cells."
 (defun search-and-install-packages (query &key query-for-providers)
   (maybe-refresh-cache)
   (when query-for-providers
-    (info "You need to select a package providing ~S" query))
+    (info "Please select a package providing ~S" query))
   (let* ((pkglist (make-string-output-stream))
          (bstream (make-broadcast-stream *standard-output* pkglist))
          (packages (get-package-results query :quiet nil
@@ -277,14 +285,14 @@ pairs as cons cells."
                               for got-input-p = (and input (not (equal input "")))
                               for ranges = (when got-input-p
                                              (if query-for-providers
-                                               (list (parse-integer-between input 0 total))
+                                               (parse-integer-between input 0 total)
                                                (expand-ranges (parse-ranges input 0 total))))
                               until ranges
                               unless got-input-p
                                 do (print-list)
                               finally (progn
                                         (add-history input)
-                                        (return ranges))))
+                                        (return (ensure-list ranges)))))
                (chosen-packages (remove-if-not (lambda (id)
                                                  (member id choices))
                                                packages :key #'first))
@@ -292,28 +300,29 @@ pairs as cons cells."
           ;(format t "chosen: ~S~%" chosen-packages)
           (when query-for-providers
             ;; remove other providers since these usually conflict
-            (mapcar (compose #'remove-package #'third) (remove (car chosen-packages) packages
-                                                               :test #'equalp :key #'first)))
-          (mapcar (lambda (pkgspec)
-                    (funcall #'install-package (third pkgspec)
-                             :db-name (second pkgspec)))
-                  chosen-packages))))))
+            (map nil (compose #'remove-package #'third) (remove (car chosen-packages) packages
+                                                                :test #'equalp :key #'first)))
+          (mapc (lambda (pkgspec)
+                  (funcall #'install-package (third pkgspec)
+                           :db-name (second pkgspec)))
+                                chosen-packages))))))
 
 (defun remove-package (pkg-name)
   (maybe-refresh-cache)
-    (labels ((do-remove ()
-               ;; TODO: support removal of group, provides(?)
-               (cond
-                 ((not (package-installed-p pkg-name))
-                  (info "Package ~S is not installed, skipping removal." pkg-name))
-                 (t
-                  (run-pacman (list "-R" pkg-name))))))
-      (restart-case
-          (do-remove)
-        (skip-package ()
-          :report (lambda (s)
-                    (format s "Skip removal of package ~S and continue" pkg-name))
-          (values nil 'skipped)))))
+  (labels ((do-remove ()
+             ;; TODO: support removal of group, provides(?)
+             (cond
+               ((not (package-installed-p pkg-name))
+                #+(or)(info "Package ~S is not installed, skipping removal." pkg-name)
+                nil)
+               (t
+                (run-pacman (list "-R" pkg-name))))))
+    (restart-case
+        (do-remove)
+      (skip-package ()
+        :report (lambda (s)
+                  (format s "Skip removal of package ~S and continue" pkg-name))
+        (values nil 'skipped)))))
 
 (defun parse-options (argv)
   ;; TODO
