@@ -1,6 +1,23 @@
 
 (in-package :pak)
 
+;;;; helper macros
+(defmacro show-result (&body body)
+  `(let ((result (progn ,@body)))
+     (format t "result of form ~S: ~S~%" ',body result)
+     result))
+
+(defmacro retrying (&body body)
+  "Execute BODY in a PROGN and return its value upon completion.
+BODY may call RETRY at any time to restart its execution."
+  (let ((tagbody-name (gensym))
+        (block-name (gensym)))
+    `(block ,block-name
+       (tagbody ,tagbody-name
+         (flet ((retry () (go ,tagbody-name)))
+           (return-from ,block-name (progn ,@body)))))))
+
+
 ;;;; infos, notes, progress
 (defparameter *info-fmt-prefix* "==> ")
 (defparameter *info-fmt-suffix* "~%")
@@ -301,19 +318,4 @@
   (let ((i (handler-case (parse-integer s)
              (parse-error () nil))))
     (and i (>= i min) (<= i max) i)))
-
-(defmacro show-result (&body body)
-  `(let ((result (progn ,@body)))
-     (format t "result of form ~S: ~S~%" ',body result)
-     result))
-
-(defmacro retrying (&body body)
-  "Execute BODY in a PROGN and return its value upon completion.
-BODY may call RETRY at any time to restart its execution."
-  (let ((tagbody-name (gensym))
-        (block-name (gensym)))
-    `(block ,block-name
-       (tagbody ,tagbody-name
-         (flet ((retry () (go ,tagbody-name)))
-           (return-from ,block-name (progn ,@body)))))))
 
