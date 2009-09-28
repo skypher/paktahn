@@ -103,13 +103,13 @@ objects."
 
 (defmacro with-pacman-lock (&body body)
   `(let (notified)
-     (tagbody again
+     (retrying
        (when (probe-file *pacman-lock*)
          (unless notified
            (info "Pacman is currently in use, waiting for it to finish...")
            (setf notified t))
          (sleep 1) ; maybe there's a better way? some ioctl?
-         (go again)))
+         (retry)))
      ,@body))
 
 (defun run-pacman (args &key capture-output-p)

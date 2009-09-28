@@ -234,14 +234,13 @@ Returns T upon successful installation, NIL otherwise."
         ((boundp '*root-package*)
          (assert *root-package*)
          (check-type *root-package* string)
-         (tagbody retry
-           (return-from install-package
-             (restart-case
-                 (do-install)
-               (retry ()
-                 :report (lambda (s)
-                           (format s "Retry installation of package ~S" pkg-name))
-                 (go retry))))))
+         (retrying
+           (restart-case
+               (do-install)
+             (retry ()
+               :report (lambda (s)
+                         (format s "Retry installation of package ~S" pkg-name))
+               (retry)))))
         ;; installing an explicitly requested package
         (t
          (let ((*root-package* pkg-name))

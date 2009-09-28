@@ -246,7 +246,7 @@
   (format t "INFO: editing is not supported because you're using Paktahn~%~
              with an unpatched SBCL, but here's the PKGBUILD for review:~%~
              ==========~%")
-  (tagbody again
+  (retrying
     ;; FIXME: run-program kludge again, can't do interactive I/O.
     (let* ((editor #-run-program-fix "cat"
                    #+run-program-fix (or (environment-variable "EDITOR")
@@ -255,27 +255,27 @@
       (unless (zerop return-value)
         (warn "Editor ~S exited with non-zero status ~D" editor return-value)
         (when (ask-y/n "Choose another editor?" t)
-          (go again)))))
+          (retry)))))
   #-run-program-fix
     (format t "~&==========~%"))
 
 (defun download-file (uri)
-  (tagbody retry
+  (retrying
     (let ((return-value (run-program "wget" (list "-c" uri))))
       (unless (zerop return-value)
         (if (ask-y/n (format nil "Download via wget failed with status ~D. Retry?" return-value))
-          (go retry)
+          (retry)
           (error "Failed to download file ~S" uri)))
-      t)))
+      return-value)))
 
 (defun unpack-file (name)
-  (tagbody retry
+  (retrying
     (let ((return-value (run-program "tar" (list "xfvz" name))))
       (unless (zerop return-value)
         (if (ask-y/n (format nil "Unpacking failed with status ~D. Retry?" return-value))
-          (go retry)
+          (retry)
           (error "Failed to unpack file ~S" name)))
-      t)))
+      return-value)))
 
 
 ;;;; configuration
@@ -306,4 +306,14 @@
   `(let ((result (progn ,@body)))
      (format t "result of form ~S: ~S~%" ',body result)
      result))
+
+(defmacro retrying (&body body)
+  "Execute BODY in a PROGN and return its value upon completion.
+BODY may call RETRY at any time to restart its execution."
+  (let ((tagbody-name (gensym))
+        (block-name (gensym)))
+    `(block ,block-name
+       (tagbody ,tagbody-name
+         (flet ((retry () (go ,tagbody-name)))
+           (return-from ,block-name (progn ,@body)))))))
 

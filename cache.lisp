@@ -22,7 +22,7 @@
 (defun grab-cache-lock (db-name)
   (let ((lock-file (cache-lock-file db-name))
         feedback-given-p)
-    (tagbody retry
+    (retrying
       (when (probe-file lock-file)
         (with-open-file (lf lock-file :direction :input
                                       :if-does-not-exist :error)
@@ -34,7 +34,7 @@
                  (info "Another Paktahn instance (pid ~D) is currently accessing the ~
                        disk cache for ~S, please wait..." pid db-name))
                (sleep 0.5)
-               (go retry))
+               (retry))
               (t
                (note "Cache lock ~S grabbed by pid ~D is stale, removing it."
                      lock-file pid)
