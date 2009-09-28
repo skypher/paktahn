@@ -12,9 +12,10 @@
 #
 
 pkgname=paktahn
-pkgver=0.8
+pkgver=0.8.1
+libver=0.8
 pkgrel=1
-pkgdesc="Package manager similar to yaourt and tupac"
+pkgdesc="The kick-ass package manager for Arch Linux!"
 arch=('i686' 'x86_64')
 depends=('pacman' 'readline' 'sudo')
 license=('GPL')
@@ -22,8 +23,9 @@ url="http://blog.viridian-project.de/2009/09/19/announcement-paktahn-a-successor
 makedepends=('sbcl-run-program-fix')
 options=(!strip)
 install="paktahn.install"
-source=("http://viridian-project.de/~sky/paktahn/paktahn-makedeps-$pkgver.tbz2"
-        "http://viridian-project.de/~sky/paktahn/paktahn-${pkgver}.tar.bz2")
+source=("http://viridian-project.de/~sky/paktahn/paktahn-makedeps-$libver.tbz2"
+#        "http://viridian-project.de/~sky/paktahn/paktahn-${pkgver}.tar.bz2")
+        "paktahn-${pkgver}.tar.bz2")
 
 build() {
   cd "$srcdir"
@@ -55,10 +57,6 @@ build() {
   ln -s paktahn pak
 }
 md5sums=('1c1336880231e88a4e90b32222272ed1'
-         '33fe4980b7bd2495c1b1c220dea7cb12')
+         '647dc3eb20ecaac6d6a1c2a082d25edd')
 sha1sums=('643e60fe54c56038e03823280e6d9173ad273f00'
-          'a29a8602cc8caff4c3df8030797ef861c21ecf84')
-md5sums=('1c1336880231e88a4e90b32222272ed1'
-         '24f385756b791f7dfd462072efde98a5')
-sha1sums=('643e60fe54c56038e03823280e6d9173ad273f00'
-          '2d2b383f6fc88150a6df4190e97e750002aaca7c')
+          '36ca32c378188ceb4800c685a84516b06dc1b19a')

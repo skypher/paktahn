@@ -1,7 +1,8 @@
 0.8.1
-  * package removal support.
-  * support for provider packages.
-  * throw an error when the user attempts to build an AUR package as root.
+  * package removal support
+  * support for provider packages
+  * support for reinstallation of packages
+  * throw an error when the user attempts to build an AUR package as root
 
 0.8
   * Initial release.
