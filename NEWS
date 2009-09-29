@@ -1,3 +1,7 @@
+0.8.2
+  * ask the user whether he wants to add his arch if it's
+    not listed in the PKGBUILD.
+
 0.8.1
   * package removal support
   * support for provider packages

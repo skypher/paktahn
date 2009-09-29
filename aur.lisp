@@ -57,6 +57,15 @@
   (format nil "~(~A~).tar.gz" pkg-name))
 
 (defun run-makepkg ()
+  "Run makepkg in the current working directory"
+  (retrying
+    (restart-case
+        (check-pkgbuild-arch)
+      (add-arch ()
+          :report (lambda (s)
+                    (format s "Add ~S to the PKGBUILD's arch field" (get-carch)))
+        (add-carch-to-pkgbuild)
+        (retry))))
   (let ((return-value (run-program "makepkg" nil)))
     (unless (zerop return-value)
       ;; TODO restarts?

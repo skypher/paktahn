@@ -215,7 +215,7 @@ Returns T upon successful installation, NIL otherwise."
                     (restart-case
                         (error "Couldn't find package ~S anywhere" pkg-name)
                       (resync-db ()
-                        :report "Resync pacman databases (-Sy) and try again"
+                          :report "Resync pacman databases (-Sy) and try again"
                         (run-pacman '("-Sy"))
                         (do-install)))))
                  ((equalp db-name "aur")

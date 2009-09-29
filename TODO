@@ -1,7 +1,5 @@
 for next release:
 
-  * offer binary repo
-
   * short banner (and config option to disable it)
 
   * website, proper help/docs
@@ -11,16 +9,12 @@ for next release:
 
   * proper getopt support, -Sy, -Q, -Ql, -Qs
 
-  * add arch=i686 automatically, x86_64 after asking
-
   * compile packages from repos (yaourt -Sb)
 
 
 later:
 
   * smart regexp/wildcard mode (detect ^ $ * ?)
-
-  * add arch=i686 automatically, x86_64 after asking
 
   * proper getopt support, -Sy, -Q, -Ql, -Qs
 

@@ -17,7 +17,7 @@ echo pkgrel
 echo ${pkgrel}
 
 echo arch
-echo ${arch}
+echo ${arch[@]}
 
 echo depends
 echo ${depends[@]}
