@@ -276,7 +276,7 @@ Returns T upon successful installation, NIL otherwise."
                      =>  Empty line prints the package list again. Hit Ctrl+C to abort.~%~
                      =>  --------------------------------------------------------------~%"
                      query)
-          (format t "=>  ------------------------------------~%~
+          (format t "=>  --------------------------------------------------------------~%~
                      =>  Enter numbers (e.g. '1,2-5,6') of packages to be installed.~%~
                      =>  Empty line prints the package list again. Hit Ctrl+C to abort.~%~
                      =>  --------------------------------------------------------------~%"))
