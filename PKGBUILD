@@ -57,6 +57,6 @@ build() {
   ln -s paktahn pak
 }
 md5sums=('1c1336880231e88a4e90b32222272ed1'
-         '647dc3eb20ecaac6d6a1c2a082d25edd')
+         '84a403a0ac53d6df6018573da691945d')
 sha1sums=('643e60fe54c56038e03823280e6d9173ad273f00'
-          '36ca32c378188ceb4800c685a84516b06dc1b19a')
+          'f85e191cbd86c7cd201d59cabadc7534864395f5')
