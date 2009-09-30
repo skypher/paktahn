@@ -265,10 +265,13 @@ BODY may call RETRY at any time to restart its execution."
              ==========~%")
   (retrying
     ;; FIXME: run-program kludge again, can't do interactive I/O.
-    (let* ((editor #-run-program-fix "cat"
-                   #+run-program-fix (or (environment-variable "EDITOR")
-                                         (ask-for-editor)))
-           (return-value (run-program editor filename)))
+    (let* ((editor-spec #-run-program-fix "cat"
+                        #+run-program-fix (or (environment-variable "EDITOR")
+                                              (ask-for-editor)))
+           (editor-spec (split-sequence #\Space editor-spec :remove-empty-subseqs t))
+           (editor-bin (car editor-spec))
+           (editor-args (cdr editor-spec))
+           (return-value (run-program editor-bin (append editor-args (list filename)))))
       (unless (zerop return-value)
         (warn "Editor ~S exited with non-zero status ~D" editor return-value)
         (when (ask-y/n "Choose another editor?" t)
