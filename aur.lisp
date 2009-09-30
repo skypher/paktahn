@@ -92,7 +92,7 @@
         (setf (current-directory) pkg-name)
 
         ;; ask user whether he wishes to edit the PKGBUILD
-        (when (ask-y/n "Edit PKGBUILD" t)
+        (when (ask-y/n "Review/edit PKGBUILD" t)
           (launch-editor "PKGBUILD"))
 
         (unless (ask-y/n (format nil "Continue building ~S" pkg-name) t)
