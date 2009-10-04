@@ -1,4 +1,5 @@
 0.8.1
+  * fixed x86_64 package building/installation
   * fixed case when $EDITOR also had args in it (e.g. "emacsclient -l")
   * package removal support
   * support for provider packages
