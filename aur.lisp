@@ -91,9 +91,22 @@
 
         (setf (current-directory) pkg-name)
 
-        ;; ask user whether he wishes to edit the PKGBUILD
-        (when (ask-y/n "Review/edit PKGBUILD" t)
-          (launch-editor "PKGBUILD"))
+	(flet ((review-pkgbuild () ;; ask user whether he wishes to edit the PKGBUILD
+		 (when (ask-y/n "Review/edit PKGBUILD" t)
+		   (launch-editor "PKGBUILD"))))
+	  ;; check to see if the PKGBUILD has been seen before
+	  ;; if not, add its md5sum to the checksum-db and ask the user to review it
+	  ;; otherwise, compare its md5sum to that on record and prompt the user if necessary
+	  (multiple-value-bind (value present) (gethash pkg-name *checksums*)
+	    (let ((pkgbuild-md5 (sb-md5:md5sum-file "PKGBUILD")))
+	      (if (not present)
+		  (progn
+		    (review-pkgbuild)
+		    (setf (gethash pkg-name *checksums*) pkgbuild-md5))
+		  (unless (equal value pkgbuild-md5)
+		    (when (ask-y/n "The PKGBUILD checksum doesn't match our records. Review the PKGBUILD?")
+		      (launch-editor "PKGBUILD")))))))
+
 
         (unless (ask-y/n (format nil "Continue building ~S" pkg-name) t)
           (return-from install-aur-package))
