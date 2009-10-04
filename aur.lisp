@@ -107,6 +107,8 @@
 		    (when (ask-y/n "The PKGBUILD checksum doesn't match our records. Review the PKGBUILD?")
 		      (launch-editor "PKGBUILD")))))))
 
+        ;; store the modified checksums DB
+        (cl-store:store *checksums* (config-file ".chksums"))
 
         (unless (ask-y/n (format nil "Continue building ~S" pkg-name) t)
           (return-from install-aur-package))
