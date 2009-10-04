@@ -6,6 +6,7 @@
   * throw an error when the user attempts to build an AUR package as root
   * ask the user whether he wants to add his arch if it's
     not listed in the PKGBUILD.
+  * fixed --help and -h arguments (reported by Ralith)
 
 0.8
   * Initial release.

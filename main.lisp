@@ -328,7 +328,11 @@ Returns T upon successful installation, NIL otherwise."
   (getopt:getopt argv nil))
 
 (defun display-help ()
-  (format t "Usage: paktahn PACKAGE~%"))
+  (format t "~
+Usage:
+  pak QUERY      # search for QUERY
+  pak -S PACKAGE # install PACKAGE
+  pak -R PACKAGE # remove PACKAGE~%"))
 
 (defun main (argv &aux (argc (length argv)))
   "Secondary entry point: process config and command line."
@@ -365,10 +369,10 @@ Returns T upon successful installation, NIL otherwise."
   #-sbcl(error "don't know how to build a core image")
   #+sbcl(progn
           (flet ((dump ()
-                       (sb-ext:save-lisp-and-die "paktahn"
-                                                 :toplevel #'core-main
-                                                 :executable t
-                                                 :save-runtime-options nil)))
+                   (sb-ext:save-lisp-and-die "paktahn"
+                                             :toplevel #'core-main
+                                             :executable t
+                                             :save-runtime-options t)))
             (if forkp
               (let ((pid (sb-posix:fork)))
                 (if (zerop pid)
