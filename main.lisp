@@ -357,7 +357,7 @@ Returns T upon successful installation, NIL otherwise."
     (setf *sync-dbs* (init-sync-dbs))
     (setf *print-pretty* nil)
     (enable-quit-on-sigint)
-    (init-checksums)
+    (load-checksums)
     (let ((argv (cdr (getargv))))
       (restart-case
           (main argv)

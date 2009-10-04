@@ -6,15 +6,6 @@
 (defparameter *makepkg-helper* "/usr/lib/paktahn/makepkg-helper.sh"
   "Script to extract makepkg.conf values.")
 
-(defvar *checksums* (make-hash-table :test #'equal)
-  "Hash table containing checksums of PKGBUILDs.
-The package names are the keys. The checksum byte arrays
-are the values. Support will be added for non-PKGBUILD files later.")
-
-(defun init-checksums ()
-  (when (probe-file (config-file ".chksums"))
-    (setf *checksums* (cl-store:restore (config-file ".chksums")))))
-
 (defun parse-helper-output (stream)
   (loop for line = (read-line stream nil nil)
         with key
