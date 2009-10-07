@@ -13,18 +13,22 @@ are the values. Support will be added for non-PKGBUILD files later.")
 
 (defun compare-checksums (pkg-name)
   (let ((pkgbuild-md5 (md5sum-file "PKGBUILD"))
-	(stored-md5 (lookup-checksum pkg-name)))
-    (cond ((not stored-md5)  ; if new PKGBUILD, ask the user to review it and add it to the checksum-db
+	(old-md5s (lookup-checksum pkg-name)))
+    (cond ((not old-md5s)  ; if new PKGBUILD, ask the user to review it and add it to the checksum-db
 	   (prompt-user-review "PKGBUILD")
 	   (add-checksum pkg-name pkgbuild-md5))
-	  ((and (not (equalp stored-md5 pkgbuild-md5)) ; otherwise, compare its md5sum to that on record and prompt the user if necessary
+	  ((and (new-checksum-p pkgbuild-md5 old-md5s) ; otherwise, compare its md5sum to that on record and prompt the user if necessary
 		(ask-y/n "The PKGBUILD checksum doesn't match our records. Review the PKGBUILD?"))
-	   (launch-editor "PKGBUILD"))))) ; Do we also need to (add-checksum pkg-name) here? Which md5 do we keep?
+	   (launch-editor "PKGBUILD")
+	   (add-checksum pkg-name pkgbuild-md5)))))
 
 (defun add-checksum (pkg-name checksum)
-  (setf (gethash pkg-name *checksums*) checksum))
+  (pushnew checksum (gethash pkg-name *checksums*) :test #'equalp))
 
 (defun lookup-checksum (pkg-name)
   (gethash pkg-name *checksums*))
+
+(defun new-checksum-p (new old)
+  (not (member new old :test #'equalp)))
 
 ;; TODO: Add checksums-file locking here.
