@@ -322,3 +322,8 @@ BODY may call RETRY at any time to restart its execution."
              (parse-error () nil))))
     (and i (>= i min) (<= i max) i)))
 
+;;;; checksumming wrappers
+
+(defun md5sum (path)
+  #+sbcl(sb-md5:md5sum-file path)
+  #-sbcl(error "no md5sum"))

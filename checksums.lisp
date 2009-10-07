@@ -12,7 +12,7 @@ are the values. Support will be added for non-PKGBUILD files later.")
     (setf *checksums* (cl-store:restore (config-file "checksums")))))
 
 (defun compare-checksums (pkg-name)
-  (let ((pkgbuild-md5 (sb-md5:md5sum-file "PKGBUILD"))
+  (let ((pkgbuild-md5 (md5sum-file "PKGBUILD"))
 	(stored-md5 (lookup-checksum pkg-name)))
     (cond ((not stored-md5)  ; if new PKGBUILD, ask the user to review it and add it to the checksum-db
 	   (prompt-user-review "PKGBUILD")
