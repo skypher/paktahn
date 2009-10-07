@@ -72,7 +72,7 @@
       (error "Makepkg failed (status ~D)" return-value))
     t))
 
-(defun review-file (filename) ;; ask user whether they wish to edit a file
+(defun prompt-user-review (filename) ;; ask user whether they wish to edit a file
   (let ((str (concatenate 'string "Review/edit " filename)))
     (when (ask-y/n str t)
       (launch-editor filename))))

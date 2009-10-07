@@ -15,7 +15,7 @@ are the values. Support will be added for non-PKGBUILD files later.")
   (let ((pkgbuild-md5 (sb-md5:md5sum-file "PKGBUILD"))
 	(stored-md5 (lookup-checksum pkg-name)))
     (cond ((not stored-md5)  ; if new PKGBUILD, ask the user to review it and add it to the checksum-db
-	   (review-file "PKGBUILD")
+	   (prompt-user-review "PKGBUILD")
 	   (add-checksum pkg-name pkgbuild-md5))
 	  ((unless (equalp stored-md5 pkgbuild-md5) ; otherwise, compare its md5sum to that on record and prompt the user if necessary
 	     (when (ask-y/n "The PKGBUILD checksum doesn't match our records. Review the PKGBUILD?")
