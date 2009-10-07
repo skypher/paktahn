@@ -40,6 +40,7 @@
 (load "alpm.lisp")
 (load "aur.lisp")
 (load "cache.lisp")
+(load "checksums.lisp")
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
   (map-cached-packages (lambda (db-name pkg)
