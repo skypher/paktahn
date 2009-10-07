@@ -14,6 +14,9 @@ for next release:
 
 later:
 
+  * start querying aur in a separate thread while
+    searching local
+
   * smart regexp/wildcard mode (detect ^ $ * ?)
 
   * proper getopt support, -Sy, -Q, -Ql, -Qs
