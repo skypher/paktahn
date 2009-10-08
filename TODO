@@ -26,9 +26,6 @@ later:
   * allow Ctrl+C to stop searching and present the choices gathered
     up to that point right away
 
-  * record PKGBUILD md5 so we don't present the same file
-    repeatedly to the user for review
-
   * add md5/sha1 (makepkg -g) if they are missing, after asking the user
 
   * -G: just download and unpack AUR tarball of package
