@@ -33,18 +33,21 @@
   "Search AUR for a string"
   (let ((json:*json-symbols-package* #.*package*))
     (json:with-decoder-simple-clos-semantics
-      (let ((json (drakma:http-request "http://aur.archlinux.org/rpc.php"
-                                       :parameters `(("type" . "search")
-                                                     ("arg" . ,query)))))
-        (check-type json string)
-        (let* ((response (json:decode-json-from-string json))
-               (results (slot-value response 'results)))
-          (if (equalp (slot-value response 'type) "search")
-            (dolist (match (sort (coerce results 'list) #'string<
-                                 :key (lambda (result)
-                                        (slot-value result 'name))))
-              (funcall fn match))
-            (note "AUR message: ~A" results)))))))
+	(handler-case
+	    (let ((json (drakma:http-request "http://aur.archlinux.org/rpc.php"
+					     :parameters `(("type" . "search")
+							   ("arg" . ,query)))))
+	      (check-type json string)
+	      (let* ((response (json:decode-json-from-string json))
+		     (results (slot-value response 'results)))
+		(if (equalp (slot-value response 'type) "search")
+		    (dolist (match (sort (coerce results 'list) #'string<
+					 :key (lambda (result)
+						(slot-value result 'name))))
+		      (funcall fn match))
+		    (note "AUR message: ~A" results))))
+	  (usocket:network-unreachable-error (e)
+	    (note "Couldn't reach the network. Your connection may be down."))))))
 
 (defun install-dependencies (deps)
   (mapcar 'install-package deps))
