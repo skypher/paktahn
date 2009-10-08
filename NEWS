@@ -1,3 +1,7 @@
+0.8.2
+  * Paktahn now remembers which PKGBUILD files it already presented
+    for review (written by Brit Butler)
+
 0.8.1
   * fixed x86_64 package building/installation
   * fixed case when $EDITOR also had args in it (e.g. "emacsclient -l")
