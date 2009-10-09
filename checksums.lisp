@@ -8,8 +8,14 @@ The package names are the keys. The checksum byte arrays
 are the values. Support will be added for non-PKGBUILD files later.")
 
 (defun load-checksums ()
-  (when (probe-file (config-file "checksums"))
-    (setf *checksums* (cl-store:restore (config-file "checksums")))))
+  (let ((checksum-file (config-file "checksums")))
+    (when (probe-file checksum-file)
+      (with-simple-lock (file checksum-file)
+	(setf *checksums* (cl-store:restore file))))))
+
+(defun save-checksums ()
+  (with-simple-lock (file (config-file "checksums"))
+    (cl-store:store *checksums* file)))
 
 (defun compare-checksums (pkg-name)
   (let ((pkgbuild-md5 (md5sum-file "PKGBUILD"))
@@ -31,4 +37,15 @@ are the values. Support will be added for non-PKGBUILD files later.")
 (defun new-checksum-p (new old)
   (not (member new old :test #'equalp)))
 
-;; TODO: Add checksums-file locking here.
+(defmacro with-simple-lock ((var filespec) &rest body)
+  (let ((stream (gensym))
+	(fd (gensym)))
+    `(with-open-file (,stream ,filespec
+			      :if-does-not-exist :create
+			      :direction :output)
+       (let ((,fd (sb-sys:fd-stream-fd ,stream))
+	     (,var ,filespec))
+	 (sb-posix:lockf ,fd sb-posix:f-lock 0)
+	 ,@body
+	 (sb-posix:lockf ,fd sb-posix:f-ulock 0)))))
+

@@ -103,7 +103,7 @@
 	(compare-checksums pkg-name)
 	
         ;; store the modified checksums DB
-        (cl-store:store *checksums* (config-file "checksums"))
+	(save-checksums)
 
         (unless (ask-y/n (format nil "Continue building ~S" pkg-name) t)
           (return-from install-aur-package))
