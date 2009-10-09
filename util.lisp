@@ -327,3 +327,15 @@ BODY may call RETRY at any time to restart its execution."
 (defun md5sum-file (path)
   #+sbcl(sb-md5:md5sum-file path)
   #-sbcl(error "no md5sum-file"))
+
+(defun fd-stream (stream)
+  #+sbcl(sb-sys:fd-stream-fd stream)
+  #-sbcl(error "no fd-stream-fd"))
+
+(defun lockf (fd)
+  #+sbcl(sb-posix:lockf fd sb-posix:f-lock 0)
+  #-sbcl(error "no lockf"))
+
+(defun ulockf (fd)
+  #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
+  #-sbcl(error "no lockf"))
