@@ -7,15 +7,14 @@
 The package names are the keys. The checksum byte arrays
 are the values. Support will be added for non-PKGBUILD files later.")
 
-(defvar *checksum-file* (config-file "checksums"))
-
 (defun load-checksums ()
-  (when (probe-file *checksum-file*)
-    (with-simple-lock (file *checksum-file*)
-      (setf *checksums* (cl-store:restore file)))))
+  (let ((checksum-file (config-file "checksums")))
+    (when (probe-file checksum-file)
+      (with-simple-lock (file checksum-file)
+	(setf *checksums* (cl-store:restore file))))))
 
 (defun save-checksums ()
-  (with-simple-lock (file *checksum-file*)
+  (with-simple-lock (file (config-file "checksums"))
     (cl-store:store *checksums* file)))
 
 (defun compare-checksums (pkg-name)
