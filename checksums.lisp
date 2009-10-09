@@ -7,14 +7,15 @@
 The package names are the keys. The checksum byte arrays
 are the values. Support will be added for non-PKGBUILD files later.")
 
+(defvar *checksum-file* (config-file "checksums"))
+
 (defun load-checksums ()
-  (let ((checksum-file (config-file "checksums")))
-    (when (probe-file checksum-file)
-      (with-simple-lock (file checksum-file)
-	(setf *checksums* (cl-store:restore file))))))
+  (when (probe-file *checksum-file*)
+    (with-simple-lock (file *checksum-file*)
+      (setf *checksums* (cl-store:restore file)))))
 
 (defun save-checksums ()
-  (with-simple-lock (file (config-file "checksums"))
+  (with-simple-lock (file *checksum-file*)
     (cl-store:store *checksums* file)))
 
 (defun compare-checksums (pkg-name)
@@ -41,6 +42,7 @@ are the values. Support will be added for non-PKGBUILD files later.")
   (let ((stream (gensym))
 	(fd (gensym)))
     `(with-open-file (,stream ,filespec
+			      :if-exists :supersede
 			      :if-does-not-exist :create
 			      :direction :output)
        (let ((,fd (sb-sys:fd-stream-fd ,stream))
@@ -48,4 +50,3 @@ are the values. Support will be added for non-PKGBUILD files later.")
 	 (sb-posix:lockf ,fd sb-posix:f-lock 0)
 	 ,@body
 	 (sb-posix:lockf ,fd sb-posix:f-ulock 0)))))
-
