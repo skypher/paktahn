@@ -324,6 +324,6 @@ BODY may call RETRY at any time to restart its execution."
 
 ;;;; checksumming wrappers
 
-(defun md5sum (path)
+(defun md5sum-file (path)
   #+sbcl(sb-md5:md5sum-file path)
-  #-sbcl(error "no md5sum"))
+  #-sbcl(error "no md5sum-file"))
