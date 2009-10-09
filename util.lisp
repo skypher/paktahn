@@ -328,7 +328,7 @@ BODY may call RETRY at any time to restart its execution."
   #+sbcl(sb-md5:md5sum-file path)
   #-sbcl(error "no md5sum-file"))
 
-(defun fd-stream (stream)
+(defun stream->fd (stream)
   #+sbcl(sb-sys:fd-stream-fd stream)
   #-sbcl(error "no fd-stream-fd"))
 
