@@ -339,3 +339,16 @@ BODY may call RETRY at any time to restart its execution."
 (defun ulockf (fd)
   #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
   #-sbcl(error "no lockf"))
+
+(defmacro with-locked-open-file ((var filespec) &rest body)
+  (let ((stream (gensym))
+	(fd (gensym)))
+    `(with-open-file (,stream ,filespec
+			      :if-exists :supersede
+			      :if-does-not-exist :create
+			      :direction :output)
+       (let ((,fd (fd->stream ,stream))
+	     (,var ,filespec))
+	 (lockf ,fd)
+	 (unwind-protect (progn ,@body)
+	   (ulockf ,fd))))))

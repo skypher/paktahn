@@ -34,7 +34,8 @@
   (let ((json:*json-symbols-package* #.*package*))
     (json:with-decoder-simple-clos-semantics
       (let ((json
-	     (handler-bind
+	     (handler-bind ((usocket:socket-error (lambda (e)
+                                                    (error "Error connecting to AUR: ~A" e))))
 		 (block nil
 		   (restart-case
 		       (drakma:http-request "http://aur.archlinux.org/rpc.php"
@@ -45,9 +46,7 @@
 		       (return))
 		     (ignore ()
 		       :report (lambda (s) (format s "Ignore this error and continue."))
-		       nil)))
-	       (usocket:socket-error (e)
-				     (error "Error connecting to AUR: ~A" e)))))
+		       nil))))))
 	(check-type json string)
 	(let* ((response (json:decode-json-from-string json))
 	       (results (slot-value response 'results)))

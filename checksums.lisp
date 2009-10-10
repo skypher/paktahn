@@ -37,15 +37,3 @@ are the values. Support will be added for non-PKGBUILD files later.")
 (defun new-checksum-p (new old)
   (not (member new old :test #'equalp)))
 
-(defmacro with-locked-open-file ((var filespec) &rest body)
-  (let ((stream (gensym))
-	(fd (gensym)))
-    `(with-open-file (,stream ,filespec
-			      :if-exists :supersede
-			      :if-does-not-exist :create
-			      :direction :output)
-       (let ((,fd (fd-stream ,stream))
-	     (,var ,filespec))
-	 (lockf ,fd)
-	 (unwind-protect (progn ,@body)
-	   (ulockf ,fd))))))
