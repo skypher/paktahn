@@ -329,14 +329,19 @@ BODY may call RETRY at any time to restart its execution."
   #-sbcl(error "no md5sum-file"))
 
 (defun stream->fd (stream)
+  (check-type stream stream)
   #+sbcl(sb-sys:fd-stream-fd stream)
   #-sbcl(error "no fd-stream-fd"))
 
 (defun lockf (fd)
+  (check-type fd integer)
+  (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-lock 0)
   #-sbcl(error "no lockf"))
 
 (defun ulockf (fd)
+  (check-type fd integer)
+  (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
   #-sbcl(error "no lockf"))
 
@@ -347,7 +352,7 @@ BODY may call RETRY at any time to restart its execution."
 			      :if-exists :supersede
 			      :if-does-not-exist :create
 			      :direction :output)
-       (let ((,fd (fd->stream ,stream))
+       (let ((,fd (stream->fd ,stream))
 	     (,var ,filespec))
 	 (lockf ,fd)
 	 (unwind-protect (progn ,@body)
