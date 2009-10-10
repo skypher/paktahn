@@ -345,11 +345,18 @@ BODY may call RETRY at any time to restart its execution."
   #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
   #-sbcl(error "no lockf"))
 
-(defmacro with-locked-open-file ((var filespec &rest open-args)
+(defmacro with-locked-open-file ((var filespec &rest open-args
+				  &key direction &allow-other-keys)
 				 &body body)
+  "Binds var to filespec and passes filespec, direction and open-args
+to with-open-file. Once the file is locked with lockf(), the body is
+executed and the lock is released."
+  (cond ((null direction) (error "You need to give a direction."))
+	((eq direction :input) (setf direction :io)))
+  (remf open-args :direction)
   (let ((stream (gensym))
 	(fd (gensym)))
-    `(with-open-file (,stream ,filespec
+    `(with-open-file (,stream ,filespec :direction ,direction
 			      ,@open-args)
        (let ((,fd (stream->fd ,stream))
 	     (,var ,filespec))
