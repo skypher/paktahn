@@ -350,9 +350,14 @@ BODY may call RETRY at any time to restart its execution."
 				 &body body)
   "Binds var to filespec and passes filespec, direction and open-args
 to with-open-file. Once the file is locked with lockf(), the body is
-executed and the lock is released."
+executed and the lock is released. If :direction is set to :input, we
+change it to :io to satisfy lockf(). In that case, open-args is set to
+:if-exists :overwrite."
   (cond ((null direction) (error "You need to give a direction."))
-	((eq direction :input) (setf direction :io)))
+	((eq direction :input)
+	 (setf direction :io)
+	 (remf open-args :if-exists)
+	 (setf open-args (append open-args '(:if-exists :overwrite)))))
   (remf open-args :direction)
   (let ((stream (gensym))
 	(fd (gensym)))
