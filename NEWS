@@ -1,6 +1,8 @@
 0.8.2
+  * proper error reporting and restarts when AUR results cannot be
+    fetched (Brit)
   * Paktahn now remembers which PKGBUILD files it already presented
-    for review (written by Brit Butler)
+    for review (Brit)
 
 0.8.1
   * fixed x86_64 package building/installation
