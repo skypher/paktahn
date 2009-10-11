@@ -29,7 +29,9 @@ are the values. Support will be added for non-PKGBUILD files later.")
 	  ((and (new-checksum-p pkgbuild-md5 old-md5s) ; otherwise, compare its md5sum to that on record and prompt the user if necessary
 		(ask-y/n "The PKGBUILD checksum doesn't match our records. Review the PKGBUILD?"))
 	   (launch-editor "PKGBUILD")
-	   (add-checksum pkg-name pkgbuild-md5)))))
+	   (add-checksum pkg-name pkgbuild-md5))
+          (t
+           (info "You have already reviewed this PKGBUILD file")))))
 
 (defun add-checksum (pkg-name checksum)
   (pushnew checksum (gethash pkg-name *checksums*) :test #'equalp))
