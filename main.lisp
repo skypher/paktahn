@@ -38,9 +38,9 @@
 (load "term.lisp")
 (load "util.lisp")
 (load "alpm.lisp")
+(load "checksums.lisp")
 (load "aur.lisp")
 (load "cache.lisp")
-(load "checksums.lisp")
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
   (map-cached-packages (lambda (db-name pkg)
