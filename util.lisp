@@ -163,6 +163,7 @@ BODY may call RETRY at any time to restart its execution."
       (error "Could not get current directory."))))
 
 (defun (setf current-directory) (pathspec)
+  (setf *default-pathname-defaults* (truename pathspec))
   (sb-posix:chdir pathspec))
 
 (defun environment-variable (name)
