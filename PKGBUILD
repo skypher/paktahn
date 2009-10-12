@@ -34,6 +34,7 @@ build() {
   SBCL=sbcl
 
   $SBCL \
+       --no-userinit --no-sysinit \
        --noinform --lose-on-corruption --end-runtime-options \
        --eval "(pushnew :paktahn-deploy *features*)" \
        --eval "(require :asdf)" \
