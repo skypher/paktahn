@@ -361,13 +361,13 @@ case of reading which necessitates :if-exists :overwrite for with-open-file."
 	 (unwind-protect (progn ,@body)
 	   (ulockf ,fd))))))
 
-(defmacro with-locked-read-file ((var filespec) &body body)
+(defmacro with-locked-input-file ((var filespec) &body body)
   `(with-locked-open-file (,var ,filespec
 				:direction :io
 				:if-exists :overwrite)
      ,@body))
 
-(defmacro with-locked-write-file ((var filespec) &body body)
+(defmacro with-locked-output-file ((var filespec) &body body)
   `(with-locked-open-file (,var ,filespec
 				:direction :output
 				:if-exists :supersede
