@@ -10,14 +10,11 @@ are the values. Support will be added for non-PKGBUILD files later.")
 (defun load-checksums ()
   (let ((checksum-file (config-file "checksums")))
     (when (probe-file checksum-file)
-      (with-locked-open-file (file checksum-file :direction :input)
+      (with-locked-read-file (file checksum-file)
 	(setf *checksums* (cl-store:restore file))))))
 
 (defun save-checksums ()
-  (with-locked-open-file (file (config-file "checksums")
-			       :direction :output
-			       :if-exists :supersede
-			       :if-does-not-exist :create)
+  (with-locked-write-file (file (config-file "checksums"))
     (cl-store:store *checksums* file)))
 
 (defun compare-checksums (pkg-name)

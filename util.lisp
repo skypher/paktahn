@@ -346,26 +346,31 @@ BODY may call RETRY at any time to restart its execution."
   #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
   #-sbcl(error "no lockf"))
 
-(defmacro with-locked-open-file ((var filespec &rest open-args
-				  &key direction &allow-other-keys)
+(defmacro with-locked-open-file ((var filespec &rest open-args)
 				 &body body)
-  "Binds var to filespec and passes filespec, direction and open-args
-to with-open-file. Once the file is locked with lockf(), the body is
-executed and the lock is released. If :direction is set to :input, we
-change it to :io to satisfy lockf(). In that case, open-args is set to
-:if-exists :overwrite."
-  (cond ((null direction) (error "You need to give a direction."))
-	((eq direction :input)
-	 (setf direction :io)
-	 (remf open-args :if-exists)
-	 (setf open-args (append open-args '(:if-exists :overwrite)))))
-  (remf open-args :direction)
+  "Binds var to filespec and passes filespec and open-args to with-open-file.
+Once the file is locked with lockf(), the body is executed and the lock is
+released. Note that :direction must be set to :io to satisfy lockf() in the
+case of reading which necessitates :if-exists :overwrite for with-open-file."
   (let ((stream (gensym))
 	(fd (gensym)))
-    `(with-open-file (,stream ,filespec :direction ,direction
+    `(with-open-file (,stream ,filespec
 			      ,@open-args)
        (let ((,fd (stream->fd ,stream))
 	     (,var ,filespec))
 	 (lockf ,fd)
 	 (unwind-protect (progn ,@body)
 	   (ulockf ,fd))))))
+
+(defmacro with-locked-read-file ((var filespec) &body body)
+  `(with-locked-open-file (,var ,filespec
+				:direction :io
+				:if-exists :overwrite)
+     ,@body))
+
+(defmacro with-locked-write-file ((var filespec) &body body)
+  `(with-locked-open-file (,var ,filespec
+				:direction :output
+				:if-exists :supersede
+				:if-does-not-exist :create)
+     ,@body))
