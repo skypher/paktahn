@@ -44,8 +44,9 @@
 (defun check-pkgbuild-arch (&optional (pkgbuild-filename "./PKGBUILD"))
   (let ((carch (get-carch))
         (archlist (get-pkgbuild-arch pkgbuild-filename)))
-    (unless (member carch archlist :test #'equalp)
-      (error "Your system (~A) isn't listed in the PKGBUILD list of compatible ~
+    (unless (or (member carch archlist :test #'equalp)
+                (member "any" archlist :test #'equalp))
+      (error "Your system (~A) isn't listed in the PKGBUILD's list of compatible ~
               architectures (~A).~%makepkg will refuse to build it." carch archlist))
     t))
 
