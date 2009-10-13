@@ -1,4 +1,5 @@
 0.8.2
+  * fixed arch=(any) case (reported by magus)
   * proper error reporting and restarts when AUR results cannot be
     fetched (Brit)
   * Paktahn now remembers which PKGBUILD files it already presented
