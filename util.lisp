@@ -350,7 +350,8 @@ BODY may call RETRY at any time to restart its execution."
   "Binds var to filespec and passes filespec and open-args to with-open-file.
 Once the file is locked with lockf(), the body is executed and the lock is
 released. Note that :direction must be set to :io to satisfy lockf() in the
-case of reading which necessitates :if-exists :overwrite for with-open-file."
+case of reading which necessitates :if-exists :overwrite for with-open-file.
+Body is also inside an unwind-protect to ensure lock release."
   (let ((stream (gensym))
 	(fd (gensym)))
     `(with-open-file (,stream ,filespec
@@ -362,12 +363,18 @@ case of reading which necessitates :if-exists :overwrite for with-open-file."
 	   (ulockf ,fd))))))
 
 (defmacro with-locked-input-file ((var filespec) &body body)
+  "Passes var, filespec and body unmodified to with-locked-open-file
+along with the :direction :io and :if-exists :overwrite options
+which are passed by w-l-o-f to with-open-file."
   `(with-locked-open-file (,var ,filespec
 				:direction :io
 				:if-exists :overwrite)
      ,@body))
 
 (defmacro with-locked-output-file ((var filespec) &body body)
+  "Passes var, filespec and body unmodified to with-locked-open-file
+along with the :direction :output, :if-exists :supersede and
+:if-does-not-exist :create options which are passed by w-l-o-f to with-open-file."
   `(with-locked-open-file (,var ,filespec
 				:direction :output
 				:if-exists :supersede
