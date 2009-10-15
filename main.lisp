@@ -1,8 +1,5 @@
-
-#+sbcl
-(progn
-  (require :sb-posix)
-  (require :sb-md5))
+#+sbcl(require :sb-posix)
+(require :md5)
 (require :trivial-backtrace)
 (require :cl-store)
 (require :cl-json)
