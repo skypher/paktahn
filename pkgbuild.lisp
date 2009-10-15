@@ -62,7 +62,9 @@
     (flet ((field (name)
              (cdr (assoc name data :test #'equalp))))
       (format nil "~A-~A-~A-~A.pkg.tar.gz" (field "pkgname") (field "pkgver")
-              (field "pkgrel") (get-carch)))))
+              (field "pkgrel") (if (member "any" (get-pkgbuild-arch) :test #'equalp)
+                                 "any"
+                                 (get-carch))))))
 
 (defun parse-dep (dep-spec)
   "Parse a versioned dependency specification into a list
