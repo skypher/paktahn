@@ -107,6 +107,9 @@
 
         (setf (current-directory) pkg-name)
 
+	;; update the checksum database in case another thread has added new checksums
+	(load-checksums)
+
 	;; check to see if the PKGBUILD has been seen before
 	(compare-checksums pkg-name)
 	
