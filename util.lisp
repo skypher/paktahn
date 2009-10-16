@@ -121,7 +121,8 @@ BODY may call RETRY at any time to restart its execution."
 ;;;; quit and interruptions
 (defun quit ()
   #+paktahn-deploy
-    #+sbcl(sb-ext:quit))
+  (progn
+    #+sbcl(sb-ext:quit)))
 
 #+sbcl
 (defun enable-quit-on-sigint ()
