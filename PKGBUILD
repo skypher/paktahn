@@ -35,6 +35,7 @@ build() {
 
   $SBCL \
        --noinform --lose-on-corruption --end-runtime-options \
+       --no-userinit --no-sysinit \
        --eval "(pushnew :paktahn-deploy *features*)" \
        --eval "(require :asdf)" \
        --eval "(setf asdf:*central-registry*
@@ -57,10 +58,6 @@ build() {
   ln -s paktahn pak
 }
 md5sums=('1c1336880231e88a4e90b32222272ed1'
-         '84a403a0ac53d6df6018573da691945d')
+         '5b69891b2f32e295f2d6ed45e4103c73')
 sha1sums=('643e60fe54c56038e03823280e6d9173ad273f00'
-          'f85e191cbd86c7cd201d59cabadc7534864395f5')
-md5sums=('1c1336880231e88a4e90b32222272ed1'
-         '07f4585949fcae1d501466688151550c')
-sha1sums=('643e60fe54c56038e03823280e6d9173ad273f00'
-          'c68f75962cff523ded29ee1ca4c8b085cf30affb')
+          '70762f87d3b7c8ba3103ff943c7e4706f853ff18')

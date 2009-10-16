@@ -1,8 +1,15 @@
 0.8.2
+=====
+  * more restarts after failed AUR package installation ("pacman -U" step)
+
+  * fixed arch=(any) case (reported by magus)
+
   * proper error reporting and restarts when AUR results cannot be
     fetched (Brit)
+
   * Paktahn now remembers which PKGBUILD files it already presented
     for review (Brit)
+
 
 0.8.1
   * fixed x86_64 package building/installation
