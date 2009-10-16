@@ -359,7 +359,6 @@ Usage:
     (setf *sync-dbs* (init-sync-dbs))
     (setf *print-pretty* nil)
     (enable-quit-on-sigint)
-    (load-checksums)
     (let ((argv (cdr (getargv))))
       (restart-case
           (main argv)
