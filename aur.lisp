@@ -36,17 +36,17 @@
       (let ((json
 	     (handler-bind ((usocket:socket-error (lambda (e)
                                                     (error "Error connecting to AUR: ~A" e))))
-		 (block nil
+		 (retrying
 		   (restart-case
 		       (drakma:http-request "http://aur.archlinux.org/rpc.php"
 					    :parameters `(("type" . "search")
 							  ("arg" . ,query)))
 		     (retry ()
 		       :report (lambda (s) (format s "Retry network connection."))
-		       (return))
+		       (retry))
 		     (ignore ()
-		       :report (lambda (s) (format s "Ignore this error and continue."))
-		       nil))))))
+		       :report (lambda (s) (format s "Ignore this error and continue, skipping packages from AUR."))
+		       (return nil)))))))
 	(check-type json string)
 	(let* ((response (json:decode-json-from-string json))
 	       (results (slot-value response 'results)))
