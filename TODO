@@ -62,7 +62,3 @@ later:
   * AUR cache
 
   * show summary of what has been done before exit 
-
-  * fix network restarts -- they should only be offered when the
-    network connection failed (in particular SIGINT should not offer them)
-
