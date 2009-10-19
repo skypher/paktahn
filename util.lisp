@@ -183,7 +183,9 @@ BODY may call RETRY at any time to restart its execution."
 (defun mkdir (dir &optional (mode #o755))
   ;; TODO: ensure-directories-exist
   #+sbcl(sb-posix:mkdir dir mode)
-  #+ecl(si:mkdir dir mode) ; assumes last char of dir is /, trims last character.
+  #+ecl(progn
+	 (let ((dir (concatenate 'string dir "/"))) ; fix because si:mkdir trims last char.
+	   (si:mkdir dir mode)))
   #-(or ecl sbcl)(error "no mkdir"))
 
 (defun homedir ()
@@ -208,6 +210,9 @@ BODY may call RETRY at any time to restart its execution."
 
 (defun getuid ()
   #+sbcl(sb-unix:unix-getuid)
+  #+ecl(progn
+	 (ffi:c-lines "#include <unistd.h>")
+	 (ffi:c-inline () () :int "getuid()" :one-liner t))
   #-sbcl(error "no getuid"))
 
 (defun rootp ()
@@ -350,13 +355,19 @@ BODY may call RETRY at any time to restart its execution."
   (check-type fd integer)
   (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-lock 0)
-  #-sbcl(error "no lockf"))
+  #+ecl(progn
+	 (ffi:c-lines "#include <unistd.h>")
+	 (ffi:c-inline (fd) (:int) :int "lockf(#0, F_LOCK, 0)" :one-liner t))
+  #-(or sbcl ecl)(error "no lockf"))
 
 (defun ulockf (fd)
   (check-type fd integer)
   (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
-  #-sbcl(error "no lockf"))
+  #+ecl(progn
+	 (ffi:c-lines "#include <unistd.h>")
+	 (ffi:c-inline (fd) (:int) :int "lockf(#0, F_ULOCK, 0)" :one-liner t))
+  #-(or sbcl ecl)(error "no lockf"))
 
 (defmacro with-locked-open-file ((var filespec &rest open-args)
 				 &body body)
