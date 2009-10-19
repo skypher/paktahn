@@ -122,7 +122,8 @@ BODY may call RETRY at any time to restart its execution."
 (defun quit ()
   #+paktahn-deploy
   (progn
-    #+sbcl(sb-ext:quit)))
+    #+sbcl(sb-ext:quit)
+    #+ecl(si:quit)))
 
 #+sbcl
 (defun enable-quit-on-sigint ()
@@ -151,29 +152,39 @@ BODY may call RETRY at any time to restart its execution."
 ;;;; posix and friends
 (defun getargv ()
   #+sbcl sb-ext:*posix-argv*
-  #-sbcl(error "no argv"))
+  #+ecl si:argv
+  #-(or sbcl ecl)(error "no argv"))
 
 (defun getpid ()
   #+sbcl(sb-posix:getpid)
-  #-sbcl(error "no getpid"))
+  #+ecl(si:getpid)
+  #-(or sbcl ecl)(error "no getpid"))
 
 (defun current-directory ()
-  (let ((cwd (sb-posix:getcwd)))
+  (let ((cwd (progn
+	       #+sbcl(sb-posix:getcwd)
+	       #+ecl(si:getcwd)
+	       #-(or sbcl ecl)(error "no getcwd"))))
     (if cwd
-      (pathname (concatenate 'string cwd "/"))
-      (error "Could not get current directory."))))
+	(pathname (concatenate 'string cwd "/"))
+	(error "Could not get current directory."))))
 
 (defun (setf current-directory) (pathspec)
   (setf *default-pathname-defaults* (truename pathspec))
-  (sb-posix:chdir pathspec))
+  #+sbcl(sb-posix:chdir pathspec)
+  #+ecl(si:chdir pathspec)
+  #-(or ecl sbcl)(error "no chdir"))
 
 (defun environment-variable (name)
-  (sb-posix:getenv name))
+  #+sbcl(sb-posix:getenv name)
+  #+ecl(si:getenv name)
+  #-(or sbcl ecl)(error "no getenv"))
 
 (defun mkdir (dir &optional (mode #o755))
   ;; TODO: ensure-directories-exist
   #+sbcl(sb-posix:mkdir dir mode)
-  #-sbcl(error "no mkdir"))
+  #+ecl(si:mkdir dir mode) ; assumes last char of dir is /, trims last character.
+  #-(or ecl sbcl)(error "no mkdir"))
 
 (defun homedir ()
   (parse-namestring
@@ -283,12 +294,12 @@ BODY may call RETRY at any time to restart its execution."
 
 (defun download-file (uri)
   (retrying
-    (let ((return-value (run-program "wget" (list "-c" uri))))
-      (unless (zerop return-value)
-        (if (ask-y/n (format nil "Download via wget failed with status ~D. Retry?" return-value))
-          (retry)
-          (error "Failed to download file ~S" uri)))
-      return-value)))
+   (let ((return-value (run-program "wget" (list "-c" uri))))
+     (unless (zerop return-value)
+       (if (ask-y/n (format nil "Download via wget failed with status ~D. Retry?" return-value))
+	   (retry)
+	   (error "Failed to download file ~S" uri)))
+     return-value)))
 
 (defun unpack-file (name)
   (retrying
@@ -315,7 +326,7 @@ BODY may call RETRY at any time to restart its execution."
 (defun file-mod-time (file)
   "Return FILE's time of last modification (mtime) as universal time."
   #+sbcl(+ (sb-posix:stat-mtime
-             (sb-posix:stat file))
+	    (sb-posix:stat file))
            sb-impl::unix-to-universal-time)
   #-sbcl(error "no file-mod-time"))
 
@@ -332,7 +343,8 @@ BODY may call RETRY at any time to restart its execution."
 (defun stream->fd (stream)
   (check-type stream stream)
   #+sbcl(sb-sys:fd-stream-fd stream)
-  #-sbcl(error "no fd-stream-fd"))
+  #+ecl(si:file-stream-fd stream)
+  #-(or ecl sbcl)(error "no stream->fd"))
 
 (defun lockf (fd)
   (check-type fd integer)
