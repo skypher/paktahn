@@ -228,7 +228,13 @@ BODY may call RETRY at any time to restart its execution."
                                        t))))
           (values (sb-ext:process-exit-code result)
                   (sb-ext:process-output result)))
-  #-sbcl(error "no run-program"))
+  #+ecl(si:run-program (pathsearch program)
+		       (ensure-list args)
+		       :wait t :input t
+		       :output (if capture-output-p
+				   :stream
+				   t))
+  #-(or sbcl ecl)(error "no run-program"))
 
 
 ;;;; interactive stuff
@@ -328,10 +334,6 @@ BODY may call RETRY at any time to restart its execution."
       (cerror "Continue anyway" "Could't remove directory ~S recursively" dir))
     t))
 
-(defun file-mod-time (file)
-  "Return FILE's time of last modification (mtime) as universal time."
-  (file-write-date file))
-
 (defun parse-integer-between (s min max)
   (let ((i (handler-case (parse-integer s)
              (parse-error () nil))))
@@ -401,3 +403,12 @@ along with the :direction :output, :if-exists :supersede and
 				:if-exists :supersede
 				:if-does-not-exist :create)
      ,@body))
+
+;; ECL compatibility
+
+(defun pathsearch (program)
+  (let ((path (reverse (split-sequence #\: (environment-variable "PATH")))))
+    (loop for dir in path do
+      (let ((abspath (concatenate 'string dir "/" program)))
+	(when (probe-file abspath)
+	  (return abspath))))))
