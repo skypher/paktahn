@@ -33,20 +33,25 @@
   "Search AUR for a string"
   (let ((json:*json-symbols-package* #.*package*))
     (json:with-decoder-simple-clos-semantics
-      (let ((json
-	     (handler-bind ((usocket:socket-error (lambda (e)
-                                                    (error "Error connecting to AUR: ~A" e))))
-		 (block nil
-		   (restart-case
-		       (drakma:http-request "http://aur.archlinux.org/rpc.php"
-					    :parameters `(("type" . "search")
-							  ("arg" . ,query)))
-		     (retry ()
-		       :report (lambda (s) (format s "Retry network connection."))
-		       (return))
-		     (ignore ()
-		       :report (lambda (s) (format s "Ignore this error and continue."))
-		       nil))))))
+      (let* (socket-error-p
+             (json
+               (handler-bind ((usocket:socket-error (lambda (e)
+                                                      (setf socket-error-p t)
+                                                      (error "Error connecting to AUR: ~A" e))))
+                 (retrying
+                   (restart-case
+                       (drakma:http-request "http://aur.archlinux.org/rpc.php"
+                                            :parameters `(("type" . "search")
+                                                          ("arg" . ,query)))
+                     (retry ()
+                       :test (lambda (c) (declare (ignore c)) socket-error-p)
+                       :report (lambda (s) (format s "Retry network connection."))
+                       (setf socket-error-p nil)
+                       (retry))
+                     (ignore ()
+                       :test (lambda (c) (declare (ignore c)) socket-error-p)
+                       :report (lambda (s) (format s "Ignore this error and continue, skipping packages from AUR."))
+                       (return nil)))))))
 	(check-type json string)
 	(let* ((response (json:decode-json-from-string json))
 	       (results (slot-value response 'results)))
