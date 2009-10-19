@@ -330,10 +330,7 @@ BODY may call RETRY at any time to restart its execution."
 
 (defun file-mod-time (file)
   "Return FILE's time of last modification (mtime) as universal time."
-  #+sbcl(+ (sb-posix:stat-mtime
-	    (sb-posix:stat file))
-           sb-impl::unix-to-universal-time)
-  #-sbcl(error "no file-mod-time"))
+  (file-write-date file))
 
 (defun parse-integer-between (s min max)
   (let ((i (handler-case (parse-integer s)

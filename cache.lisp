@@ -152,7 +152,7 @@ for a db to disk."
 
 (defun get-alpm-last-update-time (db-name)
   "Get the date of the last ALPM db update, in universal time."
-  (file-mod-time (alpm-db-folder db-name)))
+  (file-write-date (alpm-db-folder db-name)))
 
 (defun maybe-refresh-cache ()
   (dolist (db-spec (cons *local-db* *sync-dbs*))
