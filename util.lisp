@@ -161,10 +161,9 @@ BODY may call RETRY at any time to restart its execution."
   #-(or sbcl ecl)(error "no getpid"))
 
 (defun current-directory ()
-  (let ((cwd (progn
-	       #+sbcl(sb-posix:getcwd)
-	       #+ecl(si:getcwd)
-	       #-(or sbcl ecl)(error "no getcwd"))))
+  (let ((cwd #+sbcl(sb-posix:getcwd)
+	     #+ecl(si:getcwd)
+	     #-(or sbcl ecl)(error "no getcwd")))
     (if cwd
 	(pathname (concatenate 'string cwd "/"))
 	(error "Could not get current directory."))))
@@ -183,9 +182,8 @@ BODY may call RETRY at any time to restart its execution."
 (defun mkdir (dir &optional (mode #o755))
   ;; TODO: ensure-directories-exist
   #+sbcl(sb-posix:mkdir dir mode)
-  #+ecl(progn
-	 (let ((dir (concatenate 'string dir "/"))) ; fix because si:mkdir trims last char.
-	   (si:mkdir dir mode)))
+  #+ecl(let ((dir (concatenate 'string dir "/"))) ; fix because si:mkdir trims last char.
+	 (si:mkdir dir mode))
   #-(or ecl sbcl)(error "no mkdir"))
 
 (defun homedir ()
@@ -228,9 +226,9 @@ BODY may call RETRY at any time to restart its execution."
                                        t))))
           (values (sb-ext:process-exit-code result)
                   (sb-ext:process-output result)))
-  #+ecl(si:run-program (pathsearch program)
+  #+ecl(si:run-program (find-in-path program)
 		       (ensure-list args)
-		       :wait t :input t
+		       :input t
 		       :output (if capture-output-p
 				   :stream
 				   t))
@@ -373,8 +371,7 @@ BODY may call RETRY at any time to restart its execution."
   "Binds var to filespec and passes filespec and open-args to with-open-file.
 Once the file is locked with lockf(), the body is executed and the lock is
 released. Note that :direction must be set to :io to satisfy lockf() in the
-case of reading which necessitates :if-exists :overwrite for with-open-file.
-Body is also inside an unwind-protect to ensure lock release."
+case of reading which necessitates :if-exists :overwrite for with-open-file."
   (let ((stream (gensym))
 	(fd (gensym)))
     `(with-open-file (,stream ,filespec
@@ -388,7 +385,7 @@ Body is also inside an unwind-protect to ensure lock release."
 (defmacro with-locked-input-file ((var filespec) &body body)
   "Passes var, filespec and body unmodified to with-locked-open-file
 along with the :direction :io and :if-exists :overwrite options
-which are passed by w-l-o-f to with-open-file."
+which are passed by with-locked-open-file to with-open-file."
   `(with-locked-open-file (,var ,filespec
 				:direction :io
 				:if-exists :overwrite)
@@ -396,8 +393,8 @@ which are passed by w-l-o-f to with-open-file."
 
 (defmacro with-locked-output-file ((var filespec) &body body)
   "Passes var, filespec and body unmodified to with-locked-open-file
-along with the :direction :output, :if-exists :supersede and
-:if-does-not-exist :create options which are passed by w-l-o-f to with-open-file."
+along with the :direction :output, :if-exists :supersede and :if-does-not-exist :create
+options which are passed by with-locked-open-file to with-open-file."
   `(with-locked-open-file (,var ,filespec
 				:direction :output
 				:if-exists :supersede
@@ -406,7 +403,7 @@ along with the :direction :output, :if-exists :supersede and
 
 ;; ECL compatibility
 
-(defun pathsearch (program)
+(defun find-in-path (program)
   (let ((path (reverse (split-sequence #\: (environment-variable "PATH")))))
     (loop for dir in path do
       (let ((abspath (concatenate 'string dir "/" program)))
