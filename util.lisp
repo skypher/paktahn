@@ -182,8 +182,7 @@ BODY may call RETRY at any time to restart its execution."
 (defun mkdir (dir &optional (mode #o755))
   ;; TODO: ensure-directories-exist
   #+sbcl(sb-posix:mkdir dir mode)
-  #+ecl(let ((dir (concatenate 'string dir "/"))) ; fix because si:mkdir trims last char.
-	 (si:mkdir dir mode))
+  #+ecl(si:mkdir (ensure-trailing-slash dir) mode)
   #-(or ecl sbcl)(error "no mkdir"))
 
 (defun homedir ()
@@ -406,6 +405,12 @@ options which are passed by with-locked-open-file to with-open-file."
 (defun find-in-path (program)
   (let ((path (reverse (split-sequence #\: (environment-variable "PATH")))))
     (loop for dir in path do
-      (let ((abspath (concatenate 'string dir "/" program)))
+      (let ((abspath (concatenate 'string (ensure-trailing-slash dir) program)))
 	(when (probe-file abspath)
 	  (return abspath))))))
+
+(defun ensure-trailing-slash (path)
+  (let ((lastchar (subseq path (1- (length path)))))
+    (if (equal lastchar "/")
+	path
+	(concatenate 'string path "/"))))
