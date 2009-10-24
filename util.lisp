@@ -124,7 +124,7 @@ BODY may call RETRY at any time to restart its execution."
   #+paktahn-deploy
   (progn
     #+sbcl(sb-ext:quit)
-    #+ecl(si:quit)))
+    #+ecl(ext:quit 0)))
 
 #+sbcl
 (defun enable-quit-on-sigint ()
@@ -153,17 +153,17 @@ BODY may call RETRY at any time to restart its execution."
 ;;;; posix and friends
 (defun getargv ()
   #+sbcl sb-ext:*posix-argv*
-  #+ecl si:argv
+  #+ecl(ext:command-args)
   #-(or sbcl ecl)(error "no argv"))
 
 (defun getpid ()
   #+sbcl(sb-posix:getpid)
-  #+ecl(si:getpid)
+  #+ecl(ext:getpid)
   #-(or sbcl ecl)(error "no getpid"))
 
 (defun current-directory ()
   (let ((cwd #+sbcl(sb-posix:getcwd)
-	     #+ecl(si:getcwd)
+	     #+ecl(ext:getcwd)
 	     #-(or sbcl ecl)(error "no getcwd")))
     (if cwd
 	(pathname (concatenate 'string cwd "/"))
@@ -172,18 +172,18 @@ BODY may call RETRY at any time to restart its execution."
 (defun (setf current-directory) (pathspec)
   (setf *default-pathname-defaults* (truename pathspec))
   #+sbcl(sb-posix:chdir pathspec)
-  #+ecl(si:chdir pathspec)
+  #+ecl(ext:chdir pathspec)
   #-(or ecl sbcl)(error "no chdir"))
 
 (defun environment-variable (name)
   #+sbcl(sb-posix:getenv name)
-  #+ecl(si:getenv name)
+  #+ecl(ext:getenv name)
   #-(or sbcl ecl)(error "no getenv"))
 
 (defun mkdir (dir &optional (mode #o755))
   ;; TODO: ensure-directories-exist
   #+sbcl(sb-posix:mkdir dir mode)
-  #+ecl(si:mkdir (ensure-trailing-slash dir) mode)
+  #+ecl(ext:mkdir (ensure-trailing-slash dir) mode)
   #-(or ecl sbcl)(error "no mkdir"))
 
 (defun homedir ()
@@ -226,7 +226,7 @@ BODY may call RETRY at any time to restart its execution."
                                        t))))
           (values (sb-ext:process-exit-code result)
                   (sb-ext:process-output result)))
-  #+ecl(si:run-program (find-in-path program)
+  #+ecl(ext:run-program (find-in-path program)
 		       (ensure-list args)
 		       :input t
 		       :output (if capture-output-p
@@ -345,7 +345,7 @@ BODY may call RETRY at any time to restart its execution."
 (defun stream->fd (stream)
   (check-type stream stream)
   #+sbcl(sb-sys:fd-stream-fd stream)
-  #+ecl(si:file-stream-fd stream)
+  #+ecl(ext:file-stream-fd stream)
   #-(or ecl sbcl)(error "no stream->fd"))
 
 (defun lockf (fd)
