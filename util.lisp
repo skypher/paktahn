@@ -44,6 +44,7 @@ BODY may call RETRY at any time to restart its execution."
      (let ((*info-fmt-prefix* ""))
        (info "done."))))
 
+
 ;;;; error handling
 (defvar *on-error* :debug)
 
@@ -128,25 +129,25 @@ BODY may call RETRY at any time to restart its execution."
 #+sbcl
 (defun enable-quit-on-sigint ()
   #+sbcl(labels ((install-handler (handler)
-                   (sb-sys:enable-interrupt sb-unix:sigint handler))
-                 (level2-handler (&rest args)
-                   "No messing around, the user's serious this time."
-                   (declare (ignore args))
-                   (sb-sys:enable-interrupt sb-unix:sigint :default)
-                   (quit))
-                 (level1-handler (&rest args)
-                   "Present restarts if applicable."
-                   (declare (ignore args))
-                   (install-handler #'level2-handler)
-                   (sb-sys:with-interrupts
-                     (default-error-handler
-                       (make-condition 'simple-error
-                                       :format-control "Interrupt")
-                       :before-invoke-restart-fn (lambda ()
-                                                   (install-handler
-                                                     #'level2-handler))))
-                   (quit)))
-          (install-handler #'level1-handler)))
+		   (sb-sys:enable-interrupt sb-unix:sigint handler))
+		 (level2-handler (&rest args)
+		   "No messing around, the user's serious this time."
+		   (declare (ignore args))
+		   (sb-sys:enable-interrupt sb-unix:sigint :default)
+		   (quit))
+		 (level1-handler (&rest args)
+		   "Present restarts if applicable."
+		   (declare (ignore args))
+		   (install-handler #'level2-handler)
+		   (with-interrupts
+		       (default-error-handler
+			   (make-condition 'simple-error
+					   :format-control "Interrupt")
+			   :before-invoke-restart-fn (lambda ()
+						       (install-handler
+							#'level1-handler))))
+		   (quit)))
+	  (install-handler #'level1-handler)))
 
 
 ;;;; posix and friends
@@ -336,8 +337,8 @@ BODY may call RETRY at any time to restart its execution."
              (parse-error () nil))))
     (and i (>= i min) (<= i max) i)))
 
-;;;; checksumming wrappers
 
+;;;; checksumming wrappers
 (defun md5sum-file (path)
   (md5:md5sum-file path))
 
@@ -400,8 +401,8 @@ options which are passed by with-locked-open-file to with-open-file."
 				:if-does-not-exist :create)
      ,@body))
 
-;; ECL compatibility
 
+;; ECL compatibility
 (defun find-in-path (program)
   (let ((path (reverse (split-sequence #\: (environment-variable "PATH")))))
     (loop for dir in path do
@@ -414,3 +415,7 @@ options which are passed by with-locked-open-file to with-open-file."
     (if (equal lastchar "/")
 	path
 	(concatenate 'string path "/"))))
+
+(defmacro with-interrupts (&body body)
+  #+sbcl`(sb-sys:with-interrupts ,@body)
+  #+ecl`(mp:with-interrupts ,@body))
