@@ -367,4 +367,4 @@ Usage:
 	       (dump))))
   #-(or sbcl ecl)(error "don't know how to build a core image"))
 
-(core-main)
+#+ecl(core-main)
