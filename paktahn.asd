@@ -9,7 +9,8 @@
 	       :getopt :split-sequence :cl-ppcre :py-configparser
 	       #+sbcl :sb-posix)
   :serial t
-  :components ((:file "pyconfig-fix")
+  :components ((:file "packages")
+	       (:file "pyconfig-fix")
 	       (:file "readline")
 	       (:file "term")
 	       (:file "util")

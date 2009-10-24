@@ -1,16 +1,3 @@
-(defmacro without-package-variance-warnings (&body body)
-  `(eval-when (:compile-toplevel :load-toplevel :execute)
-     (handler-bind (#+sbcl(sb-int:package-at-variance #'muffle-warning))
-       ,@body)))
-
-(without-package-variance-warnings
-    (defpackage paktahn
-      (:nicknames :pak)
-      (:use :cl :cffi)
-      (:import-from :alexandria :compose :curry :rcurry :ensure-list)
-      (:import-from :metatilities :push-end :aif :it)
-      (:import-from :split-sequence :split-sequence)))
-
 (in-package :pak)
 
 (declaim (optimize (debug 3) (safety 2) (speed 1) (space 1)))
@@ -361,7 +348,7 @@ Usage:
   #+ecl(progn
 	 (flet ((dump ()
 		  (asdf:make-build :paktahn :type :program :monolithic t
-				   :epilogue-code '(core-main))))
+				   :epilogue-code '(ext:quit 0))))
 	   (if forkp
 	       (format t "Sorry. No support for dumping with a child process.~%")
 	       (dump))))
