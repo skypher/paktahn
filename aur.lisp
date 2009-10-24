@@ -1,8 +1,6 @@
 
 (in-package :pak)
 
-(load "pkgbuild.lisp")
-
 ;;; setup simplified json->lisp translation
 (defun simplified-camel-case-to-lisp (camel-string)
   "We don't want + and * all over the place."

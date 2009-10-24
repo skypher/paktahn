@@ -1,17 +1,3 @@
-#+sbcl(require :sb-posix)
-(require :md5)
-(require :trivial-backtrace)
-(require :cl-store)
-(require :cl-json)
-(require :drakma)
-(require :cffi)
-(require :alexandria)
-(require :metatilities)
-(require :getopt)
-(require :split-sequence)
-(require :cl-ppcre)
-(require :py-configparser)
-
 (defmacro without-package-variance-warnings (&body body)
   `(eval-when (:compile-toplevel :load-toplevel :execute)
      (handler-bind (#+sbcl(sb-int:package-at-variance #'muffle-warning))
@@ -28,16 +14,6 @@
 (in-package :pak)
 
 (declaim (optimize (debug 3) (safety 2) (speed 1) (space 1)))
-
-
-(load "pyconfig-fix.lisp")
-(load "readline.lisp")
-(load "term.lisp")
-(load "util.lisp")
-(load "alpm.lisp")
-(load "checksums.lisp")
-(load "aur.lisp")
-(load "cache.lisp")
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
   (map-cached-packages (lambda (db-name pkg)
@@ -367,7 +343,6 @@ Usage:
           (quit))))))
 
 (defun build-core (&key forkp)
-  #-sbcl(error "don't know how to build a core image")
   #+sbcl(progn
           (flet ((dump ()
                    (sb-ext:save-lisp-and-die "paktahn"
@@ -375,12 +350,21 @@ Usage:
                                              :executable t
                                              :save-runtime-options t)))
             (if forkp
-              (let ((pid (sb-posix:fork)))
-                (if (zerop pid)
-                  (dump)
-                  (progn
-                    (format t "INFO: waiting for child to finish building the core...~%")
-                    (sb-posix:waitpid pid 0)
-                    (format t "INFO: ...done~%"))))
-              (dump)))))
+		(let ((pid (sb-posix:fork)))
+		  (if (zerop pid)
+		      (dump)
+		      (progn
+			(format t "INFO: waiting for child to finish building the core...~%")
+			(sb-posix:waitpid pid 0)
+			(format t "INFO: ...done~%"))))
+		(dump))))
+  #+ecl(progn
+	 (flet ((dump ()
+		  (asdf:make-build :paktahn :type :program :monolithic t
+				   :epilogue-code '(core-main))))
+	   (if forkp
+	       (format t "Sorry. No support for dumping with a child process.~%")
+	       (dump))))
+  #-(or sbcl ecl)(error "don't know how to build a core image"))
 
+(core-main)
