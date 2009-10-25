@@ -345,13 +345,8 @@ Usage:
 			(sb-posix:waitpid pid 0)
 			(format t "INFO: ...done~%"))))
 		(dump))))
-  #+ecl(progn
-	 (flet ((dump ()
-		  (asdf:make-build :paktahn :type :program :monolithic t
-				   :epilogue-code '(ext:quit 0))))
-	   (if forkp
-	       (format t "Sorry. No support for dumping with a child process.~%")
-	       (dump))))
+  #+ecl(asdf:make-build :paktahn :type :program :monolithic t
+			:epilogue-code '(ext:quit 0))
   #-(or sbcl ecl)(error "don't know how to build a core image"))
 
 #+ecl(core-main)
