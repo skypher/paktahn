@@ -19,8 +19,6 @@ later:
 
   * smart regexp/wildcard mode (detect ^ $ * ?)
 
-  * proper getopt support, -Sy, -Q, -Ql, -Qs
-
   * list package group members
 
   * allow Ctrl+C to stop searching and present the choices gathered
@@ -34,8 +32,6 @@ later:
 
   * better support for standardized colored output
     (e.g. highlight repos in info messages, support nested progress levels)
-
-  * basic versioning support (package-installed-p)
 
   * sorting the output of an AUR search ie. alphabetically, votes,
     date submitted, last updated etc. (by quigybo)
@@ -56,9 +52,5 @@ later:
   * interrupt: offer continue restart
 
   * show backtrace/enter debugger restart
-
-  * patched sbcl
-
-  * AUR cache
 
   * show summary of what has been done before exit 

@@ -139,13 +139,13 @@ BODY may call RETRY at any time to restart its execution."
 		   "Present restarts if applicable."
 		   (declare (ignore args))
 		   (install-handler #'level2-handler)
-		   (with-interrupts
-		       (default-error-handler
-			   (make-condition 'simple-error
-					   :format-control "Interrupt")
-			   :before-invoke-restart-fn (lambda ()
-						       (install-handler
-							#'level1-handler))))
+		   (sb-sys:with-interrupts
+		     (default-error-handler
+			 (make-condition 'simple-error
+					 :format-control "Interrupt")
+			 :before-invoke-restart-fn (lambda ()
+						     (install-handler
+						      #'level1-handler))))
 		   (quit)))
 	  (install-handler #'level1-handler)))
 
