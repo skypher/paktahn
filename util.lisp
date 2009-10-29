@@ -209,9 +209,9 @@ BODY may call RETRY at any time to restart its execution."
 (defun getuid ()
   #+sbcl(sb-unix:unix-getuid)
   #+ecl(progn
-	 (ffi:c-lines "#include <unistd.h>")
+	 (ffi:clines "#include <unistd.h>")
 	 (ffi:c-inline () () :int "getuid()" :one-liner t))
-  #-sbcl(error "no getuid"))
+  #-(or sbcl ecl)(error "no getuid"))
 
 (defun rootp ()
   (zerop (getuid)))
@@ -353,7 +353,7 @@ BODY may call RETRY at any time to restart its execution."
   (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-lock 0)
   #+ecl(progn
-	 (ffi:c-lines "#include <unistd.h>")
+	 (ffi:clines "#include <unistd.h>")
 	 (ffi:c-inline (fd) (:int) :int "lockf(#0, F_LOCK, 0)" :one-liner t))
   #-(or sbcl ecl)(error "no lockf"))
 
@@ -362,7 +362,7 @@ BODY may call RETRY at any time to restart its execution."
   (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
   #+ecl(progn
-	 (ffi:c-lines "#include <unistd.h>")
+	 (ffi:clines "#include <unistd.h>")
 	 (ffi:c-inline (fd) (:int) :int "lockf(#0, F_ULOCK, 0)" :one-liner t))
   #-(or sbcl ecl)(error "no lockf"))
 
