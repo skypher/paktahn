@@ -1,4 +1,6 @@
 *.fasl
+*.fas
+*.o
 Attic
 pacman.git
 *.swp
