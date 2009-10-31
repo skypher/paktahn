@@ -43,6 +43,8 @@ later:
   * better support for standardized colored output
     (e.g. highlight repos in info messages, support nested progress levels)
 
+  * basic versioning support (package-installed-p)
+
   * sorting the output of an AUR search ie. alphabetically, votes,
     date submitted, last updated etc. (by quigybo)
 
