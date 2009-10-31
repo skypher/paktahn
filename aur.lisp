@@ -49,7 +49,7 @@
                      (ignore ()
                        :test (lambda (c) (declare (ignore c)) socket-error-p)
                        :report (lambda (s) (format s "Ignore this error and continue, skipping packages from AUR."))
-                       (return nil)))))))
+                       (return-from map-aur-packages nil)))))))
 	(check-type json string)
 	(let* ((response (json:decode-json-from-string json))
 	       (results (slot-value response 'results)))
