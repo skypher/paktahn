@@ -1,5 +1,18 @@
 for next release:
 
+  * support for proxy environment variables, see
+    http://www.editcorp.com/Personal/Lars_Appel/wget/wget_8.html
+    http://weitz.de/drakma/#proxy
+
+  * make SIGINT quit while in *any* error handler, not just one caused
+    by SIGINT itself.
+
+  * very basic versioning support (show version number besides result
+    if upstream differs)
+
+
+later:
+
   * short banner (and config option to disable it)
 
   * website, proper help/docs
@@ -10,9 +23,6 @@ for next release:
   * proper getopt support, -Sy, -Q, -Ql, -Qs
 
   * compile packages from repos (yaourt -Sb)
-
-
-later:
 
   * start querying aur in a separate thread while
     searching local
