@@ -126,7 +126,6 @@ BODY may call RETRY at any time to restart its execution."
     #+sbcl(sb-ext:quit)
     #+ecl(ext:quit 0)))
 
-#+sbcl
 (defun enable-quit-on-sigint ()
   #+sbcl(labels ((install-handler (handler)
 		   (sb-sys:enable-interrupt sb-unix:sigint handler))
@@ -147,7 +146,9 @@ BODY may call RETRY at any time to restart its execution."
 						     (install-handler
 						      #'level1-handler))))
 		   (quit)))
-	  (install-handler #'level1-handler)))
+	  (install-handler #'level1-handler))
+  #+ecl(warn "Sigint handling not implemented yet.")
+  #-(or sbcl ecl)(error "no sigint handling"))
 
 
 ;;;; posix and friends
