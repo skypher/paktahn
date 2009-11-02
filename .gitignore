@@ -1,6 +1,7 @@
 *.fasl
 *.fas
 *.o
+*.a
 Attic
 pacman.git
 *.swp
@@ -8,4 +9,5 @@ pacman.git
 pkg
 pak
 paktahn
+paktahn-mono
 paktahn-*.tar.*
