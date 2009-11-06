@@ -346,7 +346,6 @@ Usage:
 			(format t "INFO: ...done~%"))))
 		(dump))))
   #+ecl(asdf:make-build :paktahn :type :program :monolithic t
-			:epilogue-code '(ext:quit 0))
+			:prologue-code '(require :asdf)
+			:epilogue-code '(paktahn::core-main))
   #-(or sbcl ecl)(error "don't know how to build a core image"))
-
-#+ecl(core-main)
