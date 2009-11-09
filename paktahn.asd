@@ -15,6 +15,7 @@
 	       (:file "term")
 	       (:file "util")
 	       (:file "alpm")
+	       (:file "customizepkg")
 	       (:file "checksums")
 	       (:file "pkgbuild")
 	       (:file "aur")
