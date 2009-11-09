@@ -2,12 +2,12 @@
 
 (defvar *customizepkg-dir* "/etc/customizepkg.d/")
 (defvar *customizepkg-installed* nil)
-(defvar *custompkg-list* (make-array 8 :element-type 'string
-				       :adjustable t :fill-pointer 0))
+(defvar *custompkg-list* nil)
 
 (defun check-for-customizepkg ()
   (when (probe-file *customizepkg-dir*)
-    (setf *customizepkg-installed* t)))
+    (setf *customizepkg-installed* t)
+    (check-for-custom-pkgs)))
 
 (defun check-for-custom-pkgs ()
   (when *customizepkg-installed*
@@ -15,4 +15,11 @@
 			     :name :wild :type :wild
 			     :defaults *customizepkg-dir*))))
       (loop for file in files do
-	(vector-push-extend (pathname-name file) *custompkg-list*)))))
+	(push (pathname-name file) *custompkg-list*)))))
+
+(defun customization-p (pkg-name)
+  (member pkg-name *custompkg-list*))
+
+;; Run customizepkg on the PKGBUILD
+(defun apply-customizations ()
+  (run-program "customizepkg" '("--modify")))
