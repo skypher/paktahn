@@ -16,7 +16,7 @@
       (push (pathname-name file) *custompkg-list*))))
 
 (defun customization-p (pkg-name)
-  (member pkg-name *custompkg-list*))
+  (member pkg-name *custompkg-list* :test #'equal))
 
 ;; Run customizepkg on the PKGBUILD
 (defun apply-customizations ()
