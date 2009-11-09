@@ -322,6 +322,7 @@ Usage:
     (setf *sync-dbs* (init-sync-dbs))
     (setf *print-pretty* nil)
     (enable-quit-on-sigint)
+    (check-for-customizepkg)
     (let ((argv (cdr (getargv))))
       (restart-case
           (main argv)

@@ -120,8 +120,7 @@
 	(save-checksums)
 
 	;; if a customization exists for the pkg, apply it
-	(when (and *customizepkg-installed*
-		   (customization-p pkg-name))
+	(when (customization-p pkg-name)
 	  (apply-customizations))
 
         (unless (ask-y/n (format nil "Continue building ~S" pkg-name) t)
