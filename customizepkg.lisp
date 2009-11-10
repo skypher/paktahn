@@ -6,7 +6,6 @@
 
 (defun check-for-customizepkg ()
   (when (probe-file *customizepkg-bin*)
-    (setf *customizepkg-installed* t)
     (check-for-custom-pkgs)))
 
 (defun check-for-custom-pkgs ()

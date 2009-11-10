@@ -99,7 +99,7 @@
         (values deps makedeps)))))
 
 (defun get-pkgbuild (pkg-name)
-  (let ((repo (car (find-packages-by-name pkg-name)))) ; user can give bad input
+  (let ((repo (car (find-package-by-name pkg-name)))) ; user can give bad input
     (if (string= "aur" repo)
 	(get-pkgbuild-from-aur pkg-name)
 	(get-pkgbuild-from-svn pkg-name repo))))
