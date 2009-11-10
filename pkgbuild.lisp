@@ -102,7 +102,7 @@
   (let ((repo (car (find-packages-by-name pkg-name)))) ; user can give bad input
     (if (string= "aur" repo)
 	(get-pkgbuild-from-aur pkg-name)
-	(get-pkgbuild-from-abs pkg-name repo))))
+	(get-pkgbuild-from-svn pkg-name repo))))
 
 ;;; should inform user of progress in get-pkgbuild-from-*
 
@@ -115,7 +115,7 @@
   (unpack-file (aur-tarball-name pkg-name))
   (setf (current-directory) pkg-name))
 
-(defun get-pkgbuild-from-abs (pkg-name repo)
+(defun get-pkgbuild-from-svn (pkg-name repo)
   (let ((community "svn://svn.archlinux.org/community")
 	(rest "svn://svn.archlinux.org/packages")
 	(svnargs (list "checkout" "--depth=empty")))
@@ -127,4 +127,4 @@
 	   (run-program "svn" (append svnargs rest))
 	   (setf (current-directory) "packages")))
     (run-program "svn" (list "update" pkg-name)))
-  (setf (current-directory) pkg-name)) ; should we go into trunk or repo/i686, repo/x86_64?
+  (setf (current-directory) pkg-name)) ; should we go into trunk or repo/i686, repo/x86_64? trunk for now.
