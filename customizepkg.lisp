@@ -13,7 +13,8 @@
 			   :name :wild :type :wild
 			   :defaults *customizepkg-dir*))))
     (loop for file in files do
-      (push (pathname-name file) *custompkg-list*))))
+      (unless (pathname-type file)
+	(push (pathname-name file) *custompkg-list*)))))
 
 (defun customization-p (pkg-name)
   (member pkg-name *custompkg-list* :test #'equal))
