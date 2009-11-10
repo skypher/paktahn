@@ -99,12 +99,10 @@
         (values deps makedeps)))))
 
 (defun get-pkgbuild (pkg-name)
-  (let ((oldabs (environment-variable "ABSROOT"))
-	(repo (car (find-packages-by-name pkg-name)))) ; user can give bad input
+  (let ((repo (car (find-packages-by-name pkg-name)))) ; user can give bad input
     (if (string= "aur" repo)
 	(get-pkgbuild-from-aur pkg-name)
-	(get-pkgbuild-from-abs pkg-name repo))
-    (run-program "export" (list (concatenate 'string "ABSROOT=" oldabs)))))
+	(get-pkgbuild-from-abs pkg-name repo))))
 
 ;;; should inform user of progress in get-pkgbuild-from-*
 
@@ -118,8 +116,15 @@
   (setf (current-directory) pkg-name))
 
 (defun get-pkgbuild-from-abs (pkg-name repo)
-  (let ((repopath (concatenate 'string repo "/" pkg-name)))
-    (run-program "export" (list (concatenate 'string "ABSROOT=" (tempdir))))
+  (let ((community "svn://svn.archlinux.org/community")
+	(rest "svn://svn.archlinux.org/packages")
+	(svnargs (list "checkout" "--depth=empty")))
     (setf (current-directory) (tempdir))
-    (run-program "abs" (list repopath))
-    (setf (current-directory) repopath)))
+    (cond ((string= repo "community")
+	   (run-program "svn" (append svnargs community))
+	   (setf (current-directory) "community"))
+	  (t
+	   (run-program "svn" (append svnargs rest))
+	   (setf (current-directory) "packages")))
+    (run-program "svn" (list "update" pkg-name)))
+  (setf (current-directory) pkg-name)) ; should we go into trunk or repo/i686, repo/x86_64?
