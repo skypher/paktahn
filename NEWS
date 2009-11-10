@@ -10,6 +10,11 @@
   * Paktahn now remembers which PKGBUILD files it already presented
     for review (Brit)
 
+  * Paktahn now has proper customizepkg support and will automatically
+    build packages with customizepkg definitions from source (Brit)
+
+  * Paktahn now has support for just getting a pkgbuild (i.e. yaourt -G)
+    with pak -G pkgnames (Brit)
 
 0.8.1
   * fixed x86_64 package building/installation

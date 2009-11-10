@@ -36,8 +36,6 @@ later:
 
   * add md5/sha1 (makepkg -g) if they are missing, after asking the user
 
-  * -G: just download and unpack AUR tarball of package
-
   * URI: download pkgbuild or tarball and process it
 
   * better support for standardized colored output
