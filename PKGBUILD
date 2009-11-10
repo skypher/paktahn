@@ -1,16 +1,6 @@
 # Contributor: Leslie P. Polzer <polzer@gnu.org>
 # Maintainer: Leslie P. Polzer <polzer@gnu.org>
 
-### IMPORTANT ###
-#
-# Current SBCL versions require a patch to make Pacman
-# and interactive editors work fully.
-#
-# I've submitted a patch to upstream but it's not in yet.
-#
-# For now install sbcl-run-program-fix to compile Paktahn.
-#
-
 pkgname=paktahn
 pkgver=0.8.1
 libver=0.8
@@ -20,7 +10,6 @@ arch=('i686' 'x86_64')
 depends=('pacman' 'readline' 'sudo')
 license=('GPL')
 url="http://blog.viridian-project.de/2009/09/19/announcement-paktahn-a-successor-to-yaourt/"
-makedepends=('sbcl-run-program-fix')
 options=(!strip)
 install="paktahn.install"
 source=("http://viridian-project.de/~sky/paktahn/paktahn-makedeps-$libver.tbz2"
