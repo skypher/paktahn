@@ -1,10 +1,11 @@
 (in-package :pak)
 
+(defvar *customizepkg-bin* "/usr/bin/customizepkg")
 (defvar *customizepkg-dir* "/etc/customizepkg.d/")
 (defvar *custompkg-list* nil)
 
 (defun check-for-customizepkg ()
-  (when (probe-file *customizepkg-dir*)
+  (when (probe-file *customizepkg-bin*)
     (setf *customizepkg-installed* t)
     (check-for-custom-pkgs)))
 
@@ -16,9 +17,11 @@
       (unless (pathname-type file)
 	(push (pathname-name file) *custompkg-list*)))))
 
-(defun customization-p (pkg-name)
+(defun customize-p (pkg-name)
   (member pkg-name *custompkg-list* :test #'equal))
 
 ;; Run customizepkg on the PKGBUILD
-(defun apply-customizations ()
-  (run-program "customizepkg" '("--modify")))
+(defun apply-customizations (&optional path)
+  (if path
+      (run-program "customizepkg" (list "--modify" path))
+      (run-program "customizepkg" '("--modify"))))
