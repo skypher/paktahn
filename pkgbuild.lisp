@@ -106,8 +106,11 @@
 	(get-pkgbuild-from-abs pkg-name repo))
     (run-program "export" (list (concatenate 'string "ABSROOT=" oldabs)))))
 
-;; should inform user of progress in get-pkgbuild-from-*
+;;; should inform user of progress in get-pkgbuild-from-*
 
+;; get-pkgbuild-from-aur currently duplicates install-aur-pkg but without:
+;; unwind-protect, checksumming. okay for now.
+;; TODO: investigate making a keyword argument :getpkgbuild for install-aur-pkg.
 (defun get-pkgbuild-from-aur (pkg-name)
   (setf (current-directory) (tempdir))
   (download-file (aur-tarball-uri pkg-name))
