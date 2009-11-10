@@ -98,3 +98,25 @@
               makedeps (mapcar #'first makedeps))
         (values deps makedeps)))))
 
+(defun get-pkgbuild (pkg-name)
+  (let ((oldabs (environment-variable "ABSROOT"))
+	(repo (car (find-packages-by-name pkg-name)))) ; user can give bad input
+    (if (string= "aur" repo)
+	(get-pkgbuild-from-aur pkg-name)
+	(get-pkgbuild-from-abs pkg-name repo))
+    (run-program "export" (list (concatenate 'string "ABSROOT=" oldabs)))))
+
+;; should inform user of progress in get-pkgbuild-from-*
+
+(defun get-pkgbuild-from-aur (pkg-name)
+  (setf (current-directory) (tempdir))
+  (download-file (aur-tarball-uri pkg-name))
+  (unpack-file (aur-tarball-name pkg-name))
+  (setf (current-directory) pkg-name))
+
+(defun get-pkgbuild-from-abs (pkg-name repo)
+  (let ((repopath (concatenate 'string repo "/" pkg-name)))
+    (run-program "export" (list (concatenate 'string "ABSROOT=" (tempdir))))
+    (setf (current-directory) (tempdir))
+    (run-program "abs" (list repopath))
+    (setf (current-directory) repopath)))
