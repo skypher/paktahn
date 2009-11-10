@@ -310,6 +310,8 @@ Usage:
      (mapcar #'install-package (cdr argv)))
     ((and (>= argc 2) (equal (first argv) "-R"))
      (mapcar #'remove-package (cdr argv)))
+    ((and (>= argc 2) (equal (first argv) "-G"))
+     (mapcar #'get-pkgbuild (cdr argv)))
     (t
      (display-help))))
 
