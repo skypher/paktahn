@@ -302,7 +302,8 @@ Returns T upon successful installation, NIL otherwise."
 Usage:
   pak QUERY      # search for QUERY
   pak -S PACKAGE # install PACKAGE
-  pak -R PACKAGE # remove PACKAGE~%"))
+  pak -R PACKAGE # remove PACKAGE
+  pak -G PACKAGE # download pkgbuild~%"))
 
 (defun main (argv &aux (argc (length argv)))
   "Secondary entry point: process config and command line."
