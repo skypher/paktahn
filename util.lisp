@@ -17,6 +17,12 @@ BODY may call RETRY at any time to restart its execution."
          (flet ((retry () (go ,tagbody-name)))
            (return-from ,block-name (progn ,@body)))))))
 
+(defmacro with-tmp-dir ((start-dir end-dir) &body body)
+  `(progn
+     (setf (current-directory) ,start-dir)
+     @,body
+     (setf (current-directory) ,end-dir)))
+
 
 ;;;; infos, notes, progress
 (defparameter *info-fmt-prefix* "==> ")
@@ -162,10 +168,13 @@ BODY may call RETRY at any time to restart its execution."
   #+ecl(ext:getpid)
   #-(or sbcl ecl)(error "no getpid"))
 
+(defun getcwd ()
+  #+sbcl(sb-posix:getcwd)
+  #+ecl(ext:getcwd)
+  #-(or sbcl ecl)(error "no getcwd"))
+
 (defun current-directory ()
-  (let ((cwd #+sbcl(sb-posix:getcwd)
-	     #+ecl(ext:getcwd)
-	     #-(or sbcl ecl)(error "no getcwd")))
+  (let ((cwd (getcwd)))
     (if cwd
 	(pathname (concatenate 'string cwd "/"))
 	(error "Could not get current directory."))))
