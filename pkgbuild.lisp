@@ -99,6 +99,7 @@
         (values deps makedeps)))))
 
 (defun get-pkgbuild (pkg-name)
+  (maybe-refresh-cache)
   (let ((repo (car (find-package-by-name pkg-name)))) ; user can give bad input
     (if (string= "aur" repo)
 	(get-pkgbuild-from-aur pkg-name)
@@ -110,21 +111,20 @@
 ;; unwind-protect, checksumming. okay for now.
 ;; TODO: investigate making a keyword argument :getpkgbuild for install-aur-pkg.
 (defun get-pkgbuild-from-aur (pkg-name)
-  (setf (current-directory) (tempdir))
   (download-file (aur-tarball-uri pkg-name))
   (unpack-file (aur-tarball-name pkg-name))
-  (setf (current-directory) pkg-name))
+  (delete-file (aur-tarball-name pkg-name))
+  (info "The pkgbuild is in ~a.~%" (concatenate 'string (getcwd) "/" pkg-name "/")))
 
 (defun get-pkgbuild-from-svn (pkg-name repo)
-  (let ((community "svn://svn.archlinux.org/community")
-	(rest "svn://svn.archlinux.org/packages")
+  (let ((community '("svn://svn.archlinux.org/community"))
+	(rest '("svn://svn.archlinux.org/packages"))
 	(svnargs (list "checkout" "--depth=empty")))
-    (setf (current-directory) (tempdir))
     (cond ((string= repo "community")
 	   (run-program "svn" (append svnargs community))
 	   (setf (current-directory) "community"))
 	  (t
 	   (run-program "svn" (append svnargs rest))
 	   (setf (current-directory) "packages")))
-    (run-program "svn" (list "update" pkg-name)))
-  (setf (current-directory) pkg-name)) ; should we go into trunk or repo/i686, repo/x86_64? trunk for now.
+    (run-program "svn" (list "update" pkg-name))
+    (info "The pkgbuild is in ~a.~%" (concatenate 'string (getcwd) "/" pkg-name "/trunk/"))))
