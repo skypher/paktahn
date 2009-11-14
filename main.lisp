@@ -318,7 +318,11 @@ Usage:
     ((and (>= argc 2) (equal (first argv) "-R"))
      (mapcar #'remove-package (cdr argv)))
     ((and (>= argc 2) (equal (first argv) "-G"))
-     (mapcar #'get-pkgbuild (cdr argv)))
+     (mapcar #'get-pkgbuild (cdr argv))
+     (mapcar #'(lambda (pkg-name)
+		 (info "The ~a pkgbuild is in ~a.~%" pkg-name
+		       (concatenate 'string (getcwd) "/" pkg-name "/")))
+	     (cdr argv)))
     (t
      (display-help))))
 
