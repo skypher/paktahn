@@ -173,6 +173,12 @@ BODY may call RETRY at any time to restart its execution."
   #+ecl(ext:getcwd)
   #-(or sbcl ecl)(error "no getcwd"))
 
+(defun get-cpu-type ()
+  #+sbcl(multiple-value-bind (return-value stream) (run-program "uname" '("-m") :capture-output-p t)
+	  (string-downcase (read-line stream)))
+  #+ecl(machine-type)
+  #-(or sbcl ecl)(error "no uname"))
+
 (defun current-directory ()
   (let ((cwd (getcwd)))
     (if cwd
