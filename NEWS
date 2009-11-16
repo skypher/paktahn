@@ -16,6 +16,8 @@
   * Paktahn now has support for just getting a pkgbuild (i.e. yaourt -G)
     with pak -G pkgnames (Brit)
 
+  * makepkg's PKGDEST variable is detected and used correctly (Brit)
+
 0.8.1
   * fixed x86_64 package building/installation
   * fixed case when $EDITOR also had args in it (e.g. "emacsclient -l")
