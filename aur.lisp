@@ -150,13 +150,17 @@
     t))
 
 (defun install-built-pkg ()
-  (let ((pkgdest (if (not (string= "" (get-pkgdest))) (ensure-trailing-slash (get-pkgdest)) ""))
+  (let ((pkg-location (get-pkgdest))
+	(pkg-tarball (get-pkgbuild-tarball-name))
 	force)
+    (if (string= pkg-location "")
+	(setf pkg-location pkg-tarball)
+	(setf pkg-location (concatenate 'string (ensure-trailing-slash pkg-location) pkg-tarball)))
     (retrying
      (restart-case
 	 (let ((exit-code (if force
-			      (run-pacman (list "-Uf" (concatenate 'string pkgdest (get-pkgbuild-tarball-name))))
-			      (run-pacman (list "-U" (concatenate 'string pkgdest (get-pkgbuild-tarball-name)))))))
+			      (run-pacman (list "-Uf" pkg-location))
+			      (run-pacman (list "-U" pkg-location)))))
 	   (unless (zerop exit-code)
 	     (error "Failed to install package (error ~D)" exit-code)))
        (retry ()
@@ -167,7 +171,5 @@
 	 (setf force t)
 	 (retry))
        (save-package ()
-	 :report (lambda (s) (format s "Save the package to ~A~A"
-				     (config-file "packages/") (get-pkgbuild-tarball-name)))
-	 (run-program "mv" (list (get-pkgbuild-tarball-name)
-				 (format nil "~A~A" (config-file "packages/") (get-pkgbuild-tarball-name)))))))))
+	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") pkg-location))
+	 (run-program "mv" (list pkg-location (format nil "~A~A" (config-file "packages/") pkg-location))))))))
