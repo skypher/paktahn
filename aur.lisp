@@ -150,12 +150,13 @@
     t))
 
 (defun install-built-pkg ()
-  (let (force)
+  (let ((pkgdest (if (not (string= "" (get-pkgdest))) (ensure-trailing-slash (get-pkgdest)) ""))
+	force)
     (retrying
      (restart-case
 	 (let ((exit-code (if force
-			      (run-pacman (list "-Uf" (get-pkgbuild-tarball-name)))
-			      (run-pacman (list "-U" (get-pkgbuild-tarball-name))))))
+			      (run-pacman (list "-Uf" (concatenate 'string pkgdest (get-pkgbuild-tarball-name))))
+			      (run-pacman (list "-U" (concatenate 'string pkgdest (get-pkgbuild-tarball-name)))))))
 	   (unless (zerop exit-code)
 	     (error "Failed to install package (error ~D)" exit-code)))
        (retry ()

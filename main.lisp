@@ -200,7 +200,7 @@ Returns T upon successful installation, NIL otherwise."
 	 (setf (current-directory) pkg-name)
 	 (apply-customizations)
 	 (run-makepkg)
-	 (install-built-package)
+	 (install-built-pkg)
 	 (setf (current-directory) ".."))
         ;; installing a dep
         ((boundp '*root-package*)
