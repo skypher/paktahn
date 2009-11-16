@@ -117,7 +117,7 @@
 
 ;; TODO: Handle the case where pkg-name directory exists where paktahn -G is invoked.
 (defun get-pkgbuild-from-svn (pkg-name repo)
-  (let ((arch (get-cpu-type))
+  (let ((arch (get-carch))
 	(svnrepo "svn://svn.archlinux.org/")
 	(svnop "checkout")
 	(svndepth "--depth=empty"))
