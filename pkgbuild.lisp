@@ -37,6 +37,12 @@
              (cdr (assoc name data :test #'equalp))))
       (field "carch"))))
 
+(defun get-pkgdest ()
+  (let ((data (get-makepkg-data)))
+    (flet ((field (name)
+	     (cdr (assoc name data :test #'equalp))))
+      (field "pkgdest"))))
+
 (defun get-pkgbuild-arch (&optional (pkgbuild-filename "./PKGBUILD"))
   (let ((data (get-pkgbuild-data pkgbuild-filename)))
     (split-sequence #\Space (cdr (assoc "arch" data :test #'equalp)))))
