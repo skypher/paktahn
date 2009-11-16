@@ -31,17 +31,17 @@
       (error "Couldn't extract makepkg.conf data (error ~D)" return-value))
     (parse-helper-output output-stream)))
 
-(defun get-carch ()
-  (let ((data (get-makepkg-data)))
-    (flet ((field (name)
-             (cdr (assoc name data :test #'equalp))))
-      (field "carch"))))
-
-(defun get-pkgdest ()
+(defun get-makepkg-field (name)
   (let ((data (get-makepkg-data)))
     (flet ((field (name)
 	     (cdr (assoc name data :test #'equalp))))
-      (field "pkgdest"))))
+      (field name))))
+
+(defun get-carch ()
+  (get-makepkg-field "carch"))
+
+(defun get-pkgdest ()
+  (get-makepkg-field "pkgdest"))
 
 (defun get-pkgbuild-arch (&optional (pkgbuild-filename "./PKGBUILD"))
   (let ((data (get-pkgbuild-data pkgbuild-filename)))
