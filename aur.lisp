@@ -171,5 +171,5 @@
 	 (setf force t)
 	 (retry))
        (save-package ()
-	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") pkg-location))
-	 (run-program "mv" (list pkg-location (format nil "~A~A" (config-file "packages/") pkg-location))))))))
+	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") pkg-tarball))
+	 (run-program "mv" (list pkg-tarball (format nil "~A~A" (config-file "packages/") pkg-tarball))))))))
