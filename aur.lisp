@@ -135,18 +135,7 @@
 	(install-built-pkg))
 
       ;; clean up
-      (setf (current-directory) "..")
-      (let ((pkgdir (merge-pathnames
-                      (make-pathname :directory `(:relative ,pkg-name))
-                      (current-directory)))
-            (tarball (merge-pathnames
-                       (make-pathname :name (aur-tarball-name pkg-name))
-                       (current-directory))))
-        (when (probe-file pkgdir)
-          (delete-directory-and-files pkgdir))
-        (when (probe-file tarball)
-          (delete-file tarball)))
-      (setf (current-directory) orig-dir))
+      (clean-up-temp-files pkg-name orig-dir))
     t))
 
 (defun install-built-pkg ()
@@ -173,3 +162,18 @@
        (save-package ()
 	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") pkg-tarball))
 	 (run-program "mv" (list pkg-tarball (format nil "~A~A" (config-file "packages/") pkg-tarball))))))))
+
+(defun clean-up-temp-files (pkg-name &optional orig-dir)
+  (setf (current-directory) "..")
+  (let ((pkgdir (merge-pathnames
+		 (make-pathname :directory `(:relative ,pkg-name))
+		 (current-directory)))
+	(tarball (merge-pathnames
+		  (make-pathname :name (aur-tarball-name pkg-name))
+		  (current-directory))))
+    (when (probe-file pkgdir)
+      (delete-directory-and-files pkgdir))
+    (when (probe-file tarball)
+      (delete-file tarball)))
+  (when orig-dir
+    (setf (current-directory) orig-dir)))
