@@ -132,13 +132,13 @@
           (install-dependencies (append deps make-deps)))
 
         (run-makepkg)
-	(install-built-pkg))
+	(install-pkg-tarball))
 
       ;; clean up
       (clean-up-temp-files pkg-name orig-dir))
     t))
 
-(defun install-built-pkg ()
+(defun install-pkg-tarball ()
   (let ((pkg-location (get-pkgdest))
 	(pkg-tarball (get-pkgbuild-tarball-name))
 	force)
