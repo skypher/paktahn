@@ -121,14 +121,14 @@
   (unpack-file (aur-tarball-name pkg-name))
   (delete-file (aur-tarball-name pkg-name)))
 
-;; TODO: Handle the case where pkg-name directory exists where paktahn -G is invoked.
+;; TODO: Handle the case where "packages" or "community" directory exists. User probably won't want it deleted.
 (defun get-pkgbuild-from-svn (pkg-name repo)
   (let ((arch (get-carch))
-	(svnrepo "svn://svn.archlinux.org/")
-	(svnop "checkout")
-	(svndepth "--depth=empty"))
+	(server "svn://svn.archlinux.org/")
+	(operation "checkout")
+	(depth "--depth=empty"))
     (labels ((svn-file-shuffling (directory)
-	       (run-program "svn" (list svnop svndepth (concatenate 'string svnrepo directory)))
+	       (run-program "svn" (list operation depth (concatenate 'string server directory)))
 	       (setf (current-directory) directory)
 	       (run-program "svn" (list "update" pkg-name))
 	       (run-program "mv" (list (concatenate 'string pkg-name "/repos/" repo "-" arch)
