@@ -138,13 +138,9 @@
       (clean-up-temp-files pkg-name orig-dir))
     t))
 
-(defun install-pkg-tarball ()
-  (let ((pkg-location (get-pkgdest))
-	(pkg-tarball (get-pkgbuild-tarball-name))
+(defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) (location (get-pkgdest)))
+  (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
 	force)
-    (if (string= pkg-location "")
-	(setf pkg-location pkg-tarball)
-	(setf pkg-location (concatenate 'string (ensure-trailing-slash pkg-location) pkg-tarball)))
     (retrying
      (restart-case
 	 (let ((exit-code (if force
@@ -160,8 +156,8 @@
 	 (setf force t)
 	 (retry))
        (save-package ()
-	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") pkg-tarball))
-	 (run-program "mv" (list pkg-tarball (format nil "~A~A" (config-file "packages/") pkg-tarball))))))))
+	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") tarball))
+	 (run-program "mv" (list tarball (format nil "~A~A" (config-file "packages/") tarball))))))))
 
 (defun clean-up-temp-files (pkg-name &optional orig-dir)
   (setf (current-directory) "..")
