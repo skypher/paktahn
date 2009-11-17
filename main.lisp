@@ -323,7 +323,7 @@ Usage:
      (mapcar #'get-pkgbuild (cdr argv))
      (mapcar #'(lambda (pkg-name)
 		 (info "The ~a pkgbuild is in ~a.~%" pkg-name
-		       (concatenate 'string (getcwd) "/" pkg-name "/")))
+		       (concatenate 'string (current-directory) "/" pkg-name "/")))
 	     (cdr argv)))
     (t
      (display-help))))
