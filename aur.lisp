@@ -135,7 +135,7 @@
 	(install-pkg-tarball))
 
       ;; clean up
-      (clean-up-temp-files pkg-name orig-dir))
+      (cleanup-temp-files pkg-name orig-dir))
     t))
 
 (defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) (location (get-pkgdest)))
@@ -159,7 +159,7 @@
 	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") tarball))
 	 (run-program "mv" (list tarball (format nil "~A~A" (config-file "packages/") tarball))))))))
 
-(defun clean-up-temp-files (pkg-name &optional orig-dir)
+(defun cleanup-temp-files (pkg-name &optional orig-dir)
   (setf (current-directory) "..")
   (let ((pkgdir (merge-pathnames
 		 (make-pathname :directory `(:relative ,pkg-name))

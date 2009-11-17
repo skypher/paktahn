@@ -201,7 +201,7 @@ Returns T upon successful installation, NIL otherwise."
 	 (apply-customizations)
 	 (run-makepkg)
 	 (install-pkg-tarball)
-	 (clean-up-temp-files pkg-name))
+	 (cleanup-temp-files pkg-name))
         ;; installing a dep
         ((boundp '*root-package*)
          (assert *root-package*)
