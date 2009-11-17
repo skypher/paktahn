@@ -421,10 +421,12 @@ options which are passed by with-locked-open-file to with-open-file."
 	  (return abspath))))))
 
 (defun ensure-trailing-slash (path)
-  (let ((lastchar (subseq path (1- (length path)))))
-    (if (equal lastchar "/")
-	path
-	(concatenate 'string path "/"))))
+  (if (string= "" path)
+      path
+      (let ((lastchar (subseq path (1- (length path)))))
+	(if (equal lastchar "/")
+	    path
+	    (concatenate 'string path "/")))))
 
 (defmacro with-interrupts (&body body)
   #+sbcl`(sb-sys:with-interrupts ,@body)
