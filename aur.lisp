@@ -26,6 +26,16 @@
                  (and (equalp (car x) (car y))
                       (equalp (cdr x) (cdr y)))))
 
+(defun check-for-aur-proxy ()
+  ;; should we use aur.archlinux.org or archlinux.org here?
+  (let ((no-proxies (environment-variable "no_proxy"))
+	(http-proxy (environment-variable "http_proxy")))
+    (if (and http-proxy (or (null no-proxies)
+			    (not (search "archlinux.org" no-proxies))))
+	;; we don't support basic authentication, i.e. http://www.archlinux.org:80 or http://192.168.2.5:80 not http://user:pass@archlinux.org:80.
+	;; we need a regex, split-sequence is just not the way to go.
+	(parse-proxy http-proxy)
+	nil)))
 
 (defun map-aur-packages (fn query)
   "Search AUR for a string"
@@ -39,6 +49,7 @@
                  (retrying
                    (restart-case
                        (drakma:http-request "http://aur.archlinux.org/rpc.php"
+					    :proxy (check-for-aur-proxy)
                                             :parameters `(("type" . "search")
                                                           ("arg" . ,query)))
                      (retry ()
