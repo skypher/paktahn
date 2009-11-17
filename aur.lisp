@@ -137,39 +137,3 @@
       ;; clean up
       (cleanup-temp-files pkg-name orig-dir))
     t))
-
-(defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) (location (get-pkgdest)))
-  (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
-	force)
-    (retrying
-     (restart-case
-	 (let ((exit-code (if force
-			      (run-pacman (list "-Uf" pkg-location))
-			      (run-pacman (list "-U" pkg-location)))))
-	   (unless (zerop exit-code)
-	     (error "Failed to install package (error ~D)" exit-code)))
-       (retry ()
-	 :report "Retry installation"
-	 (retry))
-       (force-install ()
-	 :report "Force installation (-Uf)"
-	 (setf force t)
-	 (retry))
-       (save-package ()
-	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") tarball))
-	 (run-program "mv" (list tarball (format nil "~A~A" (config-file "packages/") tarball))))))))
-
-(defun cleanup-temp-files (pkg-name &optional orig-dir)
-  (setf (current-directory) "..")
-  (let ((pkgdir (merge-pathnames
-		 (make-pathname :directory `(:relative ,pkg-name))
-		 (current-directory)))
-	(tarball (merge-pathnames
-		  (make-pathname :name (aur-tarball-name pkg-name))
-		  (current-directory))))
-    (when (probe-file pkgdir)
-      (delete-directory-and-files pkgdir))
-    (when (probe-file tarball)
-      (delete-file tarball)))
-  (when orig-dir
-    (setf (current-directory) orig-dir)))
