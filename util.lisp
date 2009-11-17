@@ -20,8 +20,8 @@ BODY may call RETRY at any time to restart its execution."
 (defmacro with-tmp-dir ((start-dir end-dir) &body body)
   `(progn
      (setf (current-directory) ,start-dir)
-     @,body
-     (setf (current-directory) ,end-dir)))
+     (unwind-protect (progn ,@body)
+       (setf (current-directory) ,end-dir))))
 
 
 ;;;; infos, notes, progress
