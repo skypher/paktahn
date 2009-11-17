@@ -104,14 +104,15 @@
               makedeps (mapcar #'first makedeps))
         (values deps makedeps)))))
 
+;; TODO: When user supplies a non-existent pkg-name, we still try to fetch it.
+;; We can check if repo comes back nil but the mapcar in main will still tell
+;; the user that the package as fetched and in a directory that doesn't exist.
 (defun get-pkgbuild (pkg-name)
   (maybe-refresh-cache)
-  (let ((repo (car (find-package-by-name pkg-name)))) ; user can give bad input
+  (let ((repo (car (find-package-by-name pkg-name))))
     (if (string= "aur" repo)
 	(get-pkgbuild-from-aur pkg-name)
 	(get-pkgbuild-from-svn pkg-name repo))))
-
-;;; should inform user of progress in get-pkgbuild-from-*
 
 ;; get-pkgbuild-from-aur currently duplicates install-aur-pkg but without:
 ;; unwind-protect, checksumming. okay for now.
