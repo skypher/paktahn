@@ -170,13 +170,13 @@ BODY may call RETRY at any time to restart its execution."
 
 (defun getcwd ()
   #+sbcl(sb-posix:getcwd)
-  #+ecl(ext:getcwd)
+  #+ecl(namestring (ext:getcwd))
   #-(or sbcl ecl)(error "no getcwd"))
 
 (defun current-directory ()
   (let ((cwd (getcwd)))
     (if cwd
-	(pathname (concatenate 'string cwd "/"))
+	(pathname (ensure-trailing-slash cwd))
 	(error "Could not get current directory."))))
 
 (defun (setf current-directory) (pathspec)
