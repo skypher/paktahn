@@ -197,11 +197,12 @@ Returns T upon successful installation, NIL otherwise."
 	;; if the package has a customizepkg definition, build it with customizations applied
 	((customize-p pkg-name)
 	 (unwind-protect
-	      (progn (get-pkgbuild pkg-name)
-		     (setf (current-directory) pkg-name)
-		     (apply-customizations)
-		     (run-makepkg)
-		     (install-pkg-tarball))
+	      (progn
+                (get-pkgbuild pkg-name)
+                (setf (current-directory) pkg-name)
+                (apply-customizations)
+                (run-makepkg)
+                (install-pkg-tarball))
 	   (cleanup-temp-files pkg-name)))
 	;; installing a dep
         ((boundp '*root-package*)
