@@ -39,8 +39,8 @@ build() {
        --eval "(pushnew :paktahn-deploy *features*)" \
        --eval "(require :asdf)" \
        --eval "(setf asdf:*central-registry*
-                    '(\"$srcdir/clbuild.paktahn/systems/\"))" \
-       --load main.lisp \
+                    '(\"$srcdir/\" \"$srcdir/clbuild.paktahn/systems/\"))" \
+       --eval "(asdf:oos 'asdf:load-op 'paktahn)" \
        --eval "(pak::build-core :forkp nil)"
 
   # install binary
