@@ -71,6 +71,8 @@ this cache was built. Initially NIL.")
   "Table of cached packages. The key is the repo name, the value
 contains a list of sublists (PKGNAME VERSION DESC). Initially NIL.")
 
+(defvar *cache-loaded-p* nil)
+
 (defun init-cache-vars ()
   (values
     (unless (hash-table-p *cache-meta*)
@@ -167,6 +169,11 @@ for a db to disk."
                   (null (nth-value 1 (gethash db-name *cache-meta*))))
           (init-cache-vars)
           (load-memory-cache-from-disk db-name))))))
+
+(defun ensure-initial-cache ()
+  (unless *cache-loaded-p*
+    (maybe-refresh-cache)
+    (setf *cache-loaded-p* t)))
 
 (defun rebuild-disk-cache (db-name)
   "Update the in-memory cache and write it to disk."
