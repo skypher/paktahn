@@ -162,7 +162,7 @@ pairs as cons cells."
 may also be a group name or the name of a provider package.
 Returns T upon successful installation, NIL otherwise."
   (declare (special *root-package*))
-  (maybe-refresh-cache)
+  (ensure-initial-cache)
   (let ((db-name (or db-name (first (find-package-by-name pkg-name))))) ; FIXME: show all packages that provide PKG-NAME too (?)
     (labels ((do-install ()
                (cond
@@ -291,7 +291,7 @@ Returns T upon successful installation, NIL otherwise."
                                 chosen-packages))))))
 
 (defun remove-package (pkg-name)
-  (maybe-refresh-cache)
+  (ensure-initial-cache)
   (labels ((do-remove ()
              ;; TODO: support removal of group, provides(?)
              (cond

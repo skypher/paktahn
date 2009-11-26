@@ -108,7 +108,7 @@
 ;; We can check if repo comes back nil but the mapcar in main will still tell
 ;; the user that the package as fetched and in a directory that doesn't exist.
 (defun get-pkgbuild (pkg-name)
-  (maybe-refresh-cache)
+  (ensure-initial-cache)
   (let ((repo (car (find-package-by-name pkg-name))))
     (if (string= "aur" repo)
 	(get-pkgbuild-from-aur pkg-name)
