@@ -184,6 +184,8 @@ Returns T upon successful installation, NIL otherwise."
                         (do-install)))))
                  ((equalp db-name "aur")
                   (install-aur-package pkg-name))
+		 ((not (equalp *root-package* pkg-name))
+		  (install-binary-package db-name pkg-name :dep-of *root-package*))
                  ((or (eq db-name 'group)
                       (member db-name (mapcar #'car *sync-dbs*) :test #'equalp))
                   (install-binary-package db-name pkg-name))
@@ -194,7 +196,7 @@ Returns T upon successful installation, NIL otherwise."
       ;; environment to reflect this, or we're installing a dep and
       ;; should check that the environment has been set up properly.
       (cond
-	;; if the package has a customizepkg definition, build it with customizations applied
+	;; if the package has a customizepkg definition, build it with customizations applied whether it's a dependency or not
 	((customize-p pkg-name)
 	 (unwind-protect
 	      (progn
