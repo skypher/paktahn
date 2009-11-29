@@ -120,7 +120,7 @@ objects."
                  
 
 ;;;; Lisp interface
-(defun install-binary-package (db-name pkg-name)
+(defun install-binary-package (db-name pkg-name &key dep-of)
   "Use Pacman to install a package."
   ;; TODO: check whether it's installed already
   ;; TODO: take versions into account
@@ -131,6 +131,10 @@ objects."
            (unless (zerop value)
              (error "Pacman exited with non-zero status ~D" value))))
     (cond
+      (dep-of
+       (info "Installing binary package ~S from repository ~S as a dependency for ~S.~%" pkg-name db-name dep-of)
+       (let ((return-value (run-pacman (list "-S" "--asdeps" pkg-name))))
+	 (check-return-value return-value)))
       ((eq db-name 'group)
        (info "Installing group ~S.~%" pkg-name)
        (let ((return-value (run-pacman (list "-S" pkg-name))))
