@@ -114,11 +114,7 @@ objects."
 
 (defun run-pacman (args &key capture-output-p)
   (with-pacman-lock
-    ;; --noconfirm is a kludge because of SBCL's run-program bug.
-    ;; The fix for this problem is not in upstream yet.
-    (run-program "sudo" (append (list *pacman-binary*
-                                      #-run-program-fix "--noconfirm"
-                                      "--needed")
+    (run-program "sudo" (append (list *pacman-binary* "--needed")
                                 args)
                  :capture-output-p capture-output-p)))
                  

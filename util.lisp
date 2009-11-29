@@ -291,15 +291,9 @@ BODY may call RETRY at any time to restart its execution."
         finally (return input)))
 
 (defun launch-editor (filename)
-  #-run-program-fix
-  (format t "INFO: editing is not supported because you're using Paktahn~%~
-             with an unpatched SBCL, but here's the PKGBUILD for review:~%~
-             ==========~%")
   (retrying
-    ;; FIXME: run-program kludge again, can't do interactive I/O.
-    (let* ((editor-spec #-run-program-fix "cat"
-                        #+run-program-fix (or (environment-variable "EDITOR")
-                                              (ask-for-editor)))
+    (let* ((editor-spec (or (environment-variable "EDITOR")
+			    (ask-for-editor)))
            (editor-spec (split-sequence #\Space editor-spec :remove-empty-subseqs t))
            (editor-bin (car editor-spec))
            (editor-args (cdr editor-spec))
@@ -307,9 +301,7 @@ BODY may call RETRY at any time to restart its execution."
       (unless (zerop return-value)
         (warn "Editor ~S exited with non-zero status ~D" editor return-value)
         (when (ask-y/n "Choose another editor?" t)
-          (retry)))))
-  #-run-program-fix
-    (format t "~&==========~%"))
+          (retry))))))
 
 (defun download-file (uri)
   (retrying
