@@ -122,23 +122,18 @@
   (unpack-file (aur-tarball-name pkg-name))
   (delete-file (aur-tarball-name pkg-name)))
 
-;; TODO: Handle the case where "packages" or "community" directory exists. User probably won't want it deleted.
 (defun get-pkgbuild-from-svn (pkg-name repo)
   (let ((arch (get-carch))
 	(server "svn://svn.archlinux.org/")
-	(operation "checkout")
-	(depth "--depth=empty"))
+	(operation "checkout"))
     (labels ((checkout-and-mv-pkgbuild (directory)
-	       (run-program "svn" (list operation depth (concatenate 'string server directory)))
-	       (setf (current-directory) directory)
-	       (run-program "svn" (list "update" pkg-name))
-	       (run-program "mv" (list (concatenate 'string pkg-name "/repos/" repo "-" arch)
-				       (concatenate 'string "../" pkg-name)))
-	       (setf (current-directory) "..")
-	       (delete-directory-and-files directory)))
+	       (run-program "svn" (list operation
+					(concatenate 'string server directory pkg-name
+						     "/repos/" repo "-" arch)
+					pkg-name))))
       (if (string= repo "community")
-	  (checkout-and-mv-pkgbuild "community")
-	  (checkout-and-mv-pkgbuild "packages")))))
+	  (checkout-and-mv-pkgbuild "community/")
+	  (checkout-and-mv-pkgbuild "packages/")))))
 
 (defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) (location (get-pkgdest)))
   (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
