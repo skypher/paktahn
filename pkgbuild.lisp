@@ -126,14 +126,14 @@
   (let ((arch (get-carch))
 	(server "svn://svn.archlinux.org/")
 	(operation "checkout"))
-    (labels ((checkout-and-mv-pkgbuild (directory)
+    (labels ((checkout--pkgbuild (directory)
 	       (run-program "svn" (list operation
 					(concatenate 'string server directory pkg-name
 						     "/repos/" repo "-" arch)
 					pkg-name))))
       (if (string= repo "community")
-	  (checkout-and-mv-pkgbuild "community/")
-	  (checkout-and-mv-pkgbuild "packages/")))))
+	  (checkout--pkgbuild "community/")
+	  (checkout--pkgbuild "packages/")))))
 
 (defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) (location (get-pkgdest)))
   (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
