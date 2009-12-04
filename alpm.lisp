@@ -8,6 +8,34 @@
 
 (use-foreign-library libalpm)
 
+;;; versioning
+(defcfun "alpm_pkg_vercmp" :int (v1 :string) (v2 :string))
+
+(defun version= (v1 v2)
+  (zerop (alpm-pkg-vercmp v1 v2)))
+
+(defun version< (v1 v2)
+  (eql -1 (alpm-pkg-vercmp v1 v2)))
+
+(defun version<= (v1 v2)
+  (or (version< v1 v2)
+      (version= v1 v2)))
+
+(defun version> (v1 v2)
+  (not (version<= v1 v2)))
+
+(defun version>= (v1 v2)
+  (not (version< v1 v2)))
+
+(defun version-spec-satisfied-p (relation actual-ver demanded-ver)
+  (declare (string relation actual-ver demanded-ver))
+  (unless (member relation '("<" "<=" "=" ">=" ">") :test #'equal)
+    (error "Bogus version relation specifier ~S" relation))
+  (let ((relation-fn-name (intern (concatenate 'string "VERSION" relation) #.*package*)))
+    (assert (fboundp relation-fn-name))
+    (funcall relation-fn-name actual-ver demanded-ver)))
+
+
 ;;; lists helper
 (defcfun "alpm_list_next" :pointer (pkg-iterator :pointer))
 (defcfun "alpm_list_getdata" :pointer (pkg-iterator :pointer))

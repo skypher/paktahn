@@ -13,6 +13,8 @@ for next release:
 
 later:
 
+  * check whether packages in extra/core are out of date
+
   * short banner (and config option to disable it)
 
   * website, proper help/docs
