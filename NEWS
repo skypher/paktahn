@@ -16,7 +16,9 @@
   * Paktahn now has support for just getting a pkgbuild (i.e. yaourt -G)
     with pak -G pkgnames (Brit)
 
-  * makepkg's PKGDEST variable is detected and used correctly (Brit)
+  * makepkg's PKGDEST variable is detected and used correctly (reported by Stefan Husmann)
+
+  * AUR package dependencies are no longer installed explicitly (reported by bram85)
 
 0.8.1
   * fixed x86_64 package building/installation
