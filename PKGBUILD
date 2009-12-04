@@ -8,6 +8,7 @@ pkgrel=1
 pkgdesc="The kick-ass package manager for Arch Linux!"
 arch=('i686' 'x86_64')
 depends=('pacman' 'readline' 'sudo' 'svn')
+makedepends=('sbcl>=1.0.32')
 license=('GPL')
 url="http://blog.viridian-project.de/2009/09/19/announcement-paktahn-a-successor-to-yaourt/"
 options=(!strip)
