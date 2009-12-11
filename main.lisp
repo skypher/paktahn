@@ -334,11 +334,10 @@ Usage:
     ((and (>= argc 2) (equal (first argv) "-R"))
      (mapcar #'remove-package (cdr argv)))
     ((and (>= argc 2) (equal (first argv) "-G"))
-     (mapcar #'get-pkgbuild (cdr argv))
-     (mapcar #'(lambda (pkg-name)
-		 (info "The ~a pkgbuild is in ~a.~%" pkg-name
-		       (concatenate 'string (namestring (current-directory)) pkg-name "/")))
-	     (cdr argv)))
+     (let ((return-values nil))
+       (mapcar #'(lambda (pkg)
+		   (push (get-pkgbuild pkg) return-values)) (cdr argv))
+       (loop for result in (reverse return-values) do (info "~s" result))))
     (t
      (display-help))))
 

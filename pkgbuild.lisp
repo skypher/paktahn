@@ -126,14 +126,20 @@
   (let ((arch (get-carch))
 	(server "svn://svn.archlinux.org/")
 	(operation "checkout"))
-    (labels ((checkout--pkgbuild (directory)
-	       (run-program "svn" (list operation
-					(concatenate 'string server directory pkg-name
-						     "/repos/" repo "-" arch)
-					pkg-name))))
+    (flet ((checkout-pkgbuild (directory)
+	     (let ((return-value
+		    (run-program "svn" (list operation
+					     (concatenate 'string server directory pkg-name
+							  "/repos/" repo "-" arch)
+					     pkg-name))))
+	       (if (zerop return-value)
+		   (format nil "The ~a pkgbuild is in ~a." pkg-name
+			   (concatenate 'string (namestring (current-directory)) pkg-name "/"))
+		   (format nil "Subversion exited with non-zero status ~d for package ~a."
+			   return-value pkg-name)))))
       (if (string= repo "community")
-	  (checkout--pkgbuild "community/")
-	  (checkout--pkgbuild "packages/")))))
+	  (checkout-pkgbuild "community/")
+	  (checkout-pkgbuild "packages/")))))
 
 (defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) (location (get-pkgdest)))
   (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
