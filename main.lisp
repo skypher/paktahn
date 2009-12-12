@@ -162,7 +162,7 @@ pairs as cons cells."
 may also be a group name or the name of a provider package.
 Returns T upon successful installation, NIL otherwise."
   (declare (special *root-package*))
-  (maybe-refresh-cache)
+  (ensure-initial-cache)
   (let ((db-name (or db-name (first (find-package-by-name pkg-name))))) ; FIXME: show all packages that provide PKG-NAME too (?)
     (labels ((do-install ()
                (cond
@@ -184,6 +184,8 @@ Returns T upon successful installation, NIL otherwise."
                         (do-install)))))
                  ((equalp db-name "aur")
                   (install-aur-package pkg-name))
+		 ((not (equalp *root-package* pkg-name))
+		  (install-binary-package db-name pkg-name :dep-of *root-package*))
                  ((or (eq db-name 'group)
                       (member db-name (mapcar #'car *sync-dbs*) :test #'equalp))
                   (install-binary-package db-name pkg-name))
@@ -194,14 +196,17 @@ Returns T upon successful installation, NIL otherwise."
       ;; environment to reflect this, or we're installing a dep and
       ;; should check that the environment has been set up properly.
       (cond
-	;; if the package has a customizepkg definition, build it with customizations applied
+	;; if the package has a customizepkg definition, build it with customizations applied whether it's a dependency or not
 	((customize-p pkg-name)
-	 (get-pkgbuild pkg-name)
-	 (setf (current-directory) pkg-name)
-	 (apply-customizations)
-	 (run-makepkg)
-	 (setf (current-directory) ".."))
-        ;; installing a dep
+	 (unwind-protect
+	      (progn
+                (get-pkgbuild pkg-name)
+                (setf (current-directory) pkg-name)
+                (apply-customizations)
+                (run-makepkg)
+                (install-pkg-tarball))
+	   (cleanup-temp-files pkg-name)))
+	;; installing a dep
         ((boundp '*root-package*)
          (assert *root-package*)
          (check-type *root-package* string)
@@ -221,7 +226,17 @@ Returns T upon successful installation, NIL otherwise."
              (skip-package ()
                :report (lambda (s)
                          (format s "Skip installation of package ~S and continue" *root-package*))
-               (values nil 'skipped)))))))))
+               (values nil 'skipped))
+             (checkout-and-skip ()
+               :report (lambda (s)
+                         (format s "Checkout the PKGBUILD into a subdirectory and skip installation" pkg-name))
+               (get-pkgbuild pkg-name)
+               (values nil 'checkout-out-and-skipped))
+             (checkout-and-quit ()
+               :report (lambda (s)
+                         (format s "Checkout the PKGBUILD into a subdirectory and quit" pkg-name))
+               (get-pkgbuild pkg-name)
+               (quit)))))))))
 
 (defun search-and-install-packages (query &key query-for-providers)
   (maybe-refresh-cache)
@@ -278,7 +293,7 @@ Returns T upon successful installation, NIL otherwise."
                                 chosen-packages))))))
 
 (defun remove-package (pkg-name)
-  (maybe-refresh-cache)
+  (maybe-refesh-cache)
   (labels ((do-remove ()
              ;; TODO: support removal of group, provides(?)
              (cond
@@ -304,7 +319,7 @@ Usage:
   pak QUERY      # search for QUERY
   pak -S PACKAGE # install PACKAGE
   pak -R PACKAGE # remove PACKAGE
-  pak -G PACKAGE # download pkgbuild~%"))
+  pak -G PACKAGE # download pkgbuild into a new directory named PACKAGE~%"))
 
 (defun main (argv &aux (argc (length argv)))
   "Secondary entry point: process config and command line."
@@ -322,7 +337,7 @@ Usage:
      (mapcar #'get-pkgbuild (cdr argv))
      (mapcar #'(lambda (pkg-name)
 		 (info "The ~a pkgbuild is in ~a.~%" pkg-name
-		       (concatenate 'string (getcwd) "/" pkg-name "/")))
+		       (concatenate 'string (namestring (current-directory)) pkg-name "/")))
 	     (cdr argv)))
     (t
      (display-help))))

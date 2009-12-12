@@ -31,11 +31,17 @@
       (error "Couldn't extract makepkg.conf data (error ~D)" return-value))
     (parse-helper-output output-stream)))
 
-(defun get-carch ()
+(defun get-makepkg-field (name)
   (let ((data (get-makepkg-data)))
     (flet ((field (name)
-             (cdr (assoc name data :test #'equalp))))
-      (field "carch"))))
+	     (cdr (assoc name data :test #'equalp))))
+      (field name))))
+
+(defun get-carch ()
+  (get-makepkg-field "carch"))
+
+(defun get-pkgdest ()
+  (get-makepkg-field "pkgdest"))
 
 (defun get-pkgbuild-arch (&optional (pkgbuild-filename "./PKGBUILD"))
   (let ((data (get-pkgbuild-data pkgbuild-filename)))
@@ -98,14 +104,15 @@
               makedeps (mapcar #'first makedeps))
         (values deps makedeps)))))
 
+;; TODO: When user supplies a non-existent pkg-name, we still try to fetch it.
+;; We can check if repo comes back nil but the mapcar in main will still tell
+;; the user that the package as fetched and in a directory that doesn't exist.
 (defun get-pkgbuild (pkg-name)
-  (maybe-refresh-cache)
-  (let ((repo (car (find-package-by-name pkg-name)))) ; user can give bad input
+  (ensure-initial-cache)
+  (let ((repo (car (find-package-by-name pkg-name))))
     (if (string= "aur" repo)
 	(get-pkgbuild-from-aur pkg-name)
 	(get-pkgbuild-from-svn pkg-name repo))))
-
-;;; should inform user of progress in get-pkgbuild-from-*
 
 ;; get-pkgbuild-from-aur currently duplicates install-aur-pkg but without:
 ;; unwind-protect, checksumming. okay for now.
@@ -115,20 +122,51 @@
   (unpack-file (aur-tarball-name pkg-name))
   (delete-file (aur-tarball-name pkg-name)))
 
-;; TODO: Handle the case where pkg-name directory exists where paktahn -G is invoked.
 (defun get-pkgbuild-from-svn (pkg-name repo)
-  (let ((arch (get-cpu-type))
-	(svnrepo "svn://svn.archlinux.org/")
-	(svnop "checkout")
-	(svndepth "--depth=empty"))
-    (labels ((svn-file-shuffling (directory)
-	       (run-program "svn" (list svnop svndepth (concatenate 'string svnrepo directory)))
-	       (setf (current-directory) directory)
-	       (run-program "svn" (list "update" pkg-name))
-	       (run-program "mv" (list (concatenate 'string pkg-name "/repos/" repo "-" arch)
-				       (concatenate 'string "../" pkg-name)))
-	       (setf (current-directory) "..")
-	       (delete-directory-and-files directory)))
+  (let ((arch (get-carch))
+	(server "svn://svn.archlinux.org/")
+	(operation "checkout"))
+    (labels ((checkout--pkgbuild (directory)
+	       (run-program "svn" (list operation
+					(concatenate 'string server directory pkg-name
+						     "/repos/" repo "-" arch)
+					pkg-name))))
       (if (string= repo "community")
-	  (svn-file-shuffling "community")
-	  (svn-file-shuffling "packages")))))
+	  (checkout--pkgbuild "community/")
+	  (checkout--pkgbuild "packages/")))))
+
+(defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) (location (get-pkgdest)))
+  (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
+	force)
+    (retrying
+     (restart-case
+	 (let ((exit-code (if force
+			      (run-pacman (list "-Uf" pkg-location))
+			      (run-pacman (list "-U" pkg-location)))))
+	   (unless (zerop exit-code)
+	     (error "Failed to install package (error ~D)" exit-code)))
+       (retry ()
+	 :report "Retry installation"
+	 (retry))
+       (force-install ()
+	 :report "Force installation (-Uf)"
+	 (setf force t)
+	 (retry))
+       (save-package ()
+	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") tarball))
+	 (run-program "mv" (list tarball (format nil "~A~A" (config-file "packages/") tarball))))))))
+
+(defun cleanup-temp-files (pkg-name &optional orig-dir)
+  (setf (current-directory) "..")
+  (let ((pkgdir (merge-pathnames
+		 (make-pathname :directory `(:relative ,pkg-name))
+		 (current-directory)))
+	(tarball (merge-pathnames
+		  (make-pathname :name (aur-tarball-name pkg-name))
+		  (current-directory))))
+    (when (probe-file pkgdir)
+      (delete-directory-and-files pkgdir))
+    (when (probe-file tarball)
+      (delete-file tarball)))
+  (when orig-dir
+    (setf (current-directory) orig-dir)))

@@ -20,8 +20,8 @@ BODY may call RETRY at any time to restart its execution."
 (defmacro with-tmp-dir ((start-dir end-dir) &body body)
   `(progn
      (setf (current-directory) ,start-dir)
-     @,body
-     (setf (current-directory) ,end-dir)))
+     (unwind-protect (progn ,@body)
+       (setf (current-directory) ,end-dir))))
 
 
 ;;;; infos, notes, progress
@@ -170,19 +170,13 @@ BODY may call RETRY at any time to restart its execution."
 
 (defun getcwd ()
   #+sbcl(sb-posix:getcwd)
-  #+ecl(ext:getcwd)
+  #+ecl(namestring (ext:getcwd))
   #-(or sbcl ecl)(error "no getcwd"))
-
-(defun get-cpu-type ()
-  #+sbcl(multiple-value-bind (return-value stream) (run-program "uname" '("-m") :capture-output-p t)
-	  (string-downcase (read-line stream)))
-  #+ecl(machine-type)
-  #-(or sbcl ecl)(error "no uname"))
 
 (defun current-directory ()
   (let ((cwd (getcwd)))
     (if cwd
-	(pathname (concatenate 'string cwd "/"))
+	(pathname (ensure-trailing-slash cwd))
 	(error "Could not get current directory."))))
 
 (defun (setf current-directory) (pathspec)
@@ -297,15 +291,9 @@ BODY may call RETRY at any time to restart its execution."
         finally (return input)))
 
 (defun launch-editor (filename)
-  #-run-program-fix
-  (format t "INFO: editing is not supported because you're using Paktahn~%~
-             with an unpatched SBCL, but here's the PKGBUILD for review:~%~
-             ==========~%")
   (retrying
-    ;; FIXME: run-program kludge again, can't do interactive I/O.
-    (let* ((editor-spec #-run-program-fix "cat"
-                        #+run-program-fix (or (environment-variable "EDITOR")
-                                              (ask-for-editor)))
+    (let* ((editor-spec (or (environment-variable "EDITOR")
+			    (ask-for-editor)))
            (editor-spec (split-sequence #\Space editor-spec :remove-empty-subseqs t))
            (editor-bin (car editor-spec))
            (editor-args (cdr editor-spec))
@@ -313,9 +301,7 @@ BODY may call RETRY at any time to restart its execution."
       (unless (zerop return-value)
         (warn "Editor ~S exited with non-zero status ~D" editor return-value)
         (when (ask-y/n "Choose another editor?" t)
-          (retry)))))
-  #-run-program-fix
-    (format t "~&==========~%"))
+          (retry))))))
 
 (defun download-file (uri)
   (retrying
@@ -427,10 +413,12 @@ options which are passed by with-locked-open-file to with-open-file."
 	  (return abspath))))))
 
 (defun ensure-trailing-slash (path)
-  (let ((lastchar (subseq path (1- (length path)))))
-    (if (equal lastchar "/")
-	path
-	(concatenate 'string path "/"))))
+  (if (string= "" path)
+      path
+      (let ((lastchar (subseq path (1- (length path)))))
+	(if (equal lastchar "/")
+	    path
+	    (concatenate 'string path "/")))))
 
 (defmacro with-interrupts (&body body)
   #+sbcl`(sb-sys:with-interrupts ,@body)

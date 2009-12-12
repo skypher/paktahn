@@ -148,39 +148,8 @@
           (install-dependencies (append deps make-deps)))
 
         (run-makepkg)
+	(install-pkg-tarball))
 
-        (let (force)
-          (retrying
-            (restart-case
-                  (let ((exit-code (if force
-                                     (run-pacman (list "-Uf" (get-pkgbuild-tarball-name)))
-                                     (run-pacman (list "-U" (get-pkgbuild-tarball-name))))))
-                    (unless (zerop exit-code)
-                      (error "Failed to install package (error ~D)" exit-code)))
-              (retry ()
-                :report "Retry installation"
-                (retry))
-              (force-install ()
-                :report "Force installation (-Uf)"
-                (setf force t)
-                (retry))
-              (save-package ()
-                :report (lambda (s) (format s "Save the package to ~A~A"
-                                            (config-file "packages/") (get-pkgbuild-tarball-name)))
-                (run-program "mv" (list (get-pkgbuild-tarball-name)
-                                        (format nil "~A~A" (config-file "packages/") (get-pkgbuild-tarball-name)))))))))
       ;; clean up
-      (setf (current-directory) "..")
-      (let ((pkgdir (merge-pathnames
-                      (make-pathname :directory `(:relative ,pkg-name))
-                      (current-directory)))
-            (tarball (merge-pathnames
-                       (make-pathname :name (aur-tarball-name pkg-name))
-                       (current-directory))))
-        (when (probe-file pkgdir)
-          (delete-directory-and-files pkgdir))
-        (when (probe-file tarball)
-          (delete-file tarball)))
-      (setf (current-directory) orig-dir))
+      (cleanup-temp-files pkg-name orig-dir))
     t))
-
