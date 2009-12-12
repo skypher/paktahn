@@ -26,20 +26,25 @@
                  (and (equalp (car x) (car y))
                       (equalp (cdr x) (cdr y)))))
 
+(defun parse-proxy (http-proxy)
+  (let ((regex "((http|https)://[^/?#]+):([0-9]{1,5})?(.*)"))
+    (multiple-value-bind (throwaway matches) (cl-ppcre:scan-to-strings regex http-proxy)
+      (cond ((null (third matches)) http-proxy)
+	    (t (list (concatenate 'string (first matches) (fourth matches))
+		     (read-from-string (third matches))))))))
+
 (defun check-for-aur-proxy ()
-  ;; should we use aur.archlinux.org or archlinux.org here?
   (let ((no-proxies (environment-variable "no_proxy"))
 	(http-proxy (environment-variable "http_proxy")))
     (if (and http-proxy (or (null no-proxies)
 			    (not (search "archlinux.org" no-proxies))))
-	;; we don't support basic authentication, i.e. http://www.archlinux.org:80 or http://192.168.2.5:80 not http://user:pass@archlinux.org:80.
-	;; we need a regex, split-sequence is just not the way to go.
 	(parse-proxy http-proxy)
 	nil)))
 
 (defun map-aur-packages (fn query)
   "Search AUR for a string"
-  (let ((json:*json-symbols-package* #.*package*))
+  (let ((json:*json-symbols-package* #.*package*)
+	(proxy (check-for-aur-proxy)))
     (json:with-decoder-simple-clos-semantics
       (let* (socket-error-p
              (json
@@ -49,7 +54,7 @@
                  (retrying
                    (restart-case
                        (drakma:http-request "http://aur.archlinux.org/rpc.php"
-					    :proxy (check-for-aur-proxy)
+					    :proxy (if proxy proxy nil)
                                             :parameters `(("type" . "search")
                                                           ("arg" . ,query)))
                      (retry ()
