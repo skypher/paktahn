@@ -293,7 +293,7 @@ Returns T upon successful installation, NIL otherwise."
                                 chosen-packages))))))
 
 (defun remove-package (pkg-name)
-  (maybe-refesh-cache)
+  (maybe-refresh-cache)
   (labels ((do-remove ()
              ;; TODO: support removal of group, provides(?)
              (cond
