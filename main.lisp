@@ -374,8 +374,9 @@ Usage:
 			(sb-posix:waitpid pid 0)
 			(format t "INFO: ...done~%"))))
 		(dump))))
-  #+ccl(save-application "paktahn" :toplevel #'core-main
-			 :prepend-kernel t)
+  #+ccl(ccl:save-application "paktahn"
+			     :toplevel-function #'core-main
+			     :prepend-kernel t)
   #+ecl(asdf:make-build :paktahn :type :program :monolithic t
 			:prologue-code '(require :asdf)
 			:epilogue-code '(paktahn::core-main))

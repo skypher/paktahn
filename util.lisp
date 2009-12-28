@@ -163,7 +163,7 @@ BODY may call RETRY at any time to restart its execution."
 (defun getargv ()
   #+sbcl sb-ext:*posix-argv*
   #+ecl(ext:command-args)
-  #+ccl *command-line-argument-list*
+  #+ccl ccl:*command-line-argument-list*
   #-(or sbcl ecl ccl)(error "no argv"))
 
 (defun getpid ()
@@ -194,7 +194,7 @@ BODY may call RETRY at any time to restart its execution."
 (defun environment-variable (name)
   #+sbcl(sb-posix:getenv name)
   #+ecl(ext:getenv name)
-  #+ccl(getenv name)
+  #+ccl(ccl:getenv name)
   #-(or sbcl ecl ccl)(error "no getenv"))
 
 (defun mkdir (dir &optional (mode #o755))
@@ -436,6 +436,6 @@ options which are passed by with-locked-open-file to with-open-file."
 
 (defmacro with-interrupts (&body body)
   #+sbcl`(sb-sys:with-interrupts ,@body)
-  #+ccl`(ccl:with-interrupts ,@body)
+  #+ccl`(ccl:with-interrupts-enabled ,@body)
   #+ecl`(mp:with-interrupts ,@body)
   #+(or sbcl ecl ccl)(error "With-interrupts not implemented"))
