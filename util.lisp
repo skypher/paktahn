@@ -130,7 +130,8 @@ BODY may call RETRY at any time to restart its execution."
   #+paktahn-deploy
   (progn
     #+sbcl(sb-ext:quit)
-    #+ecl(ext:quit 0)))
+    #+ecl(ext:quit 0)
+    #+ccl(ccl::quit)))
 
 (defun enable-quit-on-sigint ()
   #+sbcl(labels ((install-handler (handler)
@@ -154,24 +155,28 @@ BODY may call RETRY at any time to restart its execution."
 		   (quit)))
 	  (install-handler #'level1-handler))
   #+ecl(warn "Sigint handling not implemented yet.")
-  #-(or sbcl ecl)(error "no sigint handling"))
+  #+ccl(warn "Sigint handling not implemented yet.")
+  #-(or sbcl ecl ccl)(error "no sigint handling"))
 
 
 ;;;; posix and friends
 (defun getargv ()
   #+sbcl sb-ext:*posix-argv*
   #+ecl(ext:command-args)
-  #-(or sbcl ecl)(error "no argv"))
+  #+ccl *command-line-argument-list*
+  #-(or sbcl ecl ccl)(error "no argv"))
 
 (defun getpid ()
   #+sbcl(sb-posix:getpid)
   #+ecl(ext:getpid)
-  #-(or sbcl ecl)(error "no getpid"))
+  #+ccl(ccl::getpid)
+  #-(or sbcl ecl ccl)(error "no getpid"))
 
 (defun getcwd ()
   #+sbcl(sb-posix:getcwd)
   #+ecl(namestring (ext:getcwd))
-  #-(or sbcl ecl)(error "no getcwd"))
+  #+ccl(namestring (current-directory))
+  #-(or sbcl ecl ccl)(error "no getcwd"))
 
 (defun current-directory ()
   (let ((cwd (getcwd)))
@@ -183,18 +188,21 @@ BODY may call RETRY at any time to restart its execution."
   (setf *default-pathname-defaults* (truename pathspec))
   #+sbcl(sb-posix:chdir pathspec)
   #+ecl(ext:chdir pathspec)
-  #-(or ecl sbcl)(error "no chdir"))
+  #+ccl(ccl::%chdir (namestring pathspec))
+  #-(or ecl sbcl ccl)(error "no chdir"))
 
 (defun environment-variable (name)
   #+sbcl(sb-posix:getenv name)
   #+ecl(ext:getenv name)
-  #-(or sbcl ecl)(error "no getenv"))
+  #+ccl(getenv name)
+  #-(or sbcl ecl ccl)(error "no getenv"))
 
 (defun mkdir (dir &optional (mode #o755))
   ;; TODO: ensure-directories-exist
   #+sbcl(sb-posix:mkdir dir mode)
   #+ecl(ext:mkdir (ensure-trailing-slash dir) mode)
-  #-(or ecl sbcl)(error "no mkdir"))
+  #+ccl(ccl::%mkdir dir mode)
+  #-(or ecl sbcl ccl)(error "no mkdir"))
 
 (defun homedir ()
   (parse-namestring
@@ -221,7 +229,8 @@ BODY may call RETRY at any time to restart its execution."
   #+ecl(progn
 	 (ffi:clines "#include <unistd.h>")
 	 (ffi:c-inline () () :int "getuid()" :one-liner t))
-  #-(or sbcl ecl)(error "no getuid"))
+  #+ccl(ccl::getuid)
+  #-(or sbcl ecl ccl)(error "no getuid"))
 
 (defun rootp ()
   (zerop (getuid)))
@@ -236,13 +245,14 @@ BODY may call RETRY at any time to restart its execution."
                                        t))))
           (values (sb-ext:process-exit-code result)
                   (sb-ext:process-output result)))
+  #+ccl(warn "not implemented yet.")
   #+ecl(ext:run-program (find-in-path program)
 		       (ensure-list args)
 		       :input t
 		       :output (if capture-output-p
 				   :stream
 				   t))
-  #-(or sbcl ecl)(error "no run-program"))
+  #-(or sbcl ecl ccl)(error "no run-program"))
 
 
 ;;;; interactive stuff
@@ -347,26 +357,30 @@ BODY may call RETRY at any time to restart its execution."
 (defun stream->fd (stream)
   (check-type stream stream)
   #+sbcl(sb-sys:fd-stream-fd stream)
+  #+ccl(ccl:stream-device stream nil)
+;  #+ccl(ccl::ioblock-device (ccl::stream-ioblock stream t))
   #+ecl(ext:file-stream-fd stream)
-  #-(or ecl sbcl)(error "no stream->fd"))
+  #-(or ecl sbcl ccl)(error "no stream->fd"))
 
 (defun lockf (fd)
   (check-type fd integer)
   (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-lock 0)
+  #+ccl(warn "lockf not implemented yet.")
   #+ecl(progn
 	 (ffi:clines "#include <unistd.h>")
 	 (ffi:c-inline (fd) (:int) :int "lockf(#0, F_LOCK, 0)" :one-liner t))
-  #-(or sbcl ecl)(error "no lockf"))
+  #-(or sbcl ecl ccl)(error "no lockf"))
 
 (defun ulockf (fd)
   (check-type fd integer)
   (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
+  #+ccl(warn "ulockf not implemeneted yet.")
   #+ecl(progn
 	 (ffi:clines "#include <unistd.h>")
 	 (ffi:c-inline (fd) (:int) :int "lockf(#0, F_ULOCK, 0)" :one-liner t))
-  #-(or sbcl ecl)(error "no lockf"))
+  #-(or sbcl ecl ccl)(error "no lockf"))
 
 (defmacro with-locked-open-file ((var filespec &rest open-args)
 				 &body body)
@@ -422,4 +436,6 @@ options which are passed by with-locked-open-file to with-open-file."
 
 (defmacro with-interrupts (&body body)
   #+sbcl`(sb-sys:with-interrupts ,@body)
-  #+ecl`(mp:with-interrupts ,@body))
+  #+ccl`(ccl:with-interrupts ,@body)
+  #+ecl`(mp:with-interrupts ,@body)
+  #+(or sbcl ecl ccl)(error "With-interrupts not implemented"))
