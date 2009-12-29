@@ -4,6 +4,7 @@ unset pkgname pkgver pkgrel arch pkgdesc provides url source install md5sums \
       _svntrunk _svnmod _cvsroot _cvsmod _hgroot \
       _hgrepo	_gitroot _gitname _darcstrunk _darcsmod _bzrtrunk _bzrmod 
 
+source /etc/makepkg.conf
 source "$1" &> /dev/null
 
 # TODO loop
