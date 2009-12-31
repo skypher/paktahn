@@ -101,13 +101,13 @@
                                                    (or (search query name :test #'equalp)
                                                        (search query desc :test #'equalp))))
                                       (incf i)
-                                      (push-end (list i db-name name) packages)
+                                      (push-end (list i db-name name version) packages)
                                       (unless quiet
                                         (print-package i db-name name version desc :stream stream))))))))
          (aur-pkg-fn (lambda (match)
                        (incf i)
                        (with-slots (id name version description out-of-date) match
-                         (push-end (list i "aur" name) packages)
+                         (push-end (list i "aur" name version) packages)
                          (unless quiet
                            (print-package i "aur" name version description
                                           :stream stream
@@ -175,12 +175,15 @@ Returns T upon successful installation, NIL otherwise."
                (cond
                  ((and (package-installed-version pkg-name) (not force))
                   (info "Package ~S is already installed." pkg-name)
-                  (if (and (equalp *root-package* pkg-name)
-                           (ask-y/n "Reinstall it" nil))
-                    (progn
-                      (setf force t)
-                      (do-install))
-                    t))
+                  (let ((local-ver (package-installed-version pkg-name))
+                        (remote-ver (car (cdddar (get-package-results pkg-name :exact t)))))
+                    (if (and (or (string< local-ver remote-ver)
+                                 (equalp *root-package* pkg-name))
+                             (ask-y/n "Reinstall it" nil))
+                        (progn
+                          (setf force t)
+                          (do-install))
+                        t)))
                  ((not db-name)
                   (unless (search-and-install-packages pkg-name :query-for-providers t)
                     (restart-case
