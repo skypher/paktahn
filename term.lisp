@@ -15,6 +15,7 @@
                                       :pkg-version green
                                       :pkg-installed (:fg green :invertp t)
                                       :pkg-outofdate red
+                                      :pkg-old (:fg red :invertp t)
                                       :pkg-description nil))
 
 (defparameter *color-scheme-lightbg* '(:info black
@@ -27,6 +28,7 @@
                                        :pkg-version green
                                        :pkg-installed (:fg green :invertp t)
                                        :pkg-outofdate red
+                                       :pkg-old (:fg red :invertp t)
                                        :pkg-description nil))
 
 (defvar *color-scheme* *color-scheme-darkbg*)

@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 2) (speed 1) (space 1)))
 
-(defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
+(defun package-installed-version (pkg-name &optional pkg-version) ; TODO groups
   (map-cached-packages (lambda (db-name pkg)
                          (declare (ignore db-name))
                          (unless (stringp pkg) ; ignore groups
@@ -11,11 +11,11 @@
                                (when (and (equalp name pkg-name)
                                           (or (null pkg-version)
                                               (equalp pkg-version version)))
-                                 (return-from package-installed-p (values t :installed)))
+                                 (return-from package-installed-version (values version :installed)))
                                (when (member pkg-name provides
                                              :test #'equalp
                                              :key (compose #'first #'parse-dep))
-                                 (return-from package-installed-p (values t :provided))))))
+                                 (return-from package-installed-version (values version :provided))))))
                        :db-list (list *local-db*))
   nil)
 
@@ -53,10 +53,17 @@
     (with-term-colors/id :pkg-version
       (format t "~A" version))
     ;; installation status
-    (when (package-installed-p name) ; TODO: version
-      (format t " ")
-      (with-term-colors/id :pkg-installed
-        (format t "[installed]")))
+    (let ((ver (package-installed-version name)))
+      (when ver
+        (format t " ")
+        (if (string< ver version)
+            (with-term-colors/id :pkg-old
+              (format t "[~A installed]" ver))
+            (if (string> ver version)
+              (with-term-colors/id :pkg-result-id
+                (format t "[~A installed]" ver))
+              (with-term-colors/id :pkg-installed
+                (format t "[installed]" ver))))))
     ;; out of date? (aur-only)
     (when out-of-date-p
       (format t " ")
@@ -166,7 +173,7 @@ Returns T upon successful installation, NIL otherwise."
   (let ((db-name (or db-name (first (find-package-by-name pkg-name))))) ; FIXME: show all packages that provide PKG-NAME too (?)
     (labels ((do-install ()
                (cond
-                 ((and (package-installed-p pkg-name) (not force))
+                 ((and (package-installed-version pkg-name) (not force))
                   (info "Package ~S is already installed." pkg-name)
                   (if (and (equalp *root-package* pkg-name)
                            (ask-y/n "Reinstall it" nil))
@@ -297,7 +304,7 @@ Returns T upon successful installation, NIL otherwise."
   (labels ((do-remove ()
              ;; TODO: support removal of group, provides(?)
              (cond
-               ((not (package-installed-p pkg-name))
+               ((not (package-installed-version pkg-name))
                 #+(or)(info "Package ~S is not installed, skipping removal." pkg-name)
                 nil)
                (t
