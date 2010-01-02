@@ -53,17 +53,19 @@
     (with-term-colors/id :pkg-version
       (format t "~A" version))
     ;; installation status
-    (let ((ver (package-installed-version name)))
-      (when ver
+    (let ((installed-version (package-installed-version name)))
+      (when installed-version
         (format t " ")
-        (if (string< ver version)
-            (with-term-colors/id :pkg-old
-              (format t "[~A installed]" ver))
-            (if (string> ver version)
-              (with-term-colors/id :pkg-result-id
-                (format t "[~A installed]" ver))
-              (with-term-colors/id :pkg-installed
-                (format t "[installed]" ver))))))
+        (cond
+          ((string< installed-version version)
+           (with-term-colors/id :pkg-old
+             (format t "[~A installed]" installed-version)))
+          ((string> installed-version version)
+           (with-term-colors/id :pkg-result-id
+             (format t "[~A installed]" installed-version)))
+          (t
+           (with-term-colors/id :pkg-installed
+             (format t "[installed]"))))))
     ;; out of date? (aur-only)
     (when out-of-date-p
       (format t " ")
