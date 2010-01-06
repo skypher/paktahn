@@ -6,9 +6,9 @@
 
 (defun check-for-customizepkg ()
   (when (probe-file *customizepkg-bin*)
-    (check-for-custom-pkgs)))
+    (check-for-custom-packages)))
 
-(defun check-for-custom-pkgs ()
+(defun check-for-custom-packages ()
   (let ((files (directory (make-pathname
 			   :name :wild :type :wild
 			   :defaults *customizepkg-dir*))))
