@@ -309,10 +309,6 @@ Returns T upon successful installation, NIL otherwise."
                   (format s "Skip removal of package ~S and continue" pkg-name))
         (values nil 'skipped)))))
 
-(defun parse-options (argv)
-  ;; TODO
-  (getopt:getopt argv nil))
-
 (defun display-help ()
   (format t "~
 Usage:
