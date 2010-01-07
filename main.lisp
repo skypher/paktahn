@@ -1,6 +1,6 @@
 (in-package :pak)
 
-(declaim (optimize (debug 3) (safety 2) (speed 1) (space 1)))
+(declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
   (map-cached-packages (lambda (db-name pkg)
