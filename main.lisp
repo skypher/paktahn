@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 2) (speed 1) (space 1)))
 
-(defun package-installed-version (pkg-name &optional pkg-version) ; TODO groups
+(defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
   (map-cached-packages (lambda (db-name pkg)
                          (declare (ignore db-name))
                          (unless (stringp pkg) ; ignore groups
@@ -11,11 +11,11 @@
                                (when (and (equalp name pkg-name)
                                           (or (null pkg-version)
                                               (equalp pkg-version version)))
-                                 (return-from package-installed-version (values version :installed)))
+                                 (return-from package-installed-p (values version :installed)))
                                (when (member pkg-name provides
                                              :test #'equalp
                                              :key (compose #'first #'parse-dep))
-                                 (return-from package-installed-version (values version :provided))))))
+                                 (return-from package-installed-p (values version :provided))))))
                        :db-list (list *local-db*))
   nil)
 
@@ -53,7 +53,7 @@
     (with-term-colors/id :pkg-version
       (format t "~A" version))
     ;; installation status
-    (let ((installed-version (package-installed-version name)))
+    (let ((installed-version (package-installed-p name)))
       (when installed-version
         (format t " ")
         (cond
@@ -175,9 +175,9 @@ Returns T upon successful installation, NIL otherwise."
   (let ((db-name (or db-name (first (find-package-by-name pkg-name))))) ; FIXME: show all packages that provide PKG-NAME too (?)
     (labels ((do-install ()
                (cond
-                 ((and (package-installed-version pkg-name) (not force))
+                 ((and (package-installed-p pkg-name) (not force))
                   (info "Package ~S is already installed." pkg-name)
-                  (let ((local-ver (package-installed-version pkg-name))
+                  (let ((local-ver (package-installed-p pkg-name))
                         (remote-ver (car (cdddar (get-package-results pkg-name :exact t)))))
                     (if (and (or (string< local-ver remote-ver)
                                  (equalp *root-package* pkg-name))
@@ -309,7 +309,7 @@ Returns T upon successful installation, NIL otherwise."
   (labels ((do-remove ()
              ;; TODO: support removal of group, provides(?)
              (cond
-               ((not (package-installed-version pkg-name))
+               ((not (package-installed-p pkg-name))
                 #+(or)(info "Package ~S is not installed, skipping removal." pkg-name)
                 nil)
                (t
