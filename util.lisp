@@ -154,9 +154,9 @@ BODY may call RETRY at any time to restart its execution."
 						      #'level1-handler))))
 		   (quit)))
 	  (install-handler #'level1-handler))
-  #+ecl(warn "Sigint handling not implemented yet.")
-  #+ccl(warn "Sigint handling not implemented yet.")
-  #-(or sbcl ecl ccl)(error "no sigint handling"))
+  #+ecl(warn "SIGINT handling not implemented yet")
+  #+ccl(warn "SIGINT handling not implemented yet")
+  #-(or sbcl ecl ccl)(error "no SIGINT handling"))
 
 
 ;;;; posix and friends
@@ -376,7 +376,7 @@ BODY may call RETRY at any time to restart its execution."
   (check-type fd integer)
   (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
-  #+ccl(warn "ulockf not implemeneted yet.")
+  #+ccl(warn "ulockf not implemented yet.")
   #+ecl(progn
 	 (ffi:clines "#include <unistd.h>")
 	 (ffi:c-inline (fd) (:int) :int "lockf(#0, F_ULOCK, 0)" :one-liner t))
@@ -438,4 +438,4 @@ options which are passed by with-locked-open-file to with-open-file."
   #+sbcl`(sb-sys:with-interrupts ,@body)
   #+ccl`(ccl:with-interrupts-enabled ,@body)
   #+ecl`(mp:with-interrupts ,@body)
-  #+(or sbcl ecl ccl)(error "With-interrupts not implemented"))
+  #+(or sbcl ecl ccl)(error "with-interrupts not implemented yet"))
