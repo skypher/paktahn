@@ -57,10 +57,10 @@
       (when installed-version
         (format t " ")
         (cond
-          ((string< installed-version version)
+          ((version< installed-version version)
            (with-term-colors/id :pkg-old
              (format t "[~A installed]" installed-version)))
-          ((string> installed-version version)
+          ((version> installed-version version)
            (with-term-colors/id :pkg-result-id
              (format t "[~A installed]" installed-version)))
           (t
