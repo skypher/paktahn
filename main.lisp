@@ -177,9 +177,9 @@ Returns T upon successful installation, NIL otherwise."
                (cond
                  ((and (package-installed-p pkg-name) (not force))
                   (info "Package ~S is already installed." pkg-name)
-                  (let ((local-ver (package-installed-p pkg-name))
-                        (remote-ver (car (cdddar (get-package-results pkg-name :exact t)))))
-                    (if (and (or (version< local-ver remote-ver)
+                  (let ((local-version (package-installed-p pkg-name))
+                        (remote-version (fourth (car (get-package-results pkg-name :exact t)))))
+                    (if (and (or (version< local-version remote-version)
                                  (equalp *root-package* pkg-name))
                              (ask-y/n "Reinstall it" nil))
                         (progn
