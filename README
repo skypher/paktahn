@@ -66,8 +66,10 @@ Git:
   git://gitorious.org/paktahn/paktahn.git
   
 Report bugs, request features, send patches:
-  http://developer.berlios.de/projects/paktahn/
+  http://github.com/skypher/paktahn/issues
 
+Contribute to the Wiki:
+  http://wiki.github.com/skypher/paktahn
 
 How do I build this thing?!
 ===========================

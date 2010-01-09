@@ -20,6 +20,10 @@
 
   * AUR package dependencies are no longer installed explicitly (reported by bram85)
 
+  * Basic proxy support (no authentication) (Brit)
+
+  * Basic versioning support (Wei Hu, Leslie)
+
 0.8.1
   * fixed x86_64 package building/installation
   * fixed case when $EDITOR also had args in it (e.g. "emacsclient -l")
