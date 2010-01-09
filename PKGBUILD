@@ -16,7 +16,7 @@ options=(!strip)
 install="paktahn.install"
 source=("http://redlinernotes.com/docs/paktahn-makedeps-$libver.tbz2"
 #        "http://viridian-project.de/~sky/paktahn/paktahn-${pkgver}.tar.bz2")
-        "paktahn-${pkgver}.tar.bz2")
+	 "http://redlinernotes.com/docs/paktahn-${pkgver}.tar.bz2")
 
 build() {
   cd "$srcdir"
