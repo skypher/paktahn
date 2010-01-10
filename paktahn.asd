@@ -6,7 +6,7 @@
   :license "GPL"
   :depends-on (:md5 :trivial-backtrace :cl-store :cl-json
 	       :drakma :cffi :alexandria :metatilities
-	       :getopt :split-sequence :cl-ppcre :py-configparser
+	       :unix-options :split-sequence :cl-ppcre :py-configparser
 	       #+sbcl :sb-posix)
   :serial t
   :components ((:file "packages")
