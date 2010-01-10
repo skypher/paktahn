@@ -53,7 +53,7 @@
                  (retrying
                    (restart-case
                        (drakma:http-request "http://aur.archlinux.org/rpc.php"
-					    :proxy (if proxy proxy nil)
+					    :proxy proxy
                                             :parameters `(("type" . "search")
                                                           ("arg" . ,query)))
                      (retry ()
