@@ -107,13 +107,17 @@
                                       (unless quiet
                                         (print-package i db-name name version desc :stream stream))))))))
          (aur-pkg-fn (lambda (match)
-                       (incf i)
                        (with-slots (id name version description out-of-date) match
-                         (push-end (list i "aur" name version) packages)
-                         (unless quiet
-                           (print-package i "aur" name version description
-                                          :stream stream
-                                          :out-of-date-p (equal out-of-date "1")))))))
+                         (when (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
+                                   (and (not exact)
+                                        (or (search query name :test #'equalp)
+                                            (search query description :test #'equalp))))
+                           (incf i)
+                           (push-end (list i "aur" name version) packages)
+                           (unless quiet
+                             (print-package i "aur" name version description
+                                            :stream stream
+                                            :out-of-date-p (equal out-of-date "1"))))))))
     (map-cached-packages db-pkg-and-grp-fn)
     (map-aur-packages aur-pkg-fn query)
     packages))
