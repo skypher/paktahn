@@ -1,5 +1,7 @@
 for next release:
 
+  * on startup ask the user which color scheme they prefer
+
   * make SIGINT quit while in *any* error handler, not just one caused
     by SIGINT itself.
 
