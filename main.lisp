@@ -220,6 +220,7 @@ Returns T upon successful installation, NIL otherwise."
       (cond
 	;; if the package has a customizepkg definition, build it with
         ;; customizations applied whether it's a dependency or not
+        #+(or) ; needs rework
 	((customize-p pkg-name)
 	 (unwind-protect
 	      (progn
