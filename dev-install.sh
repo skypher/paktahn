@@ -7,7 +7,7 @@ mkdir -p pkg
 cd pkg
 ln -sf ../PKGBUILD
 ln -sf ../paktahn.install
-ln -sf ../paktahn-0.8.tar.bz2
+ln -sf ../paktahn-0.8.2.tar.bz2
 makepkg -f
 sudo pacman -U paktahn*.pkg.tar.gz
 cd ..
