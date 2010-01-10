@@ -26,9 +26,9 @@
                  (and (equalp (car x) (car y))
                       (equalp (cdr x) (cdr y)))))
 
-(defun parse-proxy (http-proxy)
+(defun parse-proxy-spec (http-proxy)
   (let ((regex "((http|https)://[^/?#]+):([0-9]{1,5})?(.*)"))
-    (multiple-value-bind (throwaway matches) (cl-ppcre:scan-to-strings regex http-proxy)
+    (let ((matches (nth-value 1 (cl-ppcre:scan-to-strings regex http-proxy))))
       (cond ((null (third matches)) http-proxy)
 	    (t (list (concatenate 'string (first matches) (fourth matches))
 		     (read-from-string (third matches))))))))
@@ -36,10 +36,9 @@
 (defun check-for-aur-proxy ()
   (let ((no-proxies (environment-variable "no_proxy"))
 	(http-proxy (environment-variable "http_proxy")))
-    (if (and http-proxy (or (null no-proxies)
-			    (not (search "archlinux.org" no-proxies))))
-	(parse-proxy http-proxy)
-	nil)))
+    (and http-proxy
+         (or (null no-proxies) (not (search "archlinux.org" no-proxies)))
+         (parse-proxy-spec http-proxy))))
 
 (defun map-aur-packages (fn query)
   "Search AUR for a string"
