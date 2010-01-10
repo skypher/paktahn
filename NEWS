@@ -24,7 +24,9 @@
 
   * Basic versioning support (Wei Hu, Leslie)
 
+
 0.8.1
+=====
   * fixed x86_64 package building/installation
   * fixed case when $EDITOR also had args in it (e.g. "emacsclient -l")
   * package removal support
@@ -35,5 +37,7 @@
     not listed in the PKGBUILD.
   * fixed --help and -h arguments (reported by Ralith)
 
+
 0.8
+===
   * Initial release.
