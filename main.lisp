@@ -180,12 +180,18 @@ Returns T upon successful installation, NIL otherwise."
                   (let ((local-version (package-installed-p pkg-name))
                         (remote-version (fourth (car (get-package-results pkg-name :exact t)))))
 		    (if (or (and (version< local-version remote-version)
-				 (ask-y/n (format nil "Package ~a is out of date. Upgrade it to version ~a" pkg-name remote-version) t))
-			    (and (or (version= local-version remote-version)
-				     (equalp *root-package* pkg-name))
-				 (ask-y/n (format nil "Package ~a already installed. Reinstall it" pkg-name) nil))
+				 (ask-y/n (format nil "Package ~A is out of date. Upgrade it to version ~A"
+                                                  pkg-name remote-version)
+                                          t))
+			    (and (version= local-version remote-version)
+                                 (equalp *root-package* pkg-name)
+				 (ask-y/n (format nil "Package ~A already installed. Reinstall it"
+                                                  pkg-name)
+                                          nil))
 			    (and (version> local-version remote-version)
-				 (ask-y/n (format nil "Package ~a is more recent than remote version. Downgrade it to version ~a" pkg-name remote-version) nil)))
+				 (ask-y/n (format nil "Package ~A is more recent than remote version. ~
+                                                       Downgrade it to version ~A" pkg-name remote-version)
+                                          nil)))
 			(progn
 			  (setf force t)
 			  (do-install))
@@ -212,7 +218,8 @@ Returns T upon successful installation, NIL otherwise."
       ;; environment to reflect this, or we're installing a dep and
       ;; should check that the environment has been set up properly.
       (cond
-	;; if the package has a customizepkg definition, build it with customizations applied whether it's a dependency or not
+	;; if the package has a customizepkg definition, build it with
+        ;; customizations applied whether it's a dependency or not
 	((customize-p pkg-name)
 	 (unwind-protect
 	      (progn
