@@ -180,7 +180,7 @@ Returns T upon successful installation, NIL otherwise."
                   (let ((local-version (package-installed-p pkg-name))
                         (remote-version (fourth (car (get-package-results pkg-name :exact t)))))
 		    (if (or (and (version< local-version remote-version)
-				 (ask-y/n (format nil "Package ~a is out of date. Upgrade it to version ~a" pkg-name remote-version) nil))
+				 (ask-y/n (format nil "Package ~a is out of date. Upgrade it to version ~a" pkg-name remote-version) t))
 			    (and (or (version= local-version remote-version)
 				     (equalp *root-package* pkg-name))
 				 (ask-y/n (format nil "Package ~a already installed. Reinstall it" pkg-name) nil))
