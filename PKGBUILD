@@ -5,7 +5,7 @@
 pkgname=paktahn
 pkgver=0.8.2
 libver=0.8
-pkgrel=1
+pkgrel=2
 pkgdesc="The kick-ass package manager for Arch Linux!"
 arch=('i686' 'x86_64')
 depends=('pacman' 'readline' 'sudo' 'svn')
@@ -31,6 +31,7 @@ build() {
        --eval "(require :asdf)" \
        --eval "(setf asdf:*central-registry*
                     '(\"$srcdir/\" \"$srcdir/clbuild.paktahn/systems/\"))" \
+       --eval "(asdf:oos 'asdf:load-op 'split-sequence)" \
        --eval "(asdf:oos 'asdf:load-op 'paktahn)" \
        --eval "(pak::build-core :forkp nil)"
 
