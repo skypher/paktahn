@@ -181,8 +181,12 @@ Returns T upon successful installation, NIL otherwise."
                (cond
                  ((and (package-installed-p pkg-name) (not force))
                   (info "Package ~S is already installed." pkg-name)
-                  (let ((local-version (package-installed-p pkg-name))
-                        (remote-version (fourth (car (get-package-results pkg-name :exact t)))))
+                  (let* ((result (get-package-results pkg-name :exact t))
+			 (local-version (package-installed-p pkg-name))
+			 (remote-version (if result
+					     (fourth (car result))
+					     (loop for repo-pkg-pair in (find-providing-packages pkg-name)
+						   thereis (package-installed-p (cdr repo-pkg-pair))))))
 		    (if (or (and (version< local-version remote-version)
 				 (ask-y/n (format nil "Package ~A is out of date. Upgrade it to version ~A"
                                                   pkg-name remote-version)
