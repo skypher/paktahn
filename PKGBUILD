@@ -31,7 +31,6 @@ build() {
        --eval "(require :asdf)" \
        --eval "(setf asdf:*central-registry*
                     '(\"$srcdir/\" \"$srcdir/clbuild.paktahn/systems/\"))" \
-       --eval "(asdf:oos 'asdf:load-op 'split-sequence)" \
        --eval "(asdf:oos 'asdf:load-op 'paktahn)" \
        --eval "(pak::build-core :forkp nil)"
 
