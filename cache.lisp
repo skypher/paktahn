@@ -94,6 +94,30 @@ contains a list of sublists (PKGNAME VERSION DESC). Initially NIL.")
   (load-cache-meta db-name)
   (load-cache-contents db-name))
 
+(defun safe-foreign-string-to-lisp (cstring-sap)
+  "Convert the foreign string CSTRING-SAP to a Lisp string
+using the Babel default encoding (likely UTF8). Offers useful
+restarts if this fails."
+  (handler-case
+      (foreign-string-to-lisp cstring-sap)
+    (babel-encodings:character-decoding-error (c)
+      ;; take a wild guess
+      (let ((latin9 (handler-case
+                        (foreign-string-to-lisp cstring-sap :encoding :latin9)
+                      (babel-encodings:character-decoding-error () nil))))
+
+        (restart-case
+            (error "Problem decoding foreign string as UTF8: ~A" c)
+          (use-latin9 ()
+              :test (lambda (c) latin9)
+              :report (lambda (s)
+                        (format s "Use the ISO-8859-15 representation ~S instead"
+                                (subseq latin9 0 (min (length latin9) 32))))
+            (return-from safe-foreign-string-to-lisp latin9))
+          (use-empty ()
+              :report "Use an empty string instead. Be sure to know what you're doing!"
+            (return-from safe-foreign-string-to-lisp "")))))))
+
 (defun build-memory-cache (db-name)
   "Update/build *cache-meta* and *cache-contents*."
   (let ((db-spec (db-name->db-spec db-name)))
@@ -108,7 +132,7 @@ contains a list of sublists (PKGNAME VERSION DESC). Initially NIL.")
                            (push (list (alpm-pkg-get-name pkg)
                                        (alpm-pkg-get-version pkg)
                                        (alpm-pkg-get-desc pkg)
-                                       (mapcar #'foreign-string-to-lisp (alpm-list->lisp (alpm-pkg-get-provides pkg))))
+                                       (mapcar #'safe-foreign-string-to-lisp (alpm-list->lisp (alpm-pkg-get-provides pkg))))
                                  (gethash db-name *cache-contents*)))
                          :db-list (list db-spec))
 
