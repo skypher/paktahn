@@ -122,6 +122,12 @@
     (map-aur-packages aur-pkg-fn query)
     packages))
 
+(defun package-remote-version (pkg-name)
+  (let ((result (get-package-results pkg-name :exact t)))
+    (if result
+	(fourth (car result))
+	(loop for repo-pkg-pair in (find-providing-packages pkg-name)
+	      thereis (package-installed-p (cdr repo-pkg-pair))))))
 
 ;;; user interface
 #+(or) ; not used right now
@@ -181,12 +187,8 @@ Returns T upon successful installation, NIL otherwise."
                (cond
                  ((and (package-installed-p pkg-name) (not force))
                   (info "Package ~S is already installed." pkg-name)
-                  (let* ((result (get-package-results pkg-name :exact t))
-			 (local-version (package-installed-p pkg-name))
-			 (remote-version (if result
-					     (fourth (car result))
-					     (loop for repo-pkg-pair in (find-providing-packages pkg-name)
-						   thereis (package-installed-p (cdr repo-pkg-pair))))))
+                  (let ((local-version (package-installed-p pkg-name))
+			(remote-version (package-remote-version pkg-name)))
 		    (if (or (and (version< local-version remote-version)
 				 (ask-y/n (format nil "Package ~A is out of date. Upgrade it to version ~A"
                                                   pkg-name remote-version)
