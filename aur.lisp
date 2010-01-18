@@ -73,6 +73,7 @@
 				   :key (lambda (result)
 					  (slot-value result 'name))))
 		(funcall fn match))
+              #+(or)
 	      (note "AUR message: ~A" results)))))))
 
 (defun install-dependencies (deps)

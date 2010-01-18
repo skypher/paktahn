@@ -186,26 +186,31 @@ Returns T upon successful installation, NIL otherwise."
     (labels ((do-install ()
                (cond
                  ((and (package-installed-p pkg-name) (not force))
-                  (info "Package ~S is already installed." pkg-name)
                   (let ((local-version (package-installed-p pkg-name))
-			(remote-version (package-remote-version pkg-name)))
-		    (if (or (and (version< local-version remote-version)
-				 (ask-y/n (format nil "Package ~A is out of date. Upgrade it to version ~A"
-                                                  pkg-name remote-version)
-                                          t))
-			    (and (version= local-version remote-version)
-                                 (equalp *root-package* pkg-name)
-				 (ask-y/n (format nil "Package ~A already installed. Reinstall it"
-                                                  pkg-name)
-                                          nil))
-			    (and (version> local-version remote-version)
-				 (ask-y/n (format nil "Package ~A is more recent than remote version. ~
-                                                       Downgrade it to version ~A" pkg-name remote-version)
-                                          nil)))
-			(progn
-			  (setf force t)
-			  (do-install))
-                        t)))
+                        (remote-version (package-remote-version pkg-name)))
+                    (flet ((force-install ()
+                             (setf force t)
+                             (do-install)))
+                      (cond
+                        ((version< local-version remote-version)
+                         (when (ask-y/n (format nil "Package ~A is out of date. Upgrade it to version ~A"
+                                                pkg-name remote-version)
+                                        t)
+                           (force-install)))
+                        ((and (version= local-version remote-version)
+                              (equalp *root-package* pkg-name))
+                         (when (ask-y/n (format nil "Package ~A already installed. Reinstall it"
+                                                pkg-name)
+                                        nil)
+                           (force-install)))
+                        ((and (version> local-version remote-version))
+                         (when (ask-y/n (format nil "Package ~A is more recent than remote version. ~
+                                                Downgrade it to version ~A" pkg-name remote-version)
+                                        nil)
+                           (force-install)))
+                        (t
+                         (info "Package ~S is already installed." pkg-name)
+                         t)))))
                  ((not db-name)
                   (unless (search-and-install-packages pkg-name :query-for-providers t)
                     (restart-case
