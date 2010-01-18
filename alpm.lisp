@@ -89,9 +89,9 @@
 ;;;; packages
 (defcfun "alpm_db_get_pkgcache" :pointer (db :pointer))
 
-(defcfun "alpm_pkg_get_name" :string (pkg :pointer))
-(defcfun "alpm_pkg_get_version" :string (pkg :pointer))
-(defcfun "alpm_pkg_get_desc" :string (pkg :pointer))
+(defcfun "alpm_pkg_get_name" safe-string (pkg :pointer))
+(defcfun "alpm_pkg_get_version" safe-string (pkg :pointer))
+(defcfun "alpm_pkg_get_desc" safe-string (pkg :pointer))
 
 (defun map-db-packages (fn &key (db-list *sync-dbs*))
   "Search a database for packages. FN will be called for each

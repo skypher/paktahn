@@ -11,6 +11,7 @@
   :serial t
   :components ((:file "packages")
 	       (:file "pyconfig-fix")
+               (:file "safe-foreign-string")
 	       (:file "readline")
 	       (:file "term")
 	       (:file "util")

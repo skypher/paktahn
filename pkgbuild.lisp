@@ -76,10 +76,20 @@
   "Parse a versioned dependency specification into a list
 (PKGNAME RELATION VERSION)."
   ;; TODO: intern the relation
-  (remove nil (coerce (nth-value 1 (cl-ppcre:scan-to-strings
-                                     "^([^<>=]+?)(?:(=|<|>|<=|>=)([^<>=]+))?$"
-                                     dep-spec))
-                      'list)))
+  (let* ((matches (nth-value 1 (cl-ppcre:scan-to-strings
+                                 "^([^<>=]+?)(?:(=|<|>|<=|>=)([^<>=]+))?$"
+                                 dep-spec)))
+         (result (remove nil (coerce matches 'list))))
+    (or result
+        (flet ((read-new-spec ()
+                 (format t "Enter new dependency spec: ") (force-output)
+                 (list (read-line))))
+          (restart-case
+              (error "Couldn't parse dependency spec ~S" dep-spec)
+            (correct (new-spec)
+              :report "Correct it by entering a new one"
+              :interactive read-new-spec
+              (return-from parse-dep (parse-dep new-spec)))))))) ; return-from needed?
 
 (defun get-pkgbuild-dependencies (&optional (pkgbuild-filename "./PKGBUILD"))
   (let ((dep-data (remove-if-not (lambda (key)

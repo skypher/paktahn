@@ -1,15 +1,17 @@
-for next release:
+features for next major release:
 
-  * on startup ask the user which color scheme they prefer
+  * on first startup ask the user which color scheme and pacman wrapper they prefer
 
   * make SIGINT quit while in *any* error handler, not just one caused
     by SIGINT itself.
 
+  * -Sy
+
+  * -Su, -Su --aur
+
 later:
 
   * check whether packages in extra/core are out of date
-
-  * short banner (and config option to disable it)
 
   * website, proper help/docs
 
