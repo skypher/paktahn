@@ -9,4 +9,5 @@
       (:use :cl :cffi)
       (:import-from :alexandria :compose :curry :rcurry :ensure-list)
       (:import-from :metatilities :push-end :aif :it)
-      (:import-from :usocket :split-sequence)))
+      (:import-from :split-sequence :split-sequence)))
+
