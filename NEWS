@@ -1,5 +1,7 @@
 0.8.3
 =====
+  * update cache after package removal (proposed by Ralith)
+
   * handle non-Unicode strings more gracefully (#9, reported by zajca)
 
 

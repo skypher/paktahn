@@ -335,7 +335,9 @@ Returns T upon successful installation, NIL otherwise."
                 #+(or)(info "Package ~S is not installed, skipping removal." pkg-name)
                 nil)
                (t
-                (run-pacman (list "-R" pkg-name))))))
+                (prog1
+                    (run-pacman (list "-R" pkg-name))
+                  (maybe-refresh-cache))))))
     (restart-case
         (do-remove)
       (skip-package ()
