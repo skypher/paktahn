@@ -309,7 +309,7 @@ BODY may call RETRY at any time to restart its execution."
            (editor-args (cdr editor-spec))
            (return-value (run-program editor-bin (append editor-args (list filename)))))
       (unless (zerop return-value)
-        (warn "Editor ~S exited with non-zero status ~D" editor return-value)
+        (warn "Editor ~S exited with non-zero status ~D" editor-spec return-value)
         (when (ask-y/n "Choose another editor?" t)
           (retry))))))
 

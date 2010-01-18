@@ -7,6 +7,7 @@
   :depends-on (:md5 :trivial-backtrace :cl-store :cl-json
 	       :drakma :cffi :alexandria :metatilities
 	       :unix-options :cl-ppcre :py-configparser
+               :split-sequence
 	       #+sbcl :sb-posix)
   :serial t
   :components ((:file "packages")
