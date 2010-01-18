@@ -220,7 +220,7 @@ Returns T upon successful installation, NIL otherwise."
 		  (install-binary-package db-name pkg-name :dep-of *root-package*))
                  ((or (eq db-name 'group)
                       (member db-name (mapcar #'car *sync-dbs*) :test #'equalp))
-                  (install-binary-package db-name pkg-name))
+                  (install-binary-package db-name pkg-name :force force))
                  #+(or)
                  (t
                   (error "BUG: missing DO-INSTALL case")))))

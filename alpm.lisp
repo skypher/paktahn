@@ -140,15 +140,16 @@ objects."
          (retry)))
      ,@body))
 
-(defun run-pacman (args &key capture-output-p)
+(defun run-pacman (args &key capture-output-p force)
   (with-pacman-lock
-    (run-program "sudo" (append (list *pacman-binary* "--needed")
+    (run-program "sudo" (append (list *pacman-binary*)
+                                (unless force (list "--needed"))
                                 args)
                  :capture-output-p capture-output-p)))
                  
 
 ;;;; Lisp interface
-(defun install-binary-package (db-name pkg-name &key dep-of)
+(defun install-binary-package (db-name pkg-name &key dep-of force)
   "Use Pacman to install a package."
   ;; TODO: check whether it's installed already
   ;; TODO: take versions into account
@@ -171,7 +172,7 @@ objects."
        (info "Installing binary package ~S from repository ~S.~%"
              pkg-name db-name)
        (let* ((fully-qualified-pkg-name (format nil "~A/~A" db-name pkg-name))
-              (return-value (run-pacman (list "-S" fully-qualified-pkg-name))))
+              (return-value (run-pacman (list "-S" fully-qualified-pkg-name) :force force)))
          (check-return-value return-value))))
     t))
 
