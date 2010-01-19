@@ -114,23 +114,23 @@
               makedeps (mapcar #'first makedeps))
         (values deps makedeps)))))
 
-;; TODO: When user supplies a non-existent pkg-name, we still try to fetch it.
-;; We can check if repo comes back nil but the mapcar in main will still tell
-;; the user that the package as fetched and in a directory that doesn't exist.
 (defun get-pkgbuild (pkg-name)
   (ensure-initial-cache)
   (let ((repo (car (find-package-by-name pkg-name))))
-    (if (string= "aur" repo)
-	(get-pkgbuild-from-aur pkg-name)
-	(get-pkgbuild-from-svn pkg-name repo))))
+    (cond ((null repo)
+	   (format nil "~a: Package not found in AUR or core/extra/community. May be in a custom repo." pkg-name))
+	  ((string= "aur" repo) (get-pkgbuild-from-aur pkg-name))
+	  (t (get-pkgbuild-from-svn pkg-name repo)))))
 
 ;; get-pkgbuild-from-aur currently duplicates install-aur-pkg but without:
 ;; unwind-protect, checksumming. okay for now.
 ;; TODO: investigate making a keyword argument :getpkgbuild for install-aur-pkg.
 (defun get-pkgbuild-from-aur (pkg-name)
-  (download-file (aur-tarball-uri pkg-name))
-  (unpack-file (aur-tarball-name pkg-name))
-  (delete-file (aur-tarball-name pkg-name)))
+  (let ((aur-tarball (aur-tarball-name pkg-name)))
+    (download-file (aur-tarball-uri pkg-name))
+    (unpack-file aur-tarball)
+    (delete-file aur-tarball)
+    (pkgbuild-directory pkg-name)))
 
 (defun get-pkgbuild-from-svn (pkg-name repo)
   (let ((arch (get-carch))
@@ -143,13 +143,16 @@
 							  "/repos/" repo "-" arch)
 					     pkg-name))))
 	       (if (zerop return-value)
-		   (format nil "The ~a pkgbuild is in ~a." pkg-name
-			   (concatenate 'string (namestring (current-directory)) pkg-name "/"))
+		   (pkgbuild-directory pkg-name)
 		   (format nil "Subversion exited with non-zero status ~d for package ~a."
 			   return-value pkg-name)))))
       (if (string= repo "community")
 	  (checkout-pkgbuild "community/")
 	  (checkout-pkgbuild "packages/")))))
+
+(defun pkgbuild-directory (pkg-name)
+  (format nil "~a: The pkgbuild is in ~a"
+	  pkg-name (concatenate 'string (namestring (current-directory)) pkg-name) "/"))
 
 (defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) (location (get-pkgdest)))
   (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
