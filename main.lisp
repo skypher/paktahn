@@ -374,7 +374,7 @@ Usage:
      (let ((return-values nil))
        (mapcar (lambda (pkg)
                  (push (get-pkgbuild pkg) return-values)) (cdr argv))
-       (loop for result in (reverse return-values) do (info "~s" result))))
+       (loop for result in (reverse return-values) do (info result))))
     (t
      (display-help))))
 
