@@ -29,9 +29,9 @@
 (defun parse-proxy-spec (http-proxy)
   (let ((regex "((http|https)://[^/?#]+):([0-9]{1,5})?(.*)"))
     (let ((matches (nth-value 1 (cl-ppcre:scan-to-strings regex http-proxy))))
-      (cond ((null (third matches)) http-proxy)
-	    (t (list (concatenate 'string (first matches) (fourth matches))
-		     (read-from-string (third matches))))))))
+      (cond ((null (aref matches 2)) http-proxy)
+	    (t (list (concatenate 'string (aref matches 0) (aref matches 3))
+		     (parse-integer (aref matches 2))))))))
 
 (defun check-for-aur-proxy ()
   (let ((no-proxies (environment-variable "no_proxy"))
