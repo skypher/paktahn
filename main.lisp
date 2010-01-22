@@ -365,7 +365,7 @@ Usage:
   pak QUERY      # search for QUERY
   pak -S PACKAGE # install PACKAGE
   pak -R PACKAGE # remove PACKAGE
-  pak -U --aur   # Upgrade all AUR packages
+  pak -Su --aur  # Upgrade all AUR packages
   pak -G PACKAGE # download pkgbuild into a new directory named PACKAGE~%"))
 
 (defun main (argv &aux (argc (length argv)))
@@ -380,7 +380,7 @@ Usage:
      (mapcar #'install-package (cdr argv)))
     ((and (>= argc 2) (equal (first argv) "-R"))
      (mapcar #'remove-package (cdr argv)))
-    ((and (>= argc 2) (and (equal (first argv) "-U")
+    ((and (>= argc 2) (and (equal (first argv) "-Su")
 			   (equal (second argv) "--aur")))
      (update-aur-packages))
     ((and (>= argc 2) (equal (first argv) "-G"))
