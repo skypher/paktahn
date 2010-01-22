@@ -153,3 +153,6 @@
       ;; clean up
       (cleanup-temp-files pkg-name orig-dir))
     t))
+
+(defun aur-package-p (pkg-name)
+  (not (find-package-by-name pkg-name :search-aur nil)))
