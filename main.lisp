@@ -212,7 +212,7 @@ Returns T upon successful installation, NIL otherwise."
                          (info "Package ~S is already installed." pkg-name)
                          t)))))
                  ((not db-name)
-                  (unless (search-and-install-packages pkg-name :query-for-providers t)
+                  (unless (find-providing-packages pkg-name)
                     (restart-case
                         (error "Couldn't find package ~S anywhere" pkg-name)
                       (resync-db ()
