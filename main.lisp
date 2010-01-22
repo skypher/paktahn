@@ -75,7 +75,7 @@
     (with-term-colors/id :pkg-description
       (format t "~%    ~A~%" description))))
 
-(defun get-package-results (query &key (quiet t) exact (stream *standard-output*) query-for-providers)
+(defun get-package-results (query &key (quiet t) exact (stream *standard-output*) query-for-providers (search-aur t))
   (declare (string query))
   (let* ((*print-pretty* nil)
          (i 0)
@@ -119,7 +119,8 @@
                                             :stream stream
                                             :out-of-date-p (equal out-of-date "1"))))))))
     (map-cached-packages db-pkg-and-grp-fn)
-    (map-aur-packages aur-pkg-fn query)
+    (when search-aur
+      (map-aur-packages aur-pkg-fn query))
     packages))
 
 (defun package-remote-version (pkg-name)
@@ -172,9 +173,9 @@ pairs as cons cells."
   (map 'vector (lambda (i) (aref vector i))
        (expand-ranges (parse-ranges rangespec-string 0 (1- (length vector))))))
 
-(defun find-package-by-name (pkg-name)
+(defun find-package-by-name (pkg-name &key (search-aur t))
   ;; TODO multiple hit handling
-  (cdr (first (get-package-results pkg-name :exact t))))
+  (cdr (first (get-package-results pkg-name :exact t :search-aur search-aur))))
 
 (defun install-package (pkg-name &key db-name force)
   "Install package PKG-NAME from AUR or sync databases. PKG-NAME
@@ -354,7 +355,7 @@ Returns T upon successful installation, NIL otherwise."
   (ensure-initial-cache)
   (dolist (pkg-spec (gethash "local" *cache-contents*))
     (cond ((stringp pkg-spec) nil)
-	  ((string= "aur" (car (find-package-by-name (car pkg-spec))))
+	  ((null (find-package-by-name (car pkg-spec) :search-aur nil))
 	   (install-aur-package (car pkg-spec)))
 	  (t nil))))
 
