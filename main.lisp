@@ -351,13 +351,13 @@ Returns T upon successful installation, NIL otherwise."
                   (format s "Skip removal of package ~S and continue" pkg-name))
         (values nil 'skipped)))))
 
-(defun update-aur-packages ()
+(defun upgrade-aur-packages ()
   (ensure-initial-cache)
   (dolist (pkg-spec (gethash "local" *cache-contents*))
-    (cond ((stringp pkg-spec) nil)
-	  ((null (find-package-by-name (car pkg-spec) :search-aur nil))
-	   (install-aur-package (car pkg-spec)))
-	  (t nil))))
+    (unless (stringp pkg-spec)
+      (let ((pkg-name (car pkg-spec)))
+	(when (aur-package-p pkg-name)
+	  (install-aur-package pkg-name))))))
 
 (defun display-help ()
   (format t "~
@@ -382,7 +382,7 @@ Usage:
      (mapcar #'remove-package (cdr argv)))
     ((and (>= argc 2) (and (equal (first argv) "-Su")
 			   (equal (second argv) "--aur")))
-     (update-aur-packages))
+     (upgrade-aur-packages))
     ((and (>= argc 2) (equal (first argv) "-G"))
      (let ((return-values nil))
        (mapcar (lambda (pkg)
