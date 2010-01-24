@@ -4,8 +4,8 @@
 
   * Reinstallation works properly again (#7)
 
-  * Trying to install or get pkgbuilds for non-existent packages is handled correctly
-    (#5 and #6)
+  * Trying to install or get pkgbuilds for non-existent packages is
+    handled correctly (#5 and #6)
 
   * Question the user in case of malformed pkgbuild dependencies (#12)
 
