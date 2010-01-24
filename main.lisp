@@ -355,8 +355,10 @@ Returns T upon successful installation, NIL otherwise."
   (ensure-initial-cache)
   (dolist (pkg-spec (gethash "local" *cache-contents*))
     (unless (stringp pkg-spec)
-      (let ((pkg-name (car pkg-spec)))
-	(when (aur-package-p pkg-name)
+      (let ((pkg-name (first pkg-spec))
+	    (local-version (second pkg-spec)))
+	(when (and (aur-package-p pkg-name)
+		   (version< local-version (third (find-package-by-name pkg-name))))
 	  (install-aur-package pkg-name))))))
 
 (defun display-help ()
