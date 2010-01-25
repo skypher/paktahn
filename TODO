@@ -9,7 +9,11 @@ features for next major release:
 
   * -Su, -Su --aur
 
+  * multiple commands in succession
+
 later:
+
+  * if invoked as root drop privileges for building packages
 
   * check whether packages in extra/core are out of date
 
