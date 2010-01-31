@@ -73,11 +73,11 @@ contains a list of sublists (PKGNAME VERSION DESC). Initially NIL.")
 
 (defvar *cache-loaded-p* nil)
 
-(defun init-cache-vars ()
+(defun init-cache-vars (&optional force)
   (values
-    (unless (hash-table-p *cache-meta*)
+    (when (or force (null (hash-table-p *cache-meta*)))
       (setf *cache-meta* (make-hash-table :test #'equalp)))
-    (unless (hash-table-p *cache-contents*)
+    (when (or force (null (hash-table-p *cache-contents*)))
       (setf *cache-contents* (make-hash-table :test #'equalp)))))
 
 (defun load-cache-meta (db-name)

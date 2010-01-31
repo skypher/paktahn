@@ -109,7 +109,7 @@ objects."
 
 ;;;; groups
 (defcfun "alpm_db_get_grpcache" :pointer (db :pointer))
-(defcfun "alpm_grp_get_name" :string (grp :pointer))
+(defcfun "alpm_grp_get_name" safe-string (grp :pointer))
 
 (defun map-groups (fn &key (db-list *sync-dbs*))
   "Search a database for groups. FN will be called for each
