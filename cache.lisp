@@ -73,6 +73,14 @@ contains a list of sublists (PKGNAME VERSION DESC). Initially NIL.")
 
 (defvar *cache-loaded-p* nil)
 
+(defun reset-cache ()
+  "Re-register all databases, flush the memory cache and refresh
+the memory and disk caches as needed."
+  (alpm-db-unregister-all)
+  (init-dbs)
+  (init-cache-vars t)
+  (maybe-refresh-cache))
+
 (defun init-cache-vars (&optional force)
   (values
     (when (or force (null (hash-table-p *cache-meta*)))
@@ -157,6 +165,8 @@ for a db to disk."
   (file-write-date (alpm-db-folder db-name)))
 
 (defun maybe-refresh-cache ()
+  ;; TODO: this will produce incorrect results when called for the
+  ;; second time. detect this case and call reset-cache.
   (dolist (db-spec (cons *local-db* *sync-dbs*))
     (let ((db-name (car db-spec)))
       (with-cache-lock db-name

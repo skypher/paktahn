@@ -342,8 +342,7 @@ Returns T upon successful installation, NIL otherwise."
                (t
                 (prog1
                     (run-pacman (list "-R" pkg-name))
-                  ;; this is neat but causes cache inconsistencies; tackle it later.
-                  #+(or)(maybe-refresh-cache))))))
+                  (reset-cache))))))
     (restart-case
         (do-remove)
       (skip-package ()
