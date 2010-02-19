@@ -123,12 +123,12 @@
       (map-aur-packages aur-pkg-fn query))
     packages))
 
-(defun package-remote-version (pkg-name)
-  (let ((result (get-package-results pkg-name :exact t)))
+(defun package-remote-version (pkg-name &key (search-aur t))
+  (let ((result (find-package-by-name pkg-name :search-aur search-aur)))
     (if result
-      (fourth (car result))
-      (loop for repo-pkg-pair in (find-providing-packages pkg-name)
-            thereis (package-installed-p (cdr repo-pkg-pair))))))
+	(third result)
+	(loop for repo-pkg-pair in (find-providing-packages pkg-name)
+	      thereis (package-installed-p (cdr repo-pkg-pair))))))
 
 ;;; user interface
 #+(or) ; not used right now
@@ -353,13 +353,25 @@ Returns T upon successful installation, NIL otherwise."
 
 (defun upgrade-aur-packages ()
   (ensure-initial-cache)
-  (dolist (pkg-spec (gethash "local" *cache-contents*))
+  (dolist (pkg-spec (reverse (gethash "local" *cache-contents*)))
     (unless (stringp pkg-spec)
-      (let ((pkg-name (first pkg-spec))
-	    (local-version (second pkg-spec)))
-	(when (and (aur-package-p pkg-name)
-		   (version< local-version (third (find-package-by-name pkg-name))))
-	  (install-aur-package pkg-name))))))
+      (let* ((pkg-name (first pkg-spec))
+	     (local-version (second pkg-spec))
+	     (remote-version nil)
+	     (out-of-date nil))
+	(when (aur-package-p pkg-name)
+	  (setf remote-version (package-remote-version pkg-name))
+	  (cond ((version= local-version remote-version)
+		 (format t "~a: Up to date.~%" pkg-name))
+		((version< local-version remote-version)
+		 (format t "~a: Remote version is ~a.~%" pkg-name remote-version)
+		 (push (list pkg-name local-version remote-version) out-of-date))))
+	(prompt-to-upgrade out-of-date)))))
+
+(defun prompt-to-upgrade (packages)
+  (loop for pkg in packages do
+    (when (ask-y/n (format nil "Upgrade ~a from ~a to ~a" (first pkg) (second pkg) (third pkg)))
+      (install-aur-package (first pkg)))))
 
 (defun display-help ()
   (format t "~
@@ -433,4 +445,3 @@ Usage:
                         :prologue-code '(require :asdf)
                         :epilogue-code '(paktahn::core-main))
   #-(or sbcl ecl ccl)(error "don't know how to build a core image"))
-
