@@ -54,6 +54,8 @@
 (defcfun "alpm_db_register_local" :pointer)
 (defcfun "alpm_db_register_sync" :pointer (name :string))
 
+(defcfun "alpm_db_unregister_all" :int)
+
 (defun init-alpm ()
   (alpm-initialize)
   (alpm-option-set-root "/")
@@ -77,8 +79,14 @@
             (cons name (alpm-db-register-sync name)))
           (get-enabled-repositories)))
 
-(defparameter *local-db* (init-local-db))
-(defparameter *sync-dbs* (init-sync-dbs))
+(defparameter *local-db* nil)
+(defparameter *sync-dbs* nil)
+
+(defun init-dbs ()
+  (setf *local-db* (init-local-db))
+  (setf *sync-dbs* (init-sync-dbs)))
+
+(init-dbs)
 
 (defun db-name->db-spec (db-name)
   (let ((db-spec (assoc db-name (cons *local-db* *sync-dbs*)
@@ -109,7 +117,7 @@ objects."
 
 ;;;; groups
 (defcfun "alpm_db_get_grpcache" :pointer (db :pointer))
-(defcfun "alpm_grp_get_name" :string (grp :pointer))
+(defcfun "alpm_grp_get_name" safe-string (grp :pointer))
 
 (defun map-groups (fn &key (db-list *sync-dbs*))
   "Search a database for groups. FN will be called for each

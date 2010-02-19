@@ -1,5 +1,16 @@
 0.8.3
 =====
+  * Version comparison no longer fails on provider packages (#8)
+
+  * Reinstallation works properly again (#7)
+
+  * Trying to install or get pkgbuilds for non-existent packages is
+    handled correctly (#5 and #6)
+
+  * Question the user in case of malformed pkgbuild dependencies (#12)
+
+  * Proxy support works correctly now (#15, reported by nitralime)
+
   * update cache after package removal (proposed by Ralith)
 
   * handle non-Unicode strings more gracefully (#9, reported by zajca)

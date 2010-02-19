@@ -24,7 +24,7 @@ are the values. Support will be added for non-PKGBUILD files later.")
 	   (prompt-user-review "PKGBUILD")
 	   (add-checksum pkg-name pkgbuild-md5))
 	  ((and (new-checksum-p pkgbuild-md5 old-md5s) ; otherwise, compare its md5sum to that on record and prompt the user if necessary
-		(ask-y/n "The PKGBUILD checksum doesn't match our records. Review the PKGBUILD?"))
+		(ask-y/n "The PKGBUILD checksum doesn't match our records. Review the PKGBUILD?" t))
 	   (launch-editor "PKGBUILD")
 	   (add-checksum pkg-name pkgbuild-md5))
           (t
