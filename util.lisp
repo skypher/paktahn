@@ -204,12 +204,15 @@ BODY may call RETRY at any time to restart its execution."
   #+ccl(ccl::%mkdir dir mode)
   #-(or ecl sbcl ccl)(error "no mkdir"))
 
+(defvar *paktahn-dir* nil)
+
 (defun homedir ()
-  (parse-namestring
-    (concatenate 'string (environment-variable "HOME") "/")))
+  (parse-namestring (ensure-trailing-slash (environment-variable "HOME"))))
 
 (defun home-relative (path)
-  (merge-pathnames (parse-namestring path) (homedir)))
+  (if *paktahn-dir*
+      (merge-pathnames (parse-namestring path) *paktahn-dir*)
+      (merge-pathnames (parse-namestring path) (homedir))))
 
 (defun config-file (path)
   (let ((result (merge-pathnames
