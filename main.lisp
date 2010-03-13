@@ -234,18 +234,6 @@ Returns T upon successful installation, NIL otherwise."
       ;; environment to reflect this, or we're installing a dep and
       ;; should check that the environment has been set up properly.
       (cond
-        ;; if the package has a customizepkg definition, build it with
-        ;; customizations applied whether it's a dependency or not
-        #+(or) ; needs rework
-        ((customize-p pkg-name)
-         (unwind-protect
-              (progn
-                (get-pkgbuild pkg-name)
-                (setf (current-directory) pkg-name)
-                (apply-customizations)
-                (run-makepkg)
-                (install-pkg-tarball))
-           (cleanup-temp-files pkg-name)))
         ;; installing a dep
         ((boundp '*root-package*)
          (assert *root-package*)

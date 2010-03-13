@@ -168,6 +168,16 @@ objects."
            (unless (zerop value)
              (error "Pacman exited with non-zero status ~D" value))))
     (cond
+      ;; TODO: Ensure install-pkg-tarball handles dependencies.
+      ((customize-p pkg-name)
+       (unwind-protect
+	    (progn
+	      (get-pkgbuild pkg-name)
+	      (setf (current-directory) pkg-name)
+	      (apply-customizations)
+	      (run-makepkg)
+	      (install-pkg-tarball))
+	 (cleanup-temp-files pkg-name)))
       (dep-of
        (info "Installing binary package ~S from repository ~S as a dependency for ~S.~%" pkg-name db-name dep-of)
        (let ((return-value (run-pacman (list "-S" "--asdeps" pkg-name))))
