@@ -154,14 +154,19 @@
   (format nil "~a: The pkgbuild is in ~a"
 	  pkg-name (concatenate 'string (namestring (current-directory)) pkg-name) "/"))
 
-(defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) (location (get-pkgdest)))
+(defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) 
+			    (location (get-pkgdest))
+			    (as-dep nil))
   (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
+	(pacman-args (if as-dep
+			 "--asdeps"
+			 nil))
 	force)
     (retrying
      (restart-case
 	 (let ((exit-code (if force
-			      (run-pacman (list "-Uf" pkg-location))
-			      (run-pacman (list "-U" pkg-location)))))
+			      (run-pacman (list "-Uf" pacman-args pkg-location))
+			      (run-pacman (list "-U" pacman-args pkg-location)))))
 	   (unless (zerop exit-code)
 	     (error "Failed to install package (error ~D)" exit-code)))
        (retry ()

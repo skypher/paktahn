@@ -220,8 +220,10 @@ Returns T upon successful installation, NIL otherwise."
                           :report "Resync pacman databases (-Sy) and try again"
                         (run-pacman '("-Sy"))
                         (do-install)))))
-                 ((equalp db-name "aur")
-                  (install-aur-package pkg-name))
+                 ((equalp db-name "aur") 
+		  (if (not (equalp *root-package* pkg-name))
+		      (install-aur-package pkg-name :as-dep t)
+		      (install-aur-package pkg-name)))
                  ((not (equalp *root-package* pkg-name))
                   (install-binary-package db-name pkg-name :dep-of *root-package*))
                  ((or (eq db-name 'group)

@@ -176,7 +176,7 @@ objects."
 	      (setf (current-directory) pkg-name)
 	      (apply-customizations)
 	      (run-makepkg)
-	      (install-pkg-tarball))
+	      (install-pkg-tarball :as-dep dep-of))
 	 (cleanup-temp-files pkg-name)))
       (dep-of
        (info "Installing binary package ~S from repository ~S as a dependency for ~S.~%" pkg-name db-name dep-of)
