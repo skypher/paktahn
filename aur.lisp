@@ -107,7 +107,7 @@
     (when (ask-y/n str t)
       (launch-editor filename))))
 
-(defun install-aur-package (pkg-name)
+(defun install-aur-package (pkg-name &key as-dep)
   (info "Installing package ~S from AUR.~%" pkg-name)
   (when (rootp)
     (error "You're running Paktahn as root; makepkg will not work.~%~
@@ -148,7 +148,7 @@
           (install-dependencies (append deps make-deps)))
 
         (run-makepkg)
-	(install-pkg-tarball))
+	(install-pkg-tarball :as-dep as-dep))
 
       ;; clean up
       (cleanup-temp-files pkg-name orig-dir))
