@@ -67,10 +67,15 @@
   (let ((data (get-pkgbuild-data pkgbuild-filename)))
     (flet ((field (name)
              (cdr (assoc name data :test #'equalp))))
-      (format nil "~A-~A-~A-~A.pkg.tar.gz" (field "pkgname") (field "pkgver")
-              (field "pkgrel") (if (member "any" (get-pkgbuild-arch) :test #'equalp)
-                                 "any"
-                                 (get-carch))))))
+      (let ((result
+             (format nil "~A-~A-~A-~A.pkg.tar.gz" (field "pkgname")
+                     (field "pkgver") (field "pkgrel")
+                     (if (member "any" (get-pkgbuild-arch) :test #'equalp)
+                         "any"
+                         (get-carch)))))
+        (if (probe-file result)
+            result
+            (format nil "~A~A" (subseq result 0 (- (length result) 2)) "xz"))))))
 
 (defun parse-dep (dep-spec)
   "Parse a versioned dependency specification into a list
