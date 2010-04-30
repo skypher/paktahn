@@ -1,3 +1,16 @@
+0.8.5
+=====
+  * Support for AUR updates with paktahn -Su --aur
+
+  * Added .tar.xz support (#24, reported by slint)
+
+  * AUR packages that need to be installed as dependencies are
+  handled correctly (#22, thanks to Justin Caratzas)
+
+  * User can choose paktahn's directory (#20)
+
+  * Customizepkg support now works with non-AUR packages (#14)
+
 0.8.3
 =====
   * Version comparison no longer fails on provider packages (#8)
