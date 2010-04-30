@@ -43,6 +43,9 @@
 (defun get-pkgdest ()
   (get-makepkg-field "pkgdest"))
 
+(defun get-pkgext ()
+  (get-makepkg-field "pkgext"))
+
 (defun get-pkgbuild-arch (&optional (pkgbuild-filename "./PKGBUILD"))
   (let ((data (get-pkgbuild-data pkgbuild-filename)))
     (split-sequence #\Space (cdr (assoc "arch" data :test #'equalp)))))
@@ -67,15 +70,11 @@
   (let ((data (get-pkgbuild-data pkgbuild-filename)))
     (flet ((field (name)
              (cdr (assoc name data :test #'equalp))))
-      (let ((result
-             (format nil "~A-~A-~A-~A.pkg.tar.gz" (field "pkgname")
-                     (field "pkgver") (field "pkgrel")
-                     (if (member "any" (get-pkgbuild-arch) :test #'equalp)
-                         "any"
-                         (get-carch)))))
-        (if (probe-file result)
-            result
-            (format nil "~A~A" (subseq result 0 (- (length result) 2)) "xz"))))))
+      (format nil "~A-~A-~A-~A~A" (field "pkgname")
+              (field "pkgver") (field "pkgrel")
+              (if (member "any" (get-pkgbuild-arch) :test #'equalp)
+                  "any"
+                  (get-carch)) (get-pkgext)))))
 
 (defun parse-dep (dep-spec)
   "Parse a versioned dependency specification into a list
