@@ -162,15 +162,11 @@
 			    (location (get-pkgdest))
 			    (as-dep nil))
   (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
-	(pacman-args (if as-dep
-			 "--asdeps"
-			 nil))
 	force)
     (retrying
      (restart-case
-	 (let ((exit-code (if force
-                            (run-pacman (append (list "-Uf") pacman-args (list pkg-location)))
-                            (run-pacman (append (list "-U") pacman-args (list pkg-location))))))
+	 (let ((exit-code
+                 (run-pacman (list (if force "-Uf" "-U") pkg-location))))
 	   (unless (zerop exit-code)
 	     (error "Failed to install package (error ~D)" exit-code)))
        (retry ()
