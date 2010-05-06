@@ -166,7 +166,9 @@
     (retrying
      (restart-case
 	 (let ((exit-code
-                 (run-pacman (list (if force "-Uf" "-U") pkg-location))))
+                 (run-pacman (append (list (if force "-Uf" "-U"))
+                                     (when as-dep (list "--asdeps"))
+                                     (list pkg-location)))))
 	   (unless (zerop exit-code)
 	     (error "Failed to install package (error ~D)" exit-code)))
        (retry ()
