@@ -3,7 +3,7 @@
 # Maintainer: Leslie P. Polzer <polzer@gnu.org>
 
 pkgname=paktahn
-pkgver=0.8.4
+pkgver=0.9
 libver=0.8.3
 pkgrel=1
 pkgdesc="The kick-ass package manager for Arch Linux!"
@@ -53,3 +53,7 @@ sha1sums=('a89068dadbf18871db721ac32acbcb8c897291f6'
           '8a4d265521db5a0cf84a7f53fbf8aa184266771d')
 md5sums=('dcbcbee6d532ebb10742e883a3d1ad2e'
          '9162ba76aef1a805a2125582afb1d021')
+md5sums=('dcbcbee6d532ebb10742e883a3d1ad2e'
+         '26c9a382331b9fc73591c7be146e0301')
+sha1sums=('a89068dadbf18871db721ac32acbcb8c897291f6'
+          '8041a5277baf17aa9beaeda06968b4a9eed9eabc')

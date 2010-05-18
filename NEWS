@@ -1,5 +1,5 @@
-0.8.5
-=====
+0.9
+===
   * Support for AUR updates with paktahn -Su --aur
 
   * Added .tar.xz support (#24, reported by slint)
