@@ -10,6 +10,6 @@ ln -sf ../PKGBUILD
 ln -sf ../paktahn.install
 ln -sf ../paktahn-$pkgver.tar.bz2
 makepkg -f
-sudo pacman -U paktahn*.pkg.tar.gz
+sudo pacman -U paktahn*.pkg.tar.*
 cd ..
 
