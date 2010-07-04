@@ -363,9 +363,10 @@ Returns T upon successful installation, NIL otherwise."
 	(prompt-to-upgrade out-of-date)))))
 
 (defun prompt-to-upgrade (packages)
-  (loop for pkg in packages do
-    (when (ask-y/n (format nil "Upgrade ~a from ~a to ~a" (first pkg) (second pkg) (third pkg)))
-      (install-aur-package (first pkg)))))
+  (loop for (name local-version remote-version) in packages do
+    (when (ask-y/n (format nil "Upgrade ~a from ~a to ~a"
+                           name local-version remote-version))
+      (install-aur-package name))))
 
 (defun display-help ()
   (format t "~
