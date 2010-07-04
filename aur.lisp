@@ -76,8 +76,18 @@
               #+(or)
 	      (note "AUR message: ~A" results)))))))
 
+;; TODO: Will this install packages as-deps properly when called
+;; from INSTALL-AUR-PACKAGE? Was it before?
 (defun install-dependencies (deps)
-  (mapcar 'install-package deps))
+  (mapcar #'(lambda (pkg)
+              (let ((installed-version (package-installed-p pkg))
+                    (remote-version (package-remote-version pkg)))
+                (if (and installed-version
+                         (version= installed-version
+                                   remote-version))
+                    (with-term-colors/id :info
+                      (format t "Dependency: ~A is up to date." pkg))
+                    (install-package pkg)))) deps))
 
 (defun aur-tarball-uri (pkg-name)
   (format nil "http://aur.archlinux.org/packages/~(~A~)/~(~A~).tar.gz"
