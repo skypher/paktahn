@@ -78,7 +78,7 @@
 
 ;; TODO: Will this install packages as-deps properly when called
 ;; from INSTALL-AUR-PACKAGE? Was it before?
-(defun install-depenencies (deps)
+(defun install-dependencies (deps)
   (mapcar #'(lambda (pkg)
               (let ((installed-version (package-installed-p pkg))
                     (remote-version (package-remote-version pkg)))
