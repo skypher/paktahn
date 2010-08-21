@@ -177,8 +177,7 @@
 	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") tarball))
 	 (run-program "mv" (list tarball (format nil "~A~A" (config-file "packages/") tarball))))))))
 
-(defun cleanup-temp-files (pkg-name &optional orig-dir)
-  (setf (current-directory) "..")
+(defun cleanup-temp-files (pkg-name)
   (let ((pkgdir (merge-pathnames
 		 (make-pathname :directory `(:relative ,pkg-name))
 		 (current-directory)))
@@ -188,6 +187,4 @@
     (when (probe-file pkgdir)
       (delete-directory-and-files pkgdir))
     (when (probe-file tarball)
-      (delete-file tarball)))
-  (when orig-dir
-    (setf (current-directory) orig-dir)))
+      (delete-file tarball))))

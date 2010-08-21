@@ -122,47 +122,22 @@
   (when (rootp)
     (error "You're running Paktahn as root; makepkg will not work.~%~
             Try running as a normal user and Paktahn will invoke `sudo' as necessary."))
-  (let ((orig-dir (current-directory)))
-    (unwind-protect
-      (progn
-        ;; enter temporary directory
-        (setf (current-directory) (tempdir))
-
-        ;; download
-        (download-file (aur-tarball-uri pkg-name))
-        
-        ;; unpack 
-        (unpack-file (aur-tarball-name pkg-name))
-
-        (setf (current-directory) pkg-name)
-
-	;; update the checksum database in case another process has added new checksums
-	(load-checksums)
-
-	;; check to see if the PKGBUILD has been seen before
-	(compare-checksums pkg-name)
-	
-        ;; store the modified checksums DB
-	(save-checksums)
-
-	;; if a customization exists for the pkg, apply it
-	(when (customize-p pkg-name)
-	  (apply-customizations))
-
-        (unless (ask-y/n (format nil "Continue building ~S" pkg-name) t)
-          (return-from install-aur-package))
-
-        ;; get dependencies, display, install
-        (multiple-value-bind (deps make-deps) (get-pkgbuild-dependencies)
-          ;(format t "~%deps: ~S~%makedeps: ~S~%" deps make-deps)
-          (install-dependencies (append deps make-deps)))
-
-        (run-makepkg)
-	(install-pkg-tarball :as-dep as-dep))
-
-      ;; clean up
-      (cleanup-temp-files pkg-name orig-dir))
-    t))
+  (with-tmp-dir ((tempdir) (current-directory))
+    (get-pkgbuild-from-aur pkg-name)
+    (with-tmp-dir ((merge-pathnames (ensure-trailing-slash pkg-name)) (current-directory))
+      (load-checksums)
+      (compare-checksums pkg-name)
+      (save-checksums)
+      (when (customize-p pkg-name)
+        (apply-customizations))
+      (unless (ask-y/n (format nil "Continue building ~S" pkg-name) t)
+        (return-from install-aur-package))
+      (multiple-value-bind (deps make-deps) (get-pkgbuild-dependencies)
+        (install-dependencies (append deps make-deps)))
+      (run-makepkg)
+      (install-pkg-tarball :as-dep as-dep))
+    (cleanup-temp-files pkg-name))
+  t)
 
 (defun aur-package-p (pkg-name)
   (not (find-package-by-name pkg-name :search-aur nil)))
