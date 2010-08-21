@@ -140,7 +140,8 @@
   (let ((server "svn://svn.archlinux.org/"))
     (flet ((checkout-pkgbuild (directory)
 	     (let ((return-value
-		    (run-program "svn" `("co" ,(format nil "~a~a/~a/trunk/" server directory pkg-name)))))
+		    (run-program "svn" `("co" ,(format nil "~a~a/~a/trunk/"
+                                                       server directory pkg-name) ,pkg-name))))
 	       (if (zerop return-value)
 		   (pkgbuild-directory pkg-name)
 		   (format nil "Subversion exited with non-zero status ~d for package ~a."
