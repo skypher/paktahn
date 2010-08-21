@@ -59,7 +59,8 @@
               architectures (~A).~%makepkg will refuse to build it." carch archlist))
     t))
 
-(defun add-carch-to-pkgbuild (&optional (pkgbuild-filename (merge-pathnames"./PKGBUILD" (current-directory))))
+(defun add-carch-to-pkgbuild (&optional (pkgbuild-filename
+                                         (merge-pathnames"./PKGBUILD" (current-directory))))
   (with-open-file (f pkgbuild-filename :direction :output
                                        :if-exists :append
                                        :if-does-not-exist :error)
@@ -122,7 +123,8 @@
   (ensure-initial-cache)
   (let ((repo (car (find-package-by-name pkg-name))))
     (cond ((null repo)
-	   (format nil "~a: Package not found in AUR or core/extra/community. May be in a custom repo." pkg-name))
+	   (format nil "~a: Package not found in AUR or core/extra/community. May be in a custom repo."
+                   pkg-name))
 	  ((string= "aur" repo) (get-pkgbuild-from-aur pkg-name))
 	  (t (get-pkgbuild-from-svn pkg-name repo)))))
 
