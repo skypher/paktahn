@@ -130,6 +130,16 @@
 (defun get-pkgbuild-from-aur (pkg-name)
   (with-tmp-dir (#P"/tmp/" (current-directory))
     (let ((aur-tarball (aur-tarball-name pkg-name)))
+      (retrying
+        (restart-case
+            (when (probe-file (merge-pathnames aur-tarball))
+              (error "A tarball named ~a already exists." aur-tarball))
+          (overwrite ()
+            :report (lambda (s) (format s "Overwrite the existing file."))
+            (delete-file (merge-pathnames aur-tarball))
+            (retry))
+          (resume ()
+            :report (lambda (s) (format s "Resume the download with the existing file.")))))
       (download-file (aur-tarball-uri pkg-name))
       (unpack-file aur-tarball end-dir)
       (delete-file aur-tarball)
