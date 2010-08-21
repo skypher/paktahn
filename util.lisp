@@ -18,10 +18,13 @@ BODY may call RETRY at any time to restart its execution."
            (return-from ,block-name (progn ,@body)))))))
 
 (defmacro with-tmp-dir ((start-dir end-dir) &body body)
-  `(progn
-     (setf (current-directory) ,start-dir)
+  "Warning: This macro is unhygienic and captures START-DIR and END-DIR.
+cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
+  `(let ((start-dir ,start-dir)
+         (end-dir ,end-dir))
+     (setf (current-directory) start-dir)
      (unwind-protect (progn ,@body)
-       (setf (current-directory) ,end-dir))))
+       (setf (current-directory) end-dir))))
 
 
 ;;;; infos, notes, progress
@@ -325,9 +328,15 @@ BODY may call RETRY at any time to restart its execution."
 	   (error "Failed to download file ~S" uri)))
      return-value)))
 
-(defun unpack-file (name)
+(defun unpack-file (name &optional destination)
   (retrying
-    (let ((return-value (run-program "tar" (list "xfvz" name))))
+    (let ((return-value (if destination
+                            (let ((filepath (merge-pathnames
+                                             (parse-namestring name)
+                                             (current-directory))))
+                              (with-tmp-dir (destination (current-directory))
+                                (run-program "tar" (list "xfvz" (namestring filepath)))))
+                            (run-program "tar" (list "xfvz" name)))))
       (unless (zerop return-value)
         (if (ask-y/n (format nil "Unpacking failed with status ~D. Retry?" return-value))
           (retry)
@@ -419,7 +428,6 @@ options which are passed by with-locked-open-file to with-open-file."
 				:if-exists :supersede
 				:if-does-not-exist :create)
      ,@body))
-
 
 ;; ECL compatibility
 (defun find-in-path (program)
