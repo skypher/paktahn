@@ -1,3 +1,15 @@
+0.9.1
+=====
+  * pak -Su --aur now handles deleted or missing packages rather than exiting
+
+  * paktahn will never prompt to reinstall up-to-date dependencies
+
+  * pak -G for core/extra/community packages fetches from svn/trunk
+    instead of svn/$arch/pkg-name (#19, reported by wh5a [Wei Hu])
+
+  * pak -G now downloads tarballs into /tmp/ and offers restart options
+    to overwrite or resume if the tarball exists (#25)
+
 0.9
 ===
   * Support for AUR updates with paktahn -Su --aur
@@ -5,7 +17,7 @@
   * Added .tar.xz support (#24, reported by slint)
 
   * AUR packages that need to be installed as dependencies are
-  handled correctly (#22, thanks to Justin Caratzas)
+    handled correctly (#22, thanks to Justin Caratzas)
 
   * User can choose paktahn's directory (#20)
 
