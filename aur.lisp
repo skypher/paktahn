@@ -45,11 +45,16 @@
   (let ((json:*json-symbols-package* #.*package*)
 	(proxy (check-for-aur-proxy)))
     (json:with-decoder-simple-clos-semantics
-      (let* (socket-error-p
+      (let* (network-error-p
              (json
-               (handler-bind ((usocket:socket-error (lambda (e)
-                                                      (setf socket-error-p t)
-                                                      (error "Error connecting to AUR: ~A" e))))
+               (handler-bind ((usocket:socket-error
+                               (lambda (e)
+                                 (setf network-error-p t)
+                                 (error "Socket error connecting to AUR: ~A" e)))
+                              (usocket:ns-condition
+                               (lambda (e)
+                                 (setf network-error-p t)
+                                 (error "Name resolution error connecting to AUR: ~A" e))))
                  (retrying
                    (restart-case
                        (drakma:http-request "http://aur.archlinux.org/rpc.php"
@@ -57,12 +62,12 @@
                                             :parameters `(("type" . "search")
                                                           ("arg" . ,query)))
                      (retry ()
-                       :test (lambda (c) (declare (ignore c)) socket-error-p)
+                       :test (lambda (c) (declare (ignore c)) network-error-p)
                        :report (lambda (s) (format s "Retry network connection."))
-                       (setf socket-error-p nil)
+                       (setf network-error-p nil)
                        (retry))
                      (ignore ()
-                       :test (lambda (c) (declare (ignore c)) socket-error-p)
+                       :test (lambda (c) (declare (ignore c)) network-error-p)
                        :report (lambda (s) (format s "Ignore this error and continue, skipping packages from AUR."))
                        (return-from map-aur-packages nil)))))))
 	(check-type json string)
