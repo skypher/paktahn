@@ -138,25 +138,25 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
 
 (defun enable-quit-on-sigint ()
   #+sbcl(labels ((install-handler (handler)
-		   (sb-sys:enable-interrupt sb-unix:sigint handler))
-		 (level2-handler (&rest args)
-		   "No messing around, the user's serious this time."
-		   (declare (ignore args))
-		   (sb-sys:enable-interrupt sb-unix:sigint :default)
-		   (quit))
-		 (level1-handler (&rest args)
-		   "Present restarts if applicable."
-		   (declare (ignore args))
-		   (install-handler #'level2-handler)
-		   (sb-sys:with-interrupts
-		     (default-error-handler
-			 (make-condition 'simple-error
-					 :format-control "Interrupt")
-			 :before-invoke-restart-fn (lambda ()
-						     (install-handler
-						      #'level1-handler))))
-		   (quit)))
-	  (install-handler #'level1-handler))
+                   (sb-sys:enable-interrupt sb-unix:sigint handler))
+                 (level2-handler (&rest args)
+                   "No messing around, the user's serious this time."
+                   (declare (ignore args))
+                   (sb-sys:enable-interrupt sb-unix:sigint :default)
+                   (quit))
+                 (level1-handler (&rest args)
+                   "Present restarts if applicable."
+                   (declare (ignore args))
+                   (install-handler #'level2-handler)
+                   (sb-sys:with-interrupts
+                     (default-error-handler
+                         (make-condition 'simple-error
+                                         :format-control "Interrupt")
+                         :before-invoke-restart-fn (lambda ()
+                                                     (install-handler
+                                                      #'level1-handler))))
+                   (quit)))
+          (install-handler #'level1-handler))
   #+ecl(warn "SIGINT handling not implemented yet")
   #+ccl(warn "SIGINT handling not implemented yet")
   #-(or sbcl ecl ccl)(error "no SIGINT handling"))
@@ -184,8 +184,8 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
 (defun current-directory ()
   (let ((cwd (getcwd)))
     (if cwd
-	(pathname (ensure-trailing-slash cwd))
-	(error "Could not get current directory."))))
+        (pathname (ensure-trailing-slash cwd))
+        (error "Could not get current directory."))))
 
 (defun (setf current-directory) (pathspec)
   (setf *default-pathname-defaults* (truename pathspec))
@@ -233,8 +233,8 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
 (defun getuid ()
   #+sbcl(sb-unix:unix-getuid)
   #+ecl(progn
-	 (ffi:clines "#include <unistd.h>")
-	 (ffi:c-inline () () :int "getuid()" :one-liner t))
+         (ffi:clines "#include <unistd.h>")
+         (ffi:c-inline () () :int "getuid()" :one-liner t))
   #+ccl(ccl::getuid)
   #-(or sbcl ecl ccl)(error "no getuid"))
 
@@ -253,11 +253,11 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
                   (sb-ext:process-output result)))
   #+ccl(warn "not implemented yet.")
   #+ecl(ext:run-program (find-in-path program)
-		       (ensure-list args)
-		       :input t
-		       :output (if capture-output-p
-				   :stream
-				   t))
+                       (ensure-list args)
+                       :input t
+                       :output (if capture-output-p
+                                   :stream
+                                   t))
   #-(or sbcl ecl ccl)(error "no run-program"))
 
 
@@ -292,7 +292,7 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
                (format *query-io* "~&Please type \"y\" for yes or \"n\" for no.~:[~; Hit RETURN for the default.~]~%" default-supplied-p)))
       (loop (print-query)
             (let ((ch (query-read-char)))
-              (cond 
+              (cond
                 ((member ch '(#\y #\Y)) (return t))
                 ((member ch '(#\n #\N)) (return nil))
                 ((and default-supplied-p (char-equal ch #\Newline))
@@ -309,7 +309,7 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
 (defun launch-editor (filename)
   (retrying
     (let* ((editor-spec (or (environment-variable "EDITOR")
-			    (ask-for-editor)))
+                            (ask-for-editor)))
            (editor-spec (split-sequence #\Space editor-spec :remove-empty-subseqs t))
            (editor-bin (car editor-spec))
            (editor-args (cdr editor-spec))
@@ -324,8 +324,8 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
    (let ((return-value (run-program "wget" (list "-c" uri))))
      (unless (zerop return-value)
        (if (ask-y/n (format nil "Download via wget failed with status ~D. Retry?" return-value))
-	   (retry)
-	   (error "Failed to download file ~S" uri)))
+           (retry)
+           (error "Failed to download file ~S" uri)))
      return-value)))
 
 (defun unpack-file (name &optional destination)
@@ -380,8 +380,8 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
   #+sbcl(sb-posix:lockf fd sb-posix:f-lock 0)
   #+ccl(warn "lockf not implemented yet.")
   #+ecl(progn
-	 (ffi:clines "#include <unistd.h>")
-	 (ffi:c-inline (fd) (:int) :int "lockf(#0, F_LOCK, 0)" :one-liner t))
+         (ffi:clines "#include <unistd.h>")
+         (ffi:c-inline (fd) (:int) :int "lockf(#0, F_LOCK, 0)" :one-liner t))
   #-(or sbcl ecl ccl)(error "no lockf"))
 
 (defun ulockf (fd)
@@ -390,33 +390,33 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
   #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
   #+ccl(warn "ulockf not implemented yet.")
   #+ecl(progn
-	 (ffi:clines "#include <unistd.h>")
-	 (ffi:c-inline (fd) (:int) :int "lockf(#0, F_ULOCK, 0)" :one-liner t))
+         (ffi:clines "#include <unistd.h>")
+         (ffi:c-inline (fd) (:int) :int "lockf(#0, F_ULOCK, 0)" :one-liner t))
   #-(or sbcl ecl ccl)(error "no lockf"))
 
 (defmacro with-locked-open-file ((var filespec &rest open-args)
-				 &body body)
+                                 &body body)
   "Binds var to filespec and passes filespec and open-args to with-open-file.
 Once the file is locked with lockf(), the body is executed and the lock is
 released. Note that :direction must be set to :io to satisfy lockf() in the
 case of reading which necessitates :if-exists :overwrite for with-open-file."
   (let ((stream (gensym))
-	(fd (gensym)))
+        (fd (gensym)))
     `(with-open-file (,stream ,filespec
-			      ,@open-args)
+                              ,@open-args)
        (let ((,fd (stream->fd ,stream))
-	     (,var ,filespec))
-	 (lockf ,fd)
-	 (unwind-protect (progn ,@body)
-	   (ulockf ,fd))))))
+             (,var ,filespec))
+         (lockf ,fd)
+         (unwind-protect (progn ,@body)
+           (ulockf ,fd))))))
 
 (defmacro with-locked-input-file ((var filespec) &body body)
   "Passes var, filespec and body unmodified to with-locked-open-file
 along with the :direction :io and :if-exists :overwrite options
 which are passed by with-locked-open-file to with-open-file."
   `(with-locked-open-file (,var ,filespec
-				:direction :io
-				:if-exists :overwrite)
+                                :direction :io
+                                :if-exists :overwrite)
      ,@body))
 
 (defmacro with-locked-output-file ((var filespec) &body body)
@@ -424,9 +424,9 @@ which are passed by with-locked-open-file to with-open-file."
 along with the :direction :output, :if-exists :supersede and :if-does-not-exist :create
 options which are passed by with-locked-open-file to with-open-file."
   `(with-locked-open-file (,var ,filespec
-				:direction :output
-				:if-exists :supersede
-				:if-does-not-exist :create)
+                                :direction :output
+                                :if-exists :supersede
+                                :if-does-not-exist :create)
      ,@body))
 
 ;; ECL compatibility
@@ -434,16 +434,14 @@ options which are passed by with-locked-open-file to with-open-file."
   (let ((path (reverse (split-sequence #\: (environment-variable "PATH")))))
     (loop for dir in path do
       (let ((abspath (concatenate 'string (ensure-trailing-slash dir) program)))
-	(when (probe-file abspath)
-	  (return abspath))))))
+        (when (probe-file abspath)
+          (return abspath))))))
 
 (defun ensure-trailing-slash (path)
-  (if (string= "" path)
-      path
-      (let ((lastchar (subseq path (1- (length path)))))
-	(if (equal lastchar "/")
-	    path
-	    (concatenate 'string path "/")))))
+  (cond ((or (string= "" path)
+             (char= (aref path (1- (length path))) #\/))
+         path)
+        (t (concatenate 'string path "/"))))
 
 (defmacro with-interrupts (&body body)
   #+sbcl`(sb-sys:with-interrupts ,@body)
