@@ -19,12 +19,26 @@
                        :db-list (list *local-db*))
   nil)
 
-(defun print-group (id db-name name &key (stream *standard-output*))
+(defun print-pkglist (pkglist &key (numbered t)
+                       (stream *standard-output*))
+  (dolist (pkg pkglist)
+    (cond ((= (length pkg) 3) ; the pkg is a group
+           (print-group (first pkg) (second pkg) (third pkg)
+                        :numbered numbered :stream stream))
+          ((> (length pkg) 4) ;; the pkg is a normal package
+           (print-package (first pkg) (second pkg) (third pkg)
+                          (fourth pkg) (fifth pkg)
+                          :out-of-date-p (sixth pkg)
+                          :numbered numbered :stream stream)))))
+
+(defun print-group (id db-name name &key (numbered t)
+                    (stream *standard-output*))
   (let ((*standard-output* stream))
     ;; id
-    (with-term-colors/id :pkg-result-id
-      (format t "~D" id))
-    (format t " ")
+    (when numbered
+      (with-term-colors/id :pkg-result-id
+        (format t "~D" id))
+      (format t " "))
     ;; db
     (with-term-colors/id (:db db-name)
       (format t "~A/" db-name))
@@ -35,13 +49,15 @@
     (with-term-colors/id :pkg-version
       (format t "[group]~%")))) ; TODO: show group members
 
-(defun print-package (id db-name name version description &key (stream *standard-output*) out-of-date-p)
+(defun print-package (id db-name name version description &key out-of-date-p
+                      (stream *standard-output*) (numbered t))
   ;; TODO: votes
   (let ((*standard-output* stream))
     ;; id
-    (with-term-colors/id :pkg-result-id
-      (format t "~D" id))
-    (format t " ")
+    (when numbered
+      (with-term-colors/id :pkg-result-id
+        (format t "~D" id))
+      (format t " "))
     ;; db
     (with-term-colors/id (:db db-name)
       (format t "~A/" db-name))
@@ -75,37 +91,33 @@
     (with-term-colors/id :pkg-description
       (format t "~%    ~A~%" description))))
 
-(defun get-package-results (query &key (quiet t) exact (stream *standard-output*) query-for-providers (search-aur t))
+(defun get-package-results (query &key query-for-providers exact (search-aur t))
   (declare (string query))
   (let* ((*print-pretty* nil)
          (i 0)
-         packages ; (ID REPO NAME)
+         packages
          (db-pkg-and-grp-fn (lambda (db-name pkg)
                               (etypecase pkg
                                 (string
-                                  (let ((name pkg))
-                                    (when (and (not query-for-providers) ; groups can't be providers
-                                               (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
-                                                   (and (not exact)
-                                                        (search query name :test #'equalp))))
-                                      (incf i)
-                                      (push-end (list i 'group name) packages)
-                                      (unless quiet
-                                        (print-group i db-name name :stream stream)))))
+                                 (let ((name pkg))
+                                   (when (and (not query-for-providers) ; groups can't be providers
+                                              (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
+                                                  (and (not exact)
+                                                       (search query name :test #'equalp))))
+                                     (incf i)
+                                     (push-end (list i 'group name) packages))))
                                 (cons
-                                  (destructuring-bind (name version desc provides) pkg
-                                    ;; TODO: search in desc, use regex
-                                    (when (or (and query-for-providers (member query provides
-                                                                               :test #'equalp
-                                                                               :key (compose #'first #'parse-dep)))
-                                              (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
-                                              (and (not exact)
-                                                   (or (search query name :test #'equalp)
-                                                       (search query desc :test #'equalp))))
-                                      (incf i)
-                                      (push-end (list i db-name name version) packages)
-                                      (unless quiet
-                                        (print-package i db-name name version desc :stream stream))))))))
+                                 (destructuring-bind (name version desc provides) pkg
+                                   ;; TODO: search in desc, use regex
+                                   (when (or (and query-for-providers (member query provides
+                                                                              :test #'equalp
+                                                                              :key (compose #'first #'parse-dep)))
+                                             (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
+                                             (and (not exact)
+                                                  (or (search query name :test #'equalp)
+                                                      (search query desc :test #'equalp))))
+                                     (incf i)
+                                     (push-end (list i db-name name version desc) packages)))))))
          (aur-pkg-fn (lambda (match)
                        (with-slots (id name version description out-of-date) match
                          (when (or (and exact (equalp query name)) ; TODO we can return immediately on an exact result.
@@ -113,11 +125,8 @@
                                         (or (search query name :test #'equalp)
                                             (search query description :test #'equalp))))
                            (incf i)
-                           (push-end (list i "aur" name version) packages)
-                           (unless quiet
-                             (print-package i "aur" name version description
-                                            :stream stream
-                                            :out-of-date-p (equal out-of-date "1"))))))))
+                           (push-end (list i "aur" name version description
+                                           (equal out-of-date "1")) packages))))))
     (map-cached-packages db-pkg-and-grp-fn)
     (when search-aur
       (map-aur-packages aur-pkg-fn query))
@@ -270,17 +279,30 @@ Returns T upon successful installation, NIL otherwise."
                (get-pkgbuild pkg-name)
                (quit)))))))))
 
+(defun search-packages (query)
+  (maybe-refresh-cache)
+  (let* ((packages (get-package-results (car query))))
+    (unless (= (length query) 1)
+      (dolist (name (cdr query))
+        (let ((results (get-package-results name)))
+          (loop for (id repo name version) in packages do
+               (unless (member name results :key #'third :test #'equal)
+                 (setf packages (remove name packages :key #'third :test #'equal)))))))
+    ;; if we're being faithful to pacman -Ss, let us *really* be faithful.
+    ;; no output for no results.
+    (when packages
+      (print-pkglist packages :numbered nil))))
+
 (defun search-and-install-packages (query &key query-for-providers)
   (maybe-refresh-cache)
   (when query-for-providers
     (info "Please select a package providing ~S" query))
   (let* ((pkglist (make-string-output-stream))
          (bstream (make-broadcast-stream *standard-output* pkglist))
-         (packages (get-package-results query :quiet nil
-                                              :query-for-providers query-for-providers
-                                              :stream bstream))
-         (pkglist (get-output-stream-string pkglist))
+         (packages (get-package-results query :query-for-providers query-for-providers))
          (total (length packages)))
+    (print-pkglist packages :stream bstream)
+    (setf pkglist (get-output-stream-string pkglist))
     (if (null packages)
       (info "Sorry, no packages matched ~S~%" query)
       (flet ((print-list ()
@@ -371,7 +393,8 @@ Returns T upon successful installation, NIL otherwise."
 (defun display-help ()
   (format t "~
 Usage:
-  pak QUERY      # search for QUERY
+  pak QUERY      # search for QUERY and prompt for installation
+  pak -Ss QUERY  # search for QUERY
   pak -S PACKAGE # install PACKAGE
   pak -R PACKAGE # remove PACKAGE
   pak -Su --aur  # Upgrade all AUR packages
@@ -383,14 +406,16 @@ Usage:
   (cond
     ((some (lambda (x) (member x '("-h" "--help") :test #'equalp)) argv)
      (display-help))
-    ((eql argc 1) 
+    ((eql argc 1)
      (search-and-install-packages (first argv)))
+    ((and (>= argc 2) (equal (first argv) "-Ss"))
+     (search-packages (cdr argv)))
     ((and (>= argc 2) (equal (first argv) "-S"))
      (mapcar #'install-package (cdr argv)))
     ((and (>= argc 2) (equal (first argv) "-R"))
      (mapcar #'remove-package (cdr argv)))
     ((and (>= argc 2) (and (equal (first argv) "-Su")
-			   (equal (second argv) "--aur")))
+                           (equal (second argv) "--aur")))
      (upgrade-aur-packages))
     ((and (>= argc 2) (equal (first argv) "-G"))
      (let ((return-values nil))
