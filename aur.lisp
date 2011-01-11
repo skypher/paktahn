@@ -101,8 +101,16 @@
 (defun aur-tarball-name (pkg-name)
   (format nil "~(~A~).tar.gz" pkg-name))
 
+(defun ensure-makepkg-deps ()
+  (loop for pkg in '("gcc" "make" "fakeroot") do
+       (unless (package-installed-p pkg)
+         (when (ask-y/n
+                (format nil "Running makepkg requires ~a. Install it?" pkg) t)
+           (install-binary-package "core" pkg)))))
+
 (defun run-makepkg ()
   "Run makepkg in the current working directory"
+  (ensure-makepkg-deps)
   (retrying
     (restart-case
         (check-pkgbuild-arch)
@@ -152,9 +160,10 @@
   (flet ((prompt-user ()
            (format t "~&Continue building ~a? (y/n/(r)eview PKGBUILD: " pkg-name)
            (force-output)
-           (peek-char t)))
+           (peek-char)))
     (loop do (prompt-user) thereis
          (case (char-downcase (read-char))
+           (#\Newline :continue)
            (#\y :continue)
            (#\n :cancel)
            (#\r :review)))))
