@@ -1,9 +1,8 @@
-# Contributor: Brit Butler <redline6561@gmail.com>
 # Contributor: Leslie P. Polzer <polzer@gnu.org>
-# Maintainer: Leslie P. Polzer <polzer@gnu.org>
+# Maintainer: Brit Butler <redline6561@gmail.com>
 
 pkgname=paktahn
-pkgver=0.9.1
+pkgver=0.9.2
 libver=0.8.3
 pkgrel=1
 pkgdesc="The kick-ass package manager for Arch Linux!"
@@ -50,6 +49,6 @@ build() {
 }
 
 md5sums=('dcbcbee6d532ebb10742e883a3d1ad2e'
-         '8bad354f18749afe3ef01d6f0a55c1da')
+         '54e6d73027cf5b7d720c337555f459ff')
 sha1sums=('a89068dadbf18871db721ac32acbcb8c897291f6'
-          '28521c4f26a91279f8c808c82b96992c3560de27')
+          'f4a2d6e508e0c4e9e79f9b69a54cbb00bfd44270')
