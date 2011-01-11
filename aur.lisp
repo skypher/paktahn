@@ -154,9 +154,9 @@
                          (get-pkgbuild-dependencies)
                        (install-dependencies (append deps make-deps)))
                      (run-makepkg)
-                     (install-pkg-tarball :as-dep as-dep))))
+                     (install-pkg-tarball :as-dep as-dep)))))
     (cleanup-temp-files pkg-name))
-  t))
+  t)
 
 (defun continue-building-p (pkg-name)
   (flet ((prompt-user ()
