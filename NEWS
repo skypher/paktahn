@@ -1,6 +1,16 @@
-0.9.2
+0.9.3
 =====
   * Ignore versioning for packages whose names end with -git, -svn, -hg or -cvs.
+
+0.9.2
+=====
+  * Always allow users to edit the PKGBUILD.
+
+  * Handle name resolution failures as well as socket errors.
+
+  * Add pak -Ss which behaves identically to pacman -Ss.
+
+  * Ensure implicit pacman/makepkg deps are installed before running makepkg.
 
 0.9.1
 =====
