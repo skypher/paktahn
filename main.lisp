@@ -187,7 +187,7 @@ pairs as cons cells."
   (cdr (first (get-package-results pkg-name :exact t :search-aur search-aur))))
 
 (defun versioned-package-p (pkg-name)
-  (cl-ppcre:scan "-(git|svn|cvs|hg)$" pkg-name))
+  (cl-ppcre:scan "-(git|svn|cvs|hg|darcs)$" pkg-name))
 
 (defun install-package (pkg-name &key db-name force)
   "Install package PKG-NAME from AUR or sync databases. PKG-NAME
@@ -195,10 +195,13 @@ may also be a group name or the name of a provider package.
 Returns T upon successful installation, NIL otherwise."
   (declare (special *root-package*))
   (ensure-initial-cache)
-  (let ((db-name (or db-name (first (find-package-by-name pkg-name))))) ; FIXME: show all packages that provide PKG-NAME too (?)
+   ; FIXME: show all packages that provide PKG-NAME too (?)
+  (let ((db-name (or db-name (first (find-package-by-name pkg-name)))))
     (labels ((do-install ()
                (cond
-                 ((and (package-installed-p pkg-name) (not force) (not (versioned-package-p pkg-name)))
+                 ((and (package-installed-p pkg-name)
+                       (not force)
+                       (not (versioned-package-p pkg-name)))
                   (let ((local-version (package-installed-p pkg-name))
                         (remote-version (package-remote-version pkg-name)))
                     (flet ((force-install ()
