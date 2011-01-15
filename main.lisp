@@ -187,7 +187,7 @@ pairs as cons cells."
   (cdr (first (get-package-results pkg-name :exact t :search-aur search-aur))))
 
 (defun versioned-package-p (pkg-name)
-  (cl-ppcre:scan "-(git|svn|cvs|hg|darcs)$" pkg-name))
+  (cl-ppcre:scan "-(git|svn|cvs|hg|bzr|darcs)$" pkg-name))
 
 (defun install-package (pkg-name &key db-name force)
   "Install package PKG-NAME from AUR or sync databases. PKG-NAME
