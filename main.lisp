@@ -2,6 +2,9 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
+(defvar *paktahn-version* "0.92.6")
+(defvar *pacman-faithful-p* t)
+
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
   (map-cached-packages (lambda (db-name pkg)
                          (declare (ignore db-name))
@@ -293,11 +296,13 @@ Returns T upon successful installation, NIL otherwise."
         (let ((results (get-package-results name)))
           (loop for (id repo name version) in packages do
                (unless (member name results :key #'third :test #'equal)
-                 (setf packages (remove name packages :key #'third :test #'equal)))))))
+                 (setf packages (remove name packages
+                                        :key #'third :test #'equal)))))))
     ;; if we're being faithful to pacman -Ss, let us *really* be faithful.
-    ;; no output for no results.
-    (when packages
-      (print-pkglist packages :numbered nil))))
+    (if packages
+        (print-pkglist packages :numbered nil)
+        (or *pacman-faithful-p*
+            (info "Sorry, no packages matched ~S~%" query)))))
 
 (defun search-and-install-packages (query &key query-for-providers)
   (maybe-refresh-cache)
@@ -404,7 +409,8 @@ Usage:
   pak -S PACKAGE # install PACKAGE
   pak -R PACKAGE # remove PACKAGE
   pak -Su --aur  # Upgrade all AUR packages
-  pak -G PACKAGE # download pkgbuild into a new directory named PACKAGE~%"))
+  pak -G PACKAGE # download pkgbuild into a new directory named PACKAGE
+  pak -V         # print paktahn version~%"))
 
 (defun main (argv &aux (argc (length argv)))
   "Secondary entry point: process config and command line."
@@ -412,7 +418,9 @@ Usage:
   (cond
     ((some (lambda (x) (member x '("-h" "--help") :test #'equalp)) argv)
      (display-help))
-    ((eql argc 1)
+    ((and (= argc 1) (equal (first argv) "-V"))
+     (format t "Paktahn Version ~A~%" *paktahn-version*))
+    ((= argc 1)
      (search-and-install-packages (first argv)))
     ((and (>= argc 2) (equal (first argv) "-Ss"))
      (search-packages (cdr argv)))
