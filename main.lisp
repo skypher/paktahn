@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
-(defvar *paktahn-version* "0.92.8")
+(defvar *paktahn-version* "0.92.9")
 (defvar *pacman-faithful-p* t)
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
@@ -408,7 +408,10 @@ Usage:
   pak -Ss QUERY  # search for QUERY
   pak -S PACKAGE # install PACKAGE
   pak -R PACKAGE # remove PACKAGE
-  pak -Su --aur  # Upgrade all AUR packages
+  pak -Sy        # run pacman -Sy and update the paktahn cache
+  pak -Su        # run pacman -Su
+  pak -Su --aur  # upgrade AUR packages
+  pak -Syu --aur # run pacman -Syu and upgrade AUR packages
   pak -G PACKAGE # download pkgbuild into a new directory named PACKAGE
   pak -V         # print paktahn version~%"))
 
@@ -420,6 +423,11 @@ Usage:
      (display-help))
     ((and (= argc 1) (equal (first argv) "-V"))
      (format t "Paktahn Version ~A~%" *paktahn-version*))
+    ((and (= argc 1) (equal (first argv) "-Sy"))
+     (run-pacman '("-Sy"))
+     (maybe-refresh-cache))
+    ((and (= argc 1) (equal (first argv) "-Su"))
+     (run-pacman '("-Su")))
     ((= argc 1)
      (search-and-install-packages (first argv)))
     ((and (>= argc 2) (equal (first argv) "-Ss"))
@@ -430,6 +438,10 @@ Usage:
      (mapcar #'remove-package (cdr argv)))
     ((and (>= argc 2) (and (equal (first argv) "-Su")
                            (equal (second argv) "--aur")))
+     (upgrade-aur-packages))
+    ((and (>= argc 2) (and (equal (first argv) "-Syu")
+                           (equal (second argv) "--aur")))
+     (run-pacman '("-Syu"))
      (upgrade-aur-packages))
     ((and (>= argc 2) (equal (first argv) "-G"))
      (let ((return-values nil))
