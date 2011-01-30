@@ -1,6 +1,4 @@
-
 (in-package :pak)
-
 
 (setf cl-store:*check-for-circs* nil)
 
@@ -55,12 +53,11 @@
        (progn
          ,@body)
        (unwind-protect
-         (let ((*cache-lock-grabbed* t)) 
+         (let ((*cache-lock-grabbed* t))
            (declare (special *cache-lock-grabbed*))
            (grab-cache-lock ,db-name)
            ,@body)
          (release-cache-lock ,db-name)))))
-
 
 (defvar *cache-meta* nil
   "Cache meta information hash table. The key is the repo name,
@@ -134,7 +131,6 @@ the memory and disk caches as needed."
         (setf (gethash db-name *cache-meta*) nil
               (gethash db-name *cache-contents*) nil)
         (signal c)))))
-
 
 (defun sync-disk-cache (db-name)
   "Write the in-memory cache (which must exist at this point in time)
@@ -219,7 +215,6 @@ for a db to disk."
       (rebuild-disk-cache db-name)
       t)))
 
-
 ;;;; accessing the cache
 (defun map-cached-packages (fn &key (db-list *sync-dbs*) (include-groups t))
   (dolist (db-spec db-list)
@@ -227,4 +222,3 @@ for a db to disk."
       (dolist (pkg-spec (gethash db-name *cache-contents*))
         (when (or include-groups (consp pkg-spec))
           (funcall fn (car db-spec) pkg-spec))))))
-  

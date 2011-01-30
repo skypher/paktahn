@@ -1,6 +1,4 @@
-
 (in-package :pak)
-
 
 (define-foreign-library libalpm
   (:unix (:or "libalpm.so.3" "libalpm.so"))
@@ -34,7 +32,6 @@
   (let ((relation-fn-name (intern (concatenate 'string "VERSION" relation) #.*package*)))
     (assert (fboundp relation-fn-name))
     (funcall relation-fn-name actual-ver demanded-ver)))
-
 
 ;;; lists helper
 (defcfun "alpm_list_next" :pointer (pkg-iterator :pointer))
@@ -114,7 +111,6 @@ objects."
     (dolist (db-spec db-list)
       (map-db db-spec))))
 
-
 ;;;; groups
 (defcfun "alpm_db_get_grpcache" :pointer (db :pointer))
 (defcfun "alpm_grp_get_name" safe-string (grp :pointer))
@@ -131,7 +127,6 @@ objects."
                       (funcall fn db-spec grp)))))
     (dolist (db-spec db-list)
       (map-db db-spec))))
-
 
 ;;;; Pacman
 (defparameter *pacman-lock* "/var/lib/pacman/db.lck")
@@ -154,7 +149,6 @@ objects."
                                 (unless force (list "--needed"))
                                 args)
                  :capture-output-p capture-output-p)))
-                 
 
 ;;;; Lisp interface
 (defun install-binary-package (db-name pkg-name &key dep-of force)
@@ -171,17 +165,17 @@ objects."
       ;; TODO: Ensure install-pkg-tarball handles dependencies.
       ((customize-p pkg-name)
        (unwind-protect
-	    (progn
-	      (get-pkgbuild pkg-name)
-	      (setf (current-directory) pkg-name)
-	      (apply-customizations)
-	      (run-makepkg)
-	      (install-pkg-tarball :as-dep dep-of))
-	 (cleanup-temp-files pkg-name)))
+            (progn
+              (get-pkgbuild pkg-name)
+              (setf (current-directory) pkg-name)
+              (apply-customizations)
+              (run-makepkg)
+              (install-pkg-tarball :as-dep dep-of))
+         (cleanup-temp-files pkg-name)))
       (dep-of
        (info "Installing binary package ~S from repository ~S as a dependency for ~S.~%" pkg-name db-name dep-of)
        (let ((return-value (run-pacman (list "-S" "--asdeps" pkg-name))))
-	 (check-return-value return-value)))
+         (check-return-value return-value)))
       ((eq db-name 'group)
        (info "Installing group ~S.~%" pkg-name)
        (let ((return-value (run-pacman (list "-S" pkg-name))))

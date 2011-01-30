@@ -10,11 +10,11 @@
 
 (defun check-for-custom-packages ()
   (let ((files (directory (make-pathname
-			   :name :wild :type :wild
-			   :defaults *customizepkg-dir*))))
+                           :name :wild :type :wild
+                           :defaults *customizepkg-dir*))))
     (loop for file in files do
       (unless (pathname-type file)
-	(push (pathname-name file) *custompkg-list*)))))
+        (push (pathname-name file) *custompkg-list*)))))
 
 (defun customize-p (pkg-name)
   (member pkg-name *custompkg-list* :test #'equal))

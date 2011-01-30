@@ -1,4 +1,3 @@
-
 (in-package :cffi)
 
 (export '(safe-string safe-foreign-string-to-lisp))
@@ -45,4 +44,3 @@ restarts if this fails."
           (use-empty ()
               :report "Use an empty string instead. Be sure to know what you're doing!"
             (return-from safe-foreign-string-to-lisp "")))))))
-

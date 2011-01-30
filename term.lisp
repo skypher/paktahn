@@ -1,6 +1,4 @@
-
 (in-package :pak)
-
 
 (defparameter *ansi-colors* '((black . 0) (red . 1) (green . 2) (yellow . 3)
                               (blue . 4) (magenta . 5) (cyan . 6) (white . 7)))
@@ -78,9 +76,8 @@
        (etypecase attrs
          (atom
            (set-term-colors :fg attrs :boldp t))
-         (cons 
+         (cons
            (apply #'set-term-colors attrs))))
      (unwind-protect
          (progn ,@body)
        (term-reset-colors))))
-

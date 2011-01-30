@@ -1,4 +1,3 @@
-
 (in-package :pak)
 
 ;;; setup simplified json->lisp translation

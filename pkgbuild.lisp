@@ -1,4 +1,3 @@
-
 (in-package :pak)
 
 (defparameter *pkgbuild-helper* "/usr/lib/paktahn/pkgbuild-helper.sh"
@@ -34,7 +33,7 @@
 (defun get-makepkg-field (name)
   (let ((data (get-makepkg-data)))
     (flet ((field (name)
-	     (cdr (assoc name data :test #'equalp))))
+             (cdr (assoc name data :test #'equalp))))
       (field name))))
 
 (defun get-carch ()
@@ -65,7 +64,6 @@
                                        :if-exists :append
                                        :if-does-not-exist :error)
     (format f "arch=('~A')~%" (get-carch))))
-                     
 
 (defun get-pkgbuild-tarball-name (&optional (pkgbuild-filename "./PKGBUILD"))
   (let ((data (get-pkgbuild-data pkgbuild-filename)))
@@ -123,9 +121,9 @@
   (ensure-initial-cache)
   (let ((repo (car (find-package-by-name pkg-name))))
     (cond ((null repo)
-	   (format nil "~a: Package not found in AUR or core/extra/community." pkg-name))
-	  ((string= "aur" repo) (get-pkgbuild-from-aur pkg-name))
-	  (t (get-pkgbuild-from-svn pkg-name repo)))))
+           (format nil "~a: Package not found in AUR or core/extra/community." pkg-name))
+          ((string= "aur" repo) (get-pkgbuild-from-aur pkg-name))
+          (t (get-pkgbuild-from-svn pkg-name repo)))))
 
 (defun get-pkgbuild-from-aur (pkg-name)
   (with-tmp-dir (#P"/tmp/" (current-directory))
@@ -148,52 +146,52 @@
 (defun get-pkgbuild-from-svn (pkg-name repo)
   (let ((server "svn://svn.archlinux.org/"))
     (flet ((checkout-pkgbuild (directory)
-	     (let ((return-value
-		    (run-program "svn" `("co" ,(format nil "~a~a/~a/trunk/"
+             (let ((return-value
+                    (run-program "svn" `("co" ,(format nil "~a~a/~a/trunk/"
                                                        server directory pkg-name) ,pkg-name))))
-	       (if (zerop return-value)
-		   (pkgbuild-directory (current-directory) pkg-name)
-		   (format nil "Subversion exited with non-zero status ~d for package ~a."
-			   return-value pkg-name)))))
+               (if (zerop return-value)
+                   (pkgbuild-directory (current-directory) pkg-name)
+                   (format nil "Subversion exited with non-zero status ~d for package ~a."
+                           return-value pkg-name)))))
       (if (string= repo "community")
-	  (checkout-pkgbuild "community")
-	  (checkout-pkgbuild "packages")))))
+          (checkout-pkgbuild "community")
+          (checkout-pkgbuild "packages")))))
 
 (defun pkgbuild-directory (pathspec pkg-name)
   (format nil "~a: The pkgbuild is in ~a~a/"
           pkg-name (namestring pathspec) pkg-name))
 
-(defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name)) 
-			    (location (get-pkgdest))
-			    (as-dep nil))
+(defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name))
+                            (location (get-pkgdest))
+                            (as-dep nil))
   (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
-	force)
+        force)
     (retrying
      (restart-case
-	 (let ((exit-code
+         (let ((exit-code
                  (run-pacman (append (list (if force "-Uf" "-U"))
                                      (when as-dep (list "--asdeps"))
                                      (list pkg-location)))))
-	   (unless (zerop exit-code)
-	     (error "Failed to install package (error ~D)" exit-code)))
+           (unless (zerop exit-code)
+             (error "Failed to install package (error ~D)" exit-code)))
        (retry ()
-	 :report "Retry installation"
-	 (retry))
+         :report "Retry installation"
+         (retry))
        (force-install ()
-	 :report "Force installation (-Uf)"
-	 (setf force t)
-	 (retry))
+         :report "Force installation (-Uf)"
+         (setf force t)
+         (retry))
        (save-package ()
-	 :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") tarball))
-	 (run-program "mv" (list tarball (format nil "~A~A" (config-file "packages/") tarball))))))))
+         :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") tarball))
+         (run-program "mv" (list tarball (format nil "~A~A" (config-file "packages/") tarball))))))))
 
 (defun cleanup-temp-files (pkg-name)
   (let ((pkgdir (merge-pathnames
-		 (make-pathname :directory `(:relative ,pkg-name))
-		 (current-directory)))
-	(tarball (merge-pathnames
-		  (make-pathname :name (aur-tarball-name pkg-name))
-		  (current-directory))))
+                 (make-pathname :directory `(:relative ,pkg-name))
+                 (current-directory)))
+        (tarball (merge-pathnames
+                  (make-pathname :name (aur-tarball-name pkg-name))
+                  (current-directory))))
     (when (probe-file pkgdir)
       (delete-directory-and-files pkgdir))
     (when (probe-file tarball)

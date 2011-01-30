@@ -1,4 +1,3 @@
-
 set -e
 
 ./build-tarball.sh
@@ -12,4 +11,3 @@ ln -sf ../paktahn-$pkgver.tar.bz2
 makepkg -f
 sudo pacman -U paktahn*.pkg.tar.*
 cd ..
-

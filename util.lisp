@@ -1,4 +1,3 @@
-
 (in-package :pak)
 
 ;;;; helper macros
@@ -26,7 +25,6 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
      (unwind-protect (progn ,@body)
        (setf (current-directory) end-dir))))
 
-
 ;;;; infos, notes, progress
 (defparameter *info-fmt-prefix* "==> ")
 (defparameter *info-fmt-suffix* "~%")
@@ -52,7 +50,6 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
      ,@body
      (let ((*info-fmt-prefix* ""))
        (info "done."))))
-
 
 ;;;; error handling
 (defvar *on-error* :debug)
@@ -127,7 +124,6 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
          ;; out of options
          (bail-out))))))
 
-
 ;;;; quit and interruptions
 (defun quit ()
   #+paktahn-deploy
@@ -160,7 +156,6 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
   #+ecl(warn "SIGINT handling not implemented yet")
   #+ccl(warn "SIGINT handling not implemented yet")
   #-(or sbcl ecl ccl)(error "no SIGINT handling"))
-
 
 ;;;; posix and friends
 (defun getargv ()
@@ -260,7 +255,6 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
                                    t))
   #-(or sbcl ecl ccl)(error "no run-program"))
 
-
 ;;;; interactive stuff
 (defun getline (prompt)
   (finish-output *standard-output*)
@@ -282,7 +276,7 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
                (finish-output *query-io*))
              (let ((*info-fmt-prefix* "")
                    (*info-fmt-suffix* ""))
-               (info "~A " hint))       ; FIXME: *query-io*
+               (info "~A " hint)) ; FIXME: *query-io*
              (finish-output *query-io*))
            (print-query ()
              (maybe-print-query (format nil "(~{~C~^/~})" options)
@@ -349,7 +343,6 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
           (error "Failed to unpack file ~S" name)))
       return-value)))
 
-
 ;;;; configuration
 (defun load-config ()
   (let ((conf (config-file "config.lisp")))
@@ -366,7 +359,6 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
   (let ((i (handler-case (parse-integer s)
              (parse-error () nil))))
     (and i (>= i min) (<= i max) i)))
-
 
 ;;;; checksumming wrappers
 (defun md5sum-file (path)

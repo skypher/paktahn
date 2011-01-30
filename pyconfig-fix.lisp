@@ -19,4 +19,3 @@
                                          :skip-whitespace t) s)
         else
           do (extend-input p c)))
-

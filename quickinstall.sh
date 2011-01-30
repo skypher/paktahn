@@ -23,7 +23,7 @@ else
     echo "Detected 64-bit arch."
     REPO="http://viridian-project.de/~sky/paktahn/repo/x86_64"
   fi
-  
+
   if [ -z $REPO ]; then
     echo "Uh oh, don't know where to find the Paktahn repo for arch $CARCH. Exiting."
     exit 1
@@ -39,4 +39,3 @@ fi
 
 echo ">> Syncing Paktahn..."
 pacman -Sy paktahn
-

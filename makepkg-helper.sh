@@ -1,5 +1,4 @@
-
-unset carch 
+unset carch
 unset pkgdest
 unset pkgext
 source "/etc/makepkg.conf" &> /dev/null
