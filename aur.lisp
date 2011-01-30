@@ -30,12 +30,12 @@
   (let ((regex "((http|https)://[^/?#]+):([0-9]{1,5})?(.*)"))
     (let ((matches (nth-value 1 (cl-ppcre:scan-to-strings regex http-proxy))))
       (cond ((null (aref matches 2)) http-proxy)
-	    (t (list (concatenate 'string (aref matches 0) (aref matches 3))
-		     (parse-integer (aref matches 2))))))))
+            (t (list (concatenate 'string (aref matches 0) (aref matches 3))
+                     (parse-integer (aref matches 2))))))))
 
 (defun check-for-aur-proxy ()
   (let ((no-proxies (environment-variable "no_proxy"))
-	(http-proxy (environment-variable "http_proxy")))
+        (http-proxy (environment-variable "http_proxy")))
     (and http-proxy
          (or (null no-proxies) (not (search "archlinux.org" no-proxies)))
          (parse-proxy-spec http-proxy))))
@@ -43,7 +43,7 @@
 (defun map-aur-packages (fn query)
   "Search AUR for a string"
   (let ((json:*json-symbols-package* #.*package*)
-	(proxy (check-for-aur-proxy)))
+        (proxy (check-for-aur-proxy)))
     (json:with-decoder-simple-clos-semantics
       (let* (network-error-p
              (json
@@ -58,7 +58,7 @@
                  (retrying
                    (restart-case
                        (drakma:http-request "http://aur.archlinux.org/rpc.php"
-					    :proxy proxy
+                                            :proxy proxy
                                             :parameters `(("type" . "search")
                                                           ("arg" . ,query)))
                      (retry ()
@@ -70,29 +70,33 @@
                        :test (lambda (c) (declare (ignore c)) network-error-p)
                        :report (lambda (s) (format s "Ignore this error and continue, skipping packages from AUR."))
                        (return-from map-aur-packages nil)))))))
-	(check-type json string)
-	(let* ((response (json:decode-json-from-string json))
-	       (results (slot-value response 'results)))
-	  (if (equalp (slot-value response 'type) "search")
-	      (dolist (match (sort (coerce results 'list) #'string<
-				   :key (lambda (result)
-					  (slot-value result 'name))))
-		(funcall fn match))
+        (check-type json string)
+        (let* ((response (json:decode-json-from-string json))
+               (results (slot-value response 'results)))
+          (if (equalp (slot-value response 'type) "search")
+              (dolist (match (sort (coerce results 'list) #'string<
+                                   :key (lambda (result)
+                                          (slot-value result 'name))))
+                (funcall fn match))
               #+(or)
-	      (note "AUR message: ~A" results)))))))
+              (note "AUR message: ~A" results)))))))
 
-;; TODO: Will this install packages as-deps properly when called
-;; from INSTALL-AUR-PACKAGE? Was it before?
 (defun install-dependencies (deps)
-  (mapcar #'(lambda (pkg)
-              (let ((installed-version (package-installed-p pkg))
-                    (remote-version (package-remote-version pkg)))
-                (if (and installed-version
-                         (version= installed-version
-                                   remote-version))
-                    (with-term-colors/id :info
-                      (format t "Dependency: ~A is up to date.~%" pkg))
-                    (install-package pkg)))) deps))
+  (flet ((inform-or-install (pkg)
+           (let ((installed-version (package-installed-p pkg))
+                 (remote-version (package-remote-version pkg)))
+             (if (and installed-version
+                      (version= installed-version remote-version))
+                 (with-term-colors/id :info
+                   (format t "Dependency: ~A is up to date.~%" pkg))
+                 (install-package pkg)))))
+    (let (aur-pkgs binaries)
+      (loop for pkg in deps do
+           (if (aur-package-p pkg)
+               (pushnew pkg aur-pkgs :test #'equal)
+               (pushnew pkg binaries :test #'equal)))
+      (mapcar #'inform-or-install binaries)
+      (mapcar #'inform-or-install aur-pkgs))))
 
 (defun aur-tarball-uri (pkg-name)
   (format nil "http://aur.archlinux.org/packages/~(~A~)/~(~A~).tar.gz"

@@ -1,3 +1,0 @@
-aur
-binary repos
-announce on blog, forum, aur
