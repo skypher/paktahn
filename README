@@ -4,7 +4,6 @@ package manager.
 It's a Pacman wrapper that also knows how to search and install
 packages from AUR.
 
-
 Current advantages over Yaourt:
 
   * allows use of alternative Pacman binaries (e.g. Powerpill)
@@ -20,6 +19,7 @@ Usage hints
 == Shortcut: pak
 
 Paktahn comes with a symlink called "pak".
+Running pak without any arguments will list CLI options for paktahn.
 
 
 == Interactive search/install mode
@@ -30,14 +30,31 @@ will search all dbs from pacman.conf (excluding local)
 and AUR for SEARCH in the name and description of packages.
 
 
-== Install a specific package
+== Install and remove package or packages
 
-  pak -S PKG
+  pak -S PKG(s), pak -R PKG(s)
 
-will find and install PKG from sync dbs or AUR.
+will find and install or remove PKG(s) from sync dbs or AUR.
 
 
-== Use Powerpill instead of Pacman
+== Upgrade AUR packages
+
+  pak -Su --aur
+
+will upgrade all installed AUR packages.
+
+== Retrieve a PKGBUILD for AUR or binary packages
+
+  pak -G emacs, pak -G emacs-clojure-mode-git, etc
+
+will pull the PKGBUILD from SVN for binary packages and
+retrieve it from AUR otherwise.
+
+
+Common config file settings
+===========================
+
+== Use Powerpill/Clyde/etc instead of Pacman
 
 In your ~/.paktahn/config.lisp:
 
@@ -61,10 +78,8 @@ and *color-scheme-lightbg*.
 URIs
 ====
 Git:
-  git://git.berlios.de/paktahn 
-  git://github.com/skypher/paktahn.git
-  git://gitorious.org/paktahn/paktahn.git
-  
+  git://github.com/redline6561/paktahn.git
+
 Report bugs, request features, send patches:
   http://github.com/skypher/paktahn/issues
 

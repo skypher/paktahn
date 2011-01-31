@@ -1,5 +1,4 @@
-
-development:
+Development:
 
 First download the dependency tarball.
 
@@ -12,6 +11,5 @@ Then:
   * (load "main.lisp") ; repeat this line when you changed the source code
   * (in-package :pak)
   * ;; execute functions here (e.g. SEARCH-AND-INSTALL-PACKAGE)
-
 
 Also see dev-install.sh

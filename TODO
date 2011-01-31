@@ -1,30 +1,50 @@
-features for next major release:
+planned features for 0.9.4:
 
-  * on first startup ask the user which color scheme and pacman wrapper they prefer
+  * CONTRIBUTING or STYLE file. Maybe BUGS too.
 
-  * make SIGINT quit while in *any* error handler, not just one caused
-    by SIGINT itself.
+  * update local cache as we install packages
 
-  * -Sy
+  * improve CLI option handling and potentially add support for -Rcuns and other
+    common options. Maybe just pass args to pacman if the first starts with -
 
-  * -Su, -Su --aur
+planned features for 0.9.5:
 
   * multiple commands in succession
 
+  * test suite with fiveam or stefil. Major source reorg here.
+
+  * improve UI so multiple deps are passed to pacman as a group not one by one
+
 later:
 
-  * if invoked as root drop privileges for building packages
+  * on first startup ask the user which color scheme and pacman wrapper to use.
 
-  * check whether packages in extra/core are out of date
+  * port to CCL for smaller binary, no 64-bit build problems. just needs SIGINT.
+
+  * port to ECL for super small binaries. Both ports depend on AUR pkgs...
+
+  * find a better way to manage TODOs and FIXMEs than grep...
 
   * website, proper help/docs
 
-  * edit http://wiki.archlinux.org/index.php/AUR_Helpers#yaourt
-     and http://wiki.archlinux.org/index.php/Yaourt
-
-  * proper getopt support, -Sy, -Q, -Ql, -Qs
+  * make SIGINT quit while in *any* error handler, not just one caused by
+    SIGINT itself.
 
   * compile packages from repos (yaourt -Sb)
+
+  * add md5/sha1 (makepkg -g) if they are missing, after asking the user
+
+  * URI: download pkgbuild or tarball and process it
+
+  * better support for standardized colored output
+    (e.g. highlight repos in info messages, support nested progress levels)
+
+  * sorting the output of an AUR search ie. alphabetically, votes,
+    date submitted, last updated etc. (by quigybo)
+
+  * actively support versioned deps
+
+  * if invoked as root drop privileges for building packages
 
   * start querying aur in a separate thread while
     searching local
@@ -35,20 +55,6 @@ later:
 
   * allow Ctrl+C to stop searching and present the choices gathered
     up to that point right away
-
-  * add md5/sha1 (makepkg -g) if they are missing, after asking the user
-
-  * URI: download pkgbuild or tarball and process it
-
-  * better support for standardized colored output
-    (e.g. highlight repos in info messages, support nested progress levels)
-
-  * basic versioning support (package-installed-p)
-
-  * sorting the output of an AUR search ie. alphabetically, votes,
-    date submitted, last updated etc. (by quigybo)
-
-  * actively support versioned deps
 
   * support su (and friends) besides sudo
 
@@ -65,4 +71,4 @@ later:
 
   * show backtrace/enter debugger restart
 
-  * show summary of what has been done before exit 
+  * show summary of what has been done before exit
