@@ -1,17 +1,34 @@
 0.9.3
 =====
-  * Ignore versioning for packages whose names end with -git,
-  -svn, -hg, -darcs, -bzr or -cvs.
+  * Add pak -Syu --aur, -Sy and -Su. These simply call out to pacman
+    and (in the case of -Syu --aur) perform additional paktahn work.
+
+  * Add pak -V for paktahn version. (Issue #37)
+
+  * Ignore versioning for packages whose names end with -git, -svn,
+    -hg, -darcs, -bzr or -cvs. (Issue #34, reported by gour)
+
+  * Ensure that requests to install a nonexisting package via
+    pak -S didn't properly inform the user that no such package was
+    found and offer restarts. (Issue #38)
+
+  * Ensure there is always a default when the user is prompted to
+    continue building a package. Letter representing default is
+    capitalized as before. (Issues #33 and #36)
+
+  * Prompt to install binary package dependencies first when
+    building AUR packages.
 
 0.9.2
 =====
-  * Always allow users to edit the PKGBUILD.
+  * Always allow users to edit the PKGBUILD. (reported by jiyunatori)
 
   * Handle name resolution failures as well as socket errors.
 
   * Add pak -Ss which behaves identically to pacman -Ss.
 
-  * Ensure implicit pacman/makepkg deps are installed before running makepkg.
+  * Ensure implicit pacman/makepkg deps are installed before running
+    makepkg.
 
 0.9.1
 =====
@@ -75,9 +92,11 @@
   * Paktahn now has support for just getting a pkgbuild (i.e. yaourt -G)
     with pak -G pkgnames (Brit)
 
-  * makepkg's PKGDEST variable is detected and used correctly (reported by Stefan Husmann)
+  * makepkg's PKGDEST variable is detected and used correctly
+    (reported by Stefan Husmann)
 
-  * AUR package dependencies are no longer installed explicitly (reported by bram85)
+  * AUR package dependencies are no longer installed explicitly
+    (reported by bram85)
 
   * Basic proxy support (no authentication) (Brit)
 

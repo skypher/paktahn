@@ -2,8 +2,8 @@
 # Maintainer: Brit Butler <redline6561@gmail.com>
 
 pkgname=paktahn
-pkgver=0.9.2
-libver=0.8.3
+pkgver=0.9.3
+libver=0.9.3
 pkgrel=1
 pkgdesc="The kick-ass package manager for Arch Linux!"
 arch=('i686' 'x86_64')
@@ -14,8 +14,7 @@ url="http://github.com/skypher/paktahn"
 options=(!strip)
 install="paktahn.install"
 source=("http://redlinernotes.com/docs/paktahn-makedeps-$libver.tbz2"
-#        "http://viridian-project.de/~sky/paktahn/paktahn-${pkgver}.tar.bz2")
-	 "http://redlinernotes.com/docs/paktahn-${pkgver}.tar.bz2")
+        "http://redlinernotes.com/docs/paktahn-${pkgver}.tar.bz2")
 
 build() {
   cd "$srcdir"
@@ -48,7 +47,7 @@ build() {
   ln -s paktahn pak
 }
 
-md5sums=('dcbcbee6d532ebb10742e883a3d1ad2e'
-         '54e6d73027cf5b7d720c337555f459ff')
-sha1sums=('a89068dadbf18871db721ac32acbcb8c897291f6'
-          'f4a2d6e508e0c4e9e79f9b69a54cbb00bfd44270')
+md5sums=('aa71c5e639e86bee3afe7d4e27653649'
+         '58872a21c876fd75e59f0fe5bdc35eac')
+sha1sums=('1fb3e04732d00c68e7b8aa7ae0a18e9f98359e5f'
+          '3330b27ac6ea76b9d53c41ba74546c897c7fe29d')
