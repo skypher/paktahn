@@ -9,7 +9,7 @@
     -hg, -darcs, -bzr or -cvs. (Issue #34, reported by gour)
 
   * Ensure that requests to install a nonexisting package via
-    pak -S didn't properly inform the user that no such package was
+    pak -S properly inform the user that no such package was
     found and offer restarts. (Issue #38)
 
   * Ensure there is always a default when the user is prompted to
