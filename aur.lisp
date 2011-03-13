@@ -94,8 +94,11 @@
            (if (aur-package-p pkg)
                (pushnew pkg aur-pkgs :test #'equal)
                (pushnew pkg binaries :test #'equal)))
-      (install-binary-package nil (mapcar #'inform-or-name binaries))
-      (map nil #'install-package (mapcar #'inform-or-name aur-pkgs)))))
+      (let ((out-of-date (remove nil (mapcar #'inform-or-name binaries))))
+        (when out-of-date
+          (install-binary-package nil out-of-date)))
+      (map nil #'install-package
+           (remove nil (mapcar #'inform-or-name aur-pkgs))))))
 
 (defun aur-tarball-uri (pkg-name)
   (format nil "http://aur.archlinux.org/packages/~(~A~)/~(~A~).tar.gz"
