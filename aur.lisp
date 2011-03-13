@@ -81,21 +81,21 @@
               (note "AUR message: ~A" results)))))))
 
 (defun install-dependencies (deps)
-  (flet ((inform-or-install (pkg)
+  (flet ((inform-or-name (pkg)
            (let ((installed-version (package-installed-p pkg))
                  (remote-version (package-remote-version pkg)))
              (if (and installed-version
                       (version= installed-version remote-version))
                  (with-term-colors/id :info
                    (format t "Dependency: ~A is up to date.~%" pkg))
-                 (install-package pkg)))))
+                 pkg))))
     (let (aur-pkgs binaries)
       (loop for pkg in deps do
            (if (aur-package-p pkg)
                (pushnew pkg aur-pkgs :test #'equal)
                (pushnew pkg binaries :test #'equal)))
-      (mapcar #'inform-or-install binaries)
-      (mapcar #'inform-or-install aur-pkgs))))
+      (install-binary-package nil (mapcar #'inform-or-name binaries))
+      (map nil #'install-package (mapcar #'inform-or-name aur-pkgs)))))
 
 (defun aur-tarball-uri (pkg-name)
   (format nil "http://aur.archlinux.org/packages/~(~A~)/~(~A~).tar.gz"

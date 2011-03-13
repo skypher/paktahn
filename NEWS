@@ -6,6 +6,9 @@
 
   * pak -V now also displays the pacman version.
 
+  * Binary deps for AUR packags are now installed all at once.
+    Formerly they resulted in multiple calls to pacman for each package.
+
 0.9.3
 =====
   * Add pak -Syu --aur, -Sy and -Su. These simply call out to pacman

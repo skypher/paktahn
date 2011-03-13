@@ -173,6 +173,10 @@ objects."
            (unless (zerop value)
              (error "Pacman exited with non-zero status ~D" value))))
     (cond
+      ;; For installing multiple binary dependencies of AUR packages.
+      ((and (null db-name) (listp pkg-name))
+       (let ((return-value (run-pacman (append '("-S" "--asdeps") pkg-name))))
+         (check-return-value return-value)))
       ;; TODO: Ensure install-pkg-tarball handles dependencies.
       ((customize-p pkg-name)
        (unwind-protect

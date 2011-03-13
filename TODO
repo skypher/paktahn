@@ -2,8 +2,6 @@ planned features for 0.9.4:
 
   * update local cache as we install packages
 
-  * improve UI so multiple deps are passed to pacman as a group not one by one
-
 planned features for 0.9.5:
 
   * Issue #40, others?
