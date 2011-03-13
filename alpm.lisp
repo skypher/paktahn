@@ -29,7 +29,8 @@
   (declare (string relation actual-ver demanded-ver))
   (unless (member relation '("<" "<=" "=" ">=" ">") :test #'equal)
     (error "Bogus version relation specifier ~S" relation))
-  (let ((relation-fn-name (intern (concatenate 'string "VERSION" relation) #.*package*)))
+  (let ((relation-fn-name (intern (concatenate 'string "VERSION" relation)
+                                  #.*package*)))
     (assert (fboundp relation-fn-name))
     (funcall relation-fn-name actual-ver demanded-ver)))
 
@@ -173,7 +174,8 @@ objects."
               (install-pkg-tarball :as-dep dep-of))
          (cleanup-temp-files pkg-name)))
       (dep-of
-       (info "Installing binary package ~S from repository ~S as a dependency for ~S.~%" pkg-name db-name dep-of)
+       (info "Installing binary package ~S from ~S as a dependency for ~S.~%"
+             pkg-name db-name dep-of)
        (let ((return-value (run-pacman (list "-S" "--asdeps" pkg-name))))
          (check-return-value return-value)))
       ((eq db-name 'group)
@@ -181,10 +183,11 @@ objects."
        (let ((return-value (run-pacman (list "-S" pkg-name))))
          (check-return-value return-value)))
       (t
-       (info "Installing binary package ~S from repository ~S.~%"
+       (info "Installing binary package ~S from ~S.~%"
              pkg-name db-name)
        (let* ((fully-qualified-pkg-name (format nil "~A/~A" db-name pkg-name))
-              (return-value (run-pacman (list "-S" fully-qualified-pkg-name) :force force)))
+              (return-value (run-pacman (list "-S" fully-qualified-pkg-name)
+                                        :force force)))
          (check-return-value return-value))))
     t))
 
@@ -198,8 +201,8 @@ objects."
       (lambda (db-name pkg-spec)
         (destructuring-bind (name version desc provides) pkg-spec
           (declare (ignore version desc))
-          (when (member provides-name provides :test #'equalp :key (compose #'first #'parse-dep))
+          (when (member provides-name provides :test #'equalp
+                        :key (compose #'first #'parse-dep))
             (push (cons db-name name) providers))))
       :include-groups nil)
     providers))
-

@@ -376,7 +376,7 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
   (check-type fd integer)
   (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-lock 0)
-  #+ccl(warn "lockf not implemented yet.")
+  #+ccl(#_lockf fd #$F_LOCK 0)
   #+ecl(progn
          (ffi:clines "#include <unistd.h>")
          (ffi:c-inline (fd) (:int) :int "lockf(#0, F_LOCK, 0)" :one-liner t))
@@ -386,7 +386,7 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
   (check-type fd integer)
   (assert (>= fd 0))
   #+sbcl(sb-posix:lockf fd sb-posix:f-ulock 0)
-  #+ccl(warn "ulockf not implemented yet.")
+  #+ccl(#_lockf fd #$F_ULOCK 0)
   #+ecl(progn
          (ffi:clines "#include <unistd.h>")
          (ffi:c-inline (fd) (:int) :int "lockf(#0, F_ULOCK, 0)" :one-liner t))

@@ -408,7 +408,7 @@ Usage:
   pak -Ss QUERY  # search for QUERY
   pak -S PACKAGE # install PACKAGE
   pak -R PACKAGE # remove PACKAGE
-  pak -Sy        # run pacman -Sy and update the paktahn cache
+  pak -Sy        # sync via pacman -Sy and update the paktahn cache
   pak -Su        # run pacman -Su
   pak -Su --aur  # upgrade AUR packages
   pak -Syu --aur # run pacman -Syu and upgrade AUR packages
