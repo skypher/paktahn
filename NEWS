@@ -1,3 +1,11 @@
+0.9.4
+=====
+  * Add support for all -Q* and -D* (query and database) combinations.
+    They will be passed directly to pacman. Also add support for -R*
+    combinations like -Rcuns. Previously we only supported plain -R.
+
+  * pak -V now also displays the pacman version.
+
 0.9.3
 =====
   * Add pak -Syu --aur, -Sy and -Su. These simply call out to pacman

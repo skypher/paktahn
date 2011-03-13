@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
-(defvar *paktahn-version* "0.93.0")
+(defvar *paktahn-version* "0.93.2")
 (defvar *pacman-faithful-p* t)
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
@@ -235,8 +235,8 @@ Returns T upon successful installation, NIL otherwise."
                     (restart-case
                         (error "Couldn't find package ~S anywhere" pkg-name)
                       (resync-db ()
-                          :report "Resync pacman databases (-Sy) and try again"
-                        (run-pacman '("-Sy"))
+                        :report "Resync pacman databases (-Sy) and try again"
+                        (sync-command)
                         (do-install)))))
                  ((and (equalp db-name "aur")
                        (not (equalp *root-package* pkg-name)))
@@ -350,31 +350,13 @@ Returns T upon successful installation, NIL otherwise."
           ;(format t "chosen: ~S~%" chosen-packages)
           (when query-for-providers
             ;; remove other providers since these usually conflict
-            (map nil (compose #'remove-package #'third) (remove (car chosen-packages) packages
-                                                                :test #'equalp :key #'first)))
+            (map nil (compose #'remove-command #'third)
+                 (remove (car chosen-packages) packages
+                         :test #'equalp :key #'first)))
           (mapc (lambda (pkgspec)
                   (funcall #'install-package (third pkgspec)
                            :db-name (second pkgspec)))
                                 chosen-packages))))))
-
-(defun remove-package (pkg-name)
-  (maybe-refresh-cache)
-  (labels ((do-remove ()
-             ;; TODO: support removal of group, provides(?)
-             (cond
-               ((not (package-installed-p pkg-name))
-                #+(or)(info "Package ~S is not installed, skipping removal." pkg-name)
-                nil)
-               (t
-                (prog1
-                    (run-pacman (list "-R" pkg-name))
-                  (reset-cache))))))
-    (restart-case
-        (do-remove)
-      (skip-package ()
-        :report (lambda (s)
-                  (format s "Skip removal of package ~S and continue" pkg-name))
-        (values nil 'skipped)))))
 
 (defun upgrade-aur-packages ()
   (ensure-initial-cache)
@@ -422,26 +404,30 @@ Usage:
     ((some (lambda (x) (member x '("-h" "--help") :test #'equalp)) argv)
      (display-help))
     ((and (= argc 1) (equal (first argv) "-V"))
-     (format t "Paktahn Version ~A~%" *paktahn-version*))
+     (format t "Paktahn Version ~A~%" *paktahn-version*)
+     (run-pacman '("-V")))
+    ((and (first argv) (equal (subseq (first argv) 0 2) "-R"))
+     (remove-command argv))
+    ((and (first argv) (member (subseq (first argv) 0 2)
+                               '("-D" "-Q") :test #'equal))
+     (run-pacman argv))
     ((and (= argc 1) (equal (first argv) "-Sy"))
-     (run-pacman '("-Sy"))
-     (maybe-refresh-cache))
+     (sync-command))
     ((and (= argc 1) (equal (first argv) "-Su"))
-     (run-pacman '("-Su")))
+     (run-pacman '("-Su"))
+     (reset-cache))
     ((= argc 1)
      (search-and-install-packages (first argv)))
     ((and (>= argc 2) (equal (first argv) "-Ss"))
      (search-packages (cdr argv)))
     ((and (>= argc 2) (equal (first argv) "-S"))
      (mapcar #'install-package (cdr argv)))
-    ((and (>= argc 2) (equal (first argv) "-R"))
-     (mapcar #'remove-package (cdr argv)))
     ((and (>= argc 2) (and (equal (first argv) "-Su")
                            (equal (second argv) "--aur")))
      (upgrade-aur-packages))
     ((and (>= argc 2) (and (equal (first argv) "-Syu")
                            (equal (second argv) "--aur")))
-     (run-pacman '("-Syu"))
+     (sync-command args)
      (upgrade-aur-packages))
     ((and (>= argc 2) (equal (first argv) "-G"))
      (let ((return-values nil))
@@ -469,25 +455,29 @@ Usage:
           (quit))))))
 
 (defun build-core (&key forkp)
-  #+sbcl(progn
-          (flet ((dump ()
-                   (sb-ext:save-lisp-and-die "paktahn"
-                                             :toplevel #'core-main
-                                             :executable t
-                                             :save-runtime-options t)))
-            (if forkp
-              (let ((pid (sb-posix:fork)))
-                (if (zerop pid)
-                  (dump)
-                  (progn
-                    (format t "INFO: waiting for child to finish building the core...~%")
-                    (sb-posix:waitpid pid 0)
-                    (format t "INFO: ...done~%"))))
-              (dump))))
-  #+ccl(ccl:save-application "paktahn"
-                             :toplevel-function #'core-main
-                             :prepend-kernel t)
-  #+ecl(asdf:make-build :paktahn :type :program :monolithic t
-                        :prologue-code '(require :asdf)
-                        :epilogue-code '(paktahn::core-main))
-  #-(or sbcl ecl ccl)(error "don't know how to build a core image"))
+  #+sbcl
+  (progn
+    (flet ((dump ()
+             (sb-ext:save-lisp-and-die "paktahn"
+                                       :toplevel #'core-main
+                                       :executable t
+                                       :save-runtime-options t)))
+      (if forkp
+          (let ((pid (sb-posix:fork)))
+            (if (zerop pid)
+                (dump)
+                (progn
+                  (format t "INFO: waiting for child to finish building the core...~%")
+                  (sb-posix:waitpid pid 0)
+                  (format t "INFO: ...done~%"))))
+          (dump))))
+  #+ccl
+  (ccl:save-application "paktahn"
+                        :toplevel-function #'core-main
+                        :prepend-kernel t)
+  #+ecl
+  (asdf:make-build :paktahn :type :program :monolithic t
+                   :prologue-code '(require :asdf)
+                   :epilogue-code '(paktahn::core-main))
+  #-(or sbcl ecl ccl)
+  (error "don't know how to build a core image"))

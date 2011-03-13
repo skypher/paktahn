@@ -151,6 +151,16 @@ objects."
                                 args)
                  :capture-output-p capture-output-p)))
 
+(defun remove-command (args)
+  (etypecase args
+    (string (run-pacman `("-R" ,args)))
+    (list (run-pacman args)))
+  (reset-cache))
+
+(defun sync-command (&optional (args '("-Sy")))
+  (run-pacman args)
+  (reset-cache))
+
 ;;;; Lisp interface
 (defun install-binary-package (db-name pkg-name &key dep-of force)
   "Use Pacman to install a package."

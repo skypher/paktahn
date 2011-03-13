@@ -1,19 +1,20 @@
 planned features for 0.9.4:
 
-  * CONTRIBUTING or STYLE file. Maybe BUGS too.
-
   * update local cache as we install packages
 
-  * improve CLI option handling and potentially add support for -Rcuns and other
-    common options. Maybe just pass args to pacman if the first starts with -
+  * improve UI so multiple deps are passed to pacman as a group not one by one
 
 planned features for 0.9.5:
+
+  * Issue #40, others?
+
+  * Figure out what to do about the caching TODOs, especially MAYBE-REFRESH-CACHE.
+
+  * CONTRIBUTING or STYLE file. Maybe BUGS too.
 
   * multiple commands in succession
 
   * test suite with fiveam or stefil. Major source reorg here.
-
-  * improve UI so multiple deps are passed to pacman as a group not one by one
 
 later:
 
