@@ -169,15 +169,23 @@ objects."
   (when (equalp db-name "local")
     ;; TODO offer restarts: skip, reinstall from elsewhere
     (error "Can't install an already installed package."))
-  (flet ((check-return-value (value)
+  (flet ((check-return-value (value &key update-cache)
            (unless (zerop value)
-             (error "Pacman exited with non-zero status ~D" value))))
+             (error "Pacman exited with non-zero status ~D" value))
+           (when (and update-cache (zerop value))
+             (update-local-cache pkg-name (package-remote-version pkg-name)))))
     (cond
       ;; For installing multiple binary dependencies of AUR packages.
       ((and (null db-name) (listp pkg-name))
        (let ((return-value (run-pacman (append '("-S" "--asdeps") pkg-name))))
-         (check-return-value return-value)))
+         (check-return-value return-value)
+         (when (zerop return-value)
+           (map nil #'(lambda (name version) (update-local-cache name version))
+                (mapcar #'(lambda (name)
+                            (list name (package-remote-version name)))
+                        pkg-name)))))
       ;; TODO: Ensure install-pkg-tarball handles dependencies.
+      ;; TODO: Ensure local cache is updated after successful tarball install.
       ((customize-p pkg-name)
        (unwind-protect
             (progn
@@ -191,7 +199,7 @@ objects."
        (info "Installing binary package ~S from ~S as a dependency for ~S.~%"
              pkg-name db-name dep-of)
        (let ((return-value (run-pacman (list "-S" "--asdeps" pkg-name))))
-         (check-return-value return-value)))
+         (check-return-value return-value :update-cache t)))
       ((eq db-name 'group)
        (info "Installing group ~S.~%" pkg-name)
        (let ((return-value (run-pacman (list "-S" pkg-name))))
@@ -202,7 +210,7 @@ objects."
        (let* ((fully-qualified-pkg-name (format nil "~A/~A" db-name pkg-name))
               (return-value (run-pacman (list "-S" fully-qualified-pkg-name)
                                         :force force)))
-         (check-return-value return-value))))
+         (check-return-value return-value :update-cache t))))
     t))
 
 (defcfun "alpm_pkg_get_provides" :pointer (pkg :pointer))

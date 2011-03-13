@@ -159,6 +159,7 @@
                      (install-pkg-tarball :as-dep as-dep)))))
     (save-checksums)
     (cleanup-temp-files pkg-name))
+  (update-local-cache pkg-name (package-remote-version pkg-name))
   t)
 
 (defun continue-building-p (pkg-name &optional default)

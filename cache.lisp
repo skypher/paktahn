@@ -222,3 +222,14 @@ for a db to disk."
       (dolist (pkg-spec (gethash db-name *cache-contents*))
         (when (or include-groups (consp pkg-spec))
           (funcall fn (car db-spec) pkg-spec))))))
+
+(defun update-local-cache (pkg-name version)
+  (flet ((name-or-nil (pkg)
+           (etypecase pkg
+             (string '())
+             (list (car pkg)))))
+    (with-cache-lock "local"
+      (let ((metadata (find pkg-name (gethash "local" *cache-contents*)
+                            :key #'name-or-nil :test #'equal)))
+        (setf (first metadata) pkg-name
+              (second metadata) version)))))
