@@ -180,10 +180,9 @@ objects."
        (let ((return-value (run-pacman (append '("-S" "--asdeps") pkg-name))))
          (check-return-value return-value)
          (when (zerop return-value)
-           (map nil #'(lambda (name version) (update-local-cache name version))
-                (mapcar #'(lambda (name)
-                            (list name (package-remote-version name)))
-                        pkg-name)))))
+           (mapcar #'(lambda (name)
+                       (update-local-cache name (package-remote-version name)))
+                   pkg-name))))
       ;; TODO: Ensure install-pkg-tarball handles dependencies.
       ;; TODO: Ensure local cache is updated after successful tarball install.
       ((customize-p pkg-name)
