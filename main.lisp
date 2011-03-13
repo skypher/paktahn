@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
-(defvar *paktahn-version* "0.93.2")
+(defvar *paktahn-version* "0.93.3")
 (defvar *pacman-faithful-p* t)
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
@@ -427,7 +427,7 @@ Usage:
      (upgrade-aur-packages))
     ((and (>= argc 2) (and (equal (first argv) "-Syu")
                            (equal (second argv) "--aur")))
-     (sync-command args)
+     (sync-command '("-Syu"))
      (upgrade-aur-packages))
     ((and (>= argc 2) (equal (first argv) "-G"))
      (let ((return-values nil))
