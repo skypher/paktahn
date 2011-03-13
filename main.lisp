@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
-(defvar *paktahn-version* "0.93.6")
+(defvar *paktahn-version* "0.93.7")
 (defvar *pacman-faithful-p* t)
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
@@ -404,7 +404,7 @@ Usage:
     ((some (lambda (x) (member x '("-h" "--help") :test #'equalp)) argv)
      (display-help))
     ((and (= argc 1) (equal (first argv) "-V"))
-     (format t "Paktahn Version ~A~%" *paktahn-version*)
+     (info "Paktahn Version ~A~%" *paktahn-version*)
      (run-pacman '("-V")))
     ((and (first argv) (equal (subseq (first argv) 0 2) "-R"))
      (remove-command argv))
