@@ -231,5 +231,10 @@ for a db to disk."
     (with-cache-lock "local"
       (let ((metadata (find pkg-name (gethash "local" *cache-contents*)
                             :key #'name-or-nil :test #'equal)))
-        (setf (first metadata) pkg-name
-              (second metadata) version)))))
+        (if metadata
+            (setf (first metadata) pkg-name
+                  (second metadata) version)
+            ;; TODO: Keep it alphabetized?
+            ;; TODO: Return providers too?
+            (push-end (find-package-by-name pkg-name)
+                      (gethash "local" *cache-contents*)))))))

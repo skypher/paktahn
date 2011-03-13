@@ -1,6 +1,6 @@
 planned features for 0.9.5:
 
-  * Issue #40, others?
+  * Issue #16, #40, others?
 
   * Figure out what to do about the caching TODOs, especially MAYBE-REFRESH-CACHE.
 
