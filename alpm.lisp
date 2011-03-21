@@ -5,9 +5,9 @@
 (handler-case (load-foreign-library "libalpm.so.6")
   (cffi:load-foreign-library-error ()
     (setf *libalpm-version* 5)
-    (load-foreign-library (:or "libalpm.so.5"
-                               "libalpm.so.3"
-                               "libalpm.so"))))
+    (load-foreign-library '(:or "libalpm.so.5"
+                                "libalpm.so.3"
+                                "libalpm.so"))))
 
 ;;; versioning
 (defcfun "alpm_pkg_vercmp" :int (v1 :string) (v2 :string))
