@@ -1,10 +1,13 @@
 (in-package :pak)
 
-(define-foreign-library libalpm
-  (:unix (:or "libalpm.so.3" "libalpm.so"))
-  (t (:default "libalpm")))
+(defvar *libalpm-version* 6)
 
-(use-foreign-library libalpm)
+(handler-case (load-foreign-library "libalpm.so.6")
+  (cffi:load-foreign-library-error ()
+    (setf *libalpm-version* 5)
+    (load-foreign-library (:or "libalpm.so.5"
+                               "libalpm.so.3"
+                               "libalpm.so"))))
 
 ;;; versioning
 (defcfun "alpm_pkg_vercmp" :int (v1 :string) (v2 :string))
@@ -49,7 +52,10 @@
 (defcfun "alpm_option_set_root" :int (root :string))
 (defcfun "alpm_option_set_dbpath" :int (root :string))
 
-(defcfun "alpm_db_register_local" :pointer)
+(if (>= *libalpm-version* 6)
+    (defcfun ("_alpm_db_register_local" alpm-db-register-local) :pointer)
+    (defcfun ("alpm_db_register_local" alpm-db-register-local) :pointer))
+
 (defcfun "alpm_db_register_sync" :pointer (name :string))
 
 (defcfun "alpm_db_unregister_all" :int)
