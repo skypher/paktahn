@@ -73,7 +73,7 @@ contains a list of sublists (PKGNAME VERSION DESC). Initially NIL.")
 (defun reset-cache ()
   "Re-register all databases, flush the memory cache and refresh
 the memory and disk caches as needed."
-  (alpm-db-unregister-all)
+  (alpm-db-unregister-sync-dbs)
   (init-dbs)
   (init-cache-vars t)
   (maybe-refresh-cache))
@@ -152,13 +152,15 @@ for a db to disk."
        (signal c)))))
 
 (defun alpm-db-folder (db-name)
-  (if (equalp db-name "local")
+  (if (member db-name '("local" "local.db") :test #'string=)
     "/var/lib/pacman/local"
     (format nil "/var/lib/pacman/sync/~(~A~)" db-name)))
 
 (defun get-alpm-last-update-time (db-name)
   "Get the date of the last ALPM db update, in universal time."
-  (file-write-date (alpm-db-folder db-name)))
+  (if (>= (car *alpm-version*) 6)
+      (file-write-date (alpm-db-folder (concatenate 'string db-name ".db")))
+      (file-write-date (alpm-db-folder db-name))))
 
 (defun maybe-refresh-cache ()
   ;; TODO: this will produce incorrect results when called for the
@@ -234,6 +236,5 @@ for a db to disk."
         (if metadata
             (setf (second metadata) version)
             ;; TODO: Keep it alphabetized?
-            ;; TODO: Return providers too?
             (push-end (cdr (find-package-by-name pkg-name))
                       (gethash "local" *cache-contents*)))))))

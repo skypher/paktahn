@@ -1,16 +1,16 @@
 (in-package :pak)
 
-(defvar *libalpm-version* 6)
+(define-foreign-library libalpm
+  (:unix (:or "libalpm.so.6" "libalpm.so.5" "libalpm.so.3" "libalpm.so"))
+  (t (:default "libalpm")))
 
-(handler-case (load-foreign-library "libalpm.so.6")
-  (cffi:load-foreign-library-error ()
-    (let ((version 5))
-      (handler-case (load-foreign-library '(:or "libalpm.so.5"
-                                            "libalpm.so.3"
-                                            "libalpm.so"))
-        (cffi:load-foreign-library-error ()
-          (error "Could not find a valid version of libalpm.")))
-      (setf *libalpm-version* version))))
+(use-foreign-library libalpm)
+
+(defcfun ("alpm_version" alpm-version) :string)
+
+(defvar *alpm-version*
+  (mapcar #'parse-integer (split-sequence:split-sequence #\. (alpm-version)))
+  "A list of the form (Major minor point) representing the libalmp version.")
 
 ;;; versioning
 (defcfun "alpm_pkg_vercmp" :int (v1 :string) (v2 :string))
@@ -55,13 +55,20 @@
 (defcfun "alpm_option_set_root" :int (root :string))
 (defcfun "alpm_option_set_dbpath" :int (root :string))
 
-(if (>= *libalpm-version* 6)
-    (defcfun ("alpm_option_get_localdb" alpm-option-get-local-db) :pointer)
+(if (>= (car *alpm-version*) 6)
+    (defcfun ("alpm_option_get_localdb" alpm-option-get-localdb) :pointer)
     (defcfun ("alpm_db_register_local" alpm-db-register-local) :pointer))
 
 (defcfun "alpm_db_register_sync" :pointer (name :string))
 
 (defcfun "alpm_db_unregister_all" :int)
+(defcfun "alpm_db_unregister" :int (db :pointer))
+
+(defun alpm-db-unregister-sync-dbs ()
+  (every #'zerop
+         (mapcar (lambda (db-spec)
+                   (alpm-db-unregister (cdr db-spec)))
+                 *sync-dbs*)))
 
 (defun init-alpm ()
   (alpm-initialize)
@@ -79,9 +86,9 @@
                 :test #'equalp))
 
 (defun init-local-db ()
-  (if (< *libalpm-version* 6)
-      (cons "local" (alpm-db-register-local))
-      (cons "local" (alpm-option-get-local-db))))
+  (if (>= (car *alpm-version*) 6)
+      (cons "local" (alpm-option-get-localdb))
+      (cons "local" (alpm-db-register-local))))
 
 (defun init-sync-dbs ()
   (mapcar (lambda (name)
@@ -164,8 +171,8 @@ objects."
 
 (defun remove-command (args)
   (etypecase args
-    (string (run-pacman `("-R" ,args)))
-    (list (run-pacman args)))
+    (string (run-pacman `("-R" ,args) :force t))
+    (list (run-pacman args :force t)))
   (reset-cache))
 
 (defun sync-command (&optional (args '("-Sy")))

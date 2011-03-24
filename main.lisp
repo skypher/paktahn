@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
-(defvar *paktahn-version* "0.94.4")
+(defvar *paktahn-version* "0.94.5")
 (defvar *pacman-faithful-p* t)
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
@@ -395,6 +395,8 @@ Usage:
   pak -Su --aur  # upgrade AUR packages
   pak -Syu --aur # run pacman -Syu and upgrade AUR packages
   pak -G PACKAGE # download pkgbuild into a new directory named PACKAGE
+  pak -Q* args   # run pacman -Q* args
+  pak -D* args   # run pacman -D* args
   pak -V         # print paktahn version~%"))
 
 (defun main (argv &aux (argc (length argv)))
@@ -406,11 +408,11 @@ Usage:
     ((and (= argc 1) (equal (first argv) "-V"))
      (info "Paktahn Version ~A~%" *paktahn-version*)
      (run-pacman '("-V")))
-    ((and (first argv) (equal (subseq (first argv) 0 2) "-R"))
+    ((and (plusp argc) (equal (subseq (first argv) 0 2) "-R"))
      (remove-command argv))
-    ((and (first argv) (member (subseq (first argv) 0 2)
+    ((and (plusp argc) (member (subseq (first argv) 0 2)
                                '("-D" "-Q") :test #'equal))
-     (run-pacman argv))
+     (run-pacman argv :force t))
     ((and (= argc 1) (equal (first argv) "-Sy"))
      (sync-command))
     ((and (= argc 1) (equal (first argv) "-Su"))
