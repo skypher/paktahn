@@ -4,10 +4,13 @@
 
 (handler-case (load-foreign-library "libalpm.so.6")
   (cffi:load-foreign-library-error ()
-    (setf *libalpm-version* 5)
-    (load-foreign-library '(:or "libalpm.so.5"
-                                "libalpm.so.3"
-                                "libalpm.so"))))
+    (let ((version 5))
+      (handler-case (load-foreign-library '(:or "libalpm.so.5"
+                                            "libalpm.so.3"
+                                            "libalpm.so"))
+        (cffi:load-foreign-library-error ()
+          (error "Could not find a valid version of libalpm.")))
+      (setf *libalpm-version* version))))
 
 ;;; versioning
 (defcfun "alpm_pkg_vercmp" :int (v1 :string) (v2 :string))
@@ -53,7 +56,7 @@
 (defcfun "alpm_option_set_dbpath" :int (root :string))
 
 (if (>= *libalpm-version* 6)
-    (defcfun ("_alpm_db_register_local" alpm-db-register-local) :pointer)
+    (defcfun ("alpm_option_get_localdb" alpm-option-get-local-db) :pointer)
     (defcfun ("alpm_db_register_local" alpm-db-register-local) :pointer))
 
 (defcfun "alpm_db_register_sync" :pointer (name :string))
@@ -76,7 +79,9 @@
                 :test #'equalp))
 
 (defun init-local-db ()
-  (cons "local" (alpm-db-register-local)))
+  (if (< *libalpm-version* 6)
+      (cons "local" (alpm-db-register-local))
+      (cons "local" (alpm-option-get-local-db))))
 
 (defun init-sync-dbs ()
   (mapcar (lambda (name)

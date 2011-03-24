@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
-(defvar *paktahn-version* "0.94.3")
+(defvar *paktahn-version* "0.94.4")
 (defvar *pacman-faithful-p* t)
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
@@ -442,8 +442,7 @@ Usage:
   (setf *on-error* :quit)
   (handler-bind ((error #'default-error-handler))
     (init-alpm)
-    (setf *local-db* (init-local-db))
-    (setf *sync-dbs* (init-sync-dbs))
+    (init-dbs)
     (setf *print-pretty* nil)
     (enable-quit-on-sigint)
     (check-for-customizepkg)
