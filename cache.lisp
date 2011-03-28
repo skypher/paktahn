@@ -236,5 +236,9 @@ for a db to disk."
         (if metadata
             (setf (second metadata) version)
             ;; TODO: Keep it alphabetized?
-            (push-end (cdr (find-package-by-name pkg-name))
-                      (gethash "local" *cache-contents*)))))))
+            ;; TODO: Figure out a better way than find-package-by-name + find.
+            (let* ((pkg (find-package-by-name pkg-name)))
+              (if (string= (car pkg) "aur")
+                  (push-end (cdr pkg) (gethash "local" *cache-contents*))
+                  (push-end (find pkg-name (gethash (cdr pkg) *cache-contents*)
+                                  :key #'name-or-nil :test #'equal)))))))))
