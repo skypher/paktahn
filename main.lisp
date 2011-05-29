@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
-(defvar *paktahn-version* "0.94.8")
+(defvar *paktahn-version* "0.94.9")
 (defvar *pacman-faithful-p* t)
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
@@ -392,6 +392,7 @@ Usage:
   pak -R PACKAGE # remove PACKAGE
   pak -Sy        # sync via pacman -Sy and update the paktahn cache
   pak -Su        # run pacman -Su
+  pak -Syu       # run pacman -Syu
   pak -Su --aur  # upgrade AUR packages
   pak -Syu --aur # run pacman -Syu and upgrade AUR packages
   pak -G PACKAGE # download pkgbuild into a new directory named PACKAGE
@@ -417,6 +418,9 @@ Usage:
      (sync-command))
     ((and (= argc 1) (equal (first argv) "-Su"))
      (run-pacman '("-Su"))
+     (reset-cache))
+    ((and (= argc 1) (equal (first argv) "-Syu"))
+     (run-pacman '("-Syu"))
      (reset-cache))
     ((= argc 1)
      (search-and-install-packages (first argv)))
