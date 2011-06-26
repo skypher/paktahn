@@ -113,9 +113,13 @@
         ;(format t "deps: ~A~%" deps)
         ;(format t "makedeps: ~A~%" makedeps)
         ;; TODO: for now we just ignore version information
-        (setf deps (mapcar #'first deps)
-              makedeps (mapcar #'first makedeps))
-        (values deps makedeps)))))
+        (loop for pkg in (append deps makedeps) do
+                (unless (find-package-by-name (first pkg))
+                        (info "The dependency ~a could not be found. It will be ignored." (first pkg))))    
+        (values (remove-if-not #'find-package-by-name
+                        (mapcar #'first deps))
+                (remove-if-not #'find-package-by-name
+                        (mapcar #'first makedeps)))))))
 
 (defun get-pkgbuild (pkg-name)
   (ensure-initial-cache)
