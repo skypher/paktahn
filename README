@@ -1,3 +1,12 @@
+Report bugs, request features, send patches:
+  http://github.com/skypher/paktahn/issues
+
+Follow the source code at:
+  http://github.com/redline6561/paktahn
+
+Contribute to the Wiki:
+  http://wiki.github.com/skypher/paktahn
+
 Paktahn is designed to be a successor to the popular Yaourt
 package manager.
 
@@ -79,18 +88,6 @@ and *color-scheme-lightbg*.
 
    (in-pakage :pak)
    (setf *makepkg-binary* "unipkg")
-
-URIs
-====
-Git:
-  git://github.com/redline6561/paktahn.git
-
-Report bugs, request features, send patches:
-  http://github.com/skypher/paktahn/issues
-
-Contribute to the Wiki:
-  http://wiki.github.com/skypher/paktahn
-
 
 How do I build this thing?!
 ===========================
