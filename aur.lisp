@@ -1,5 +1,7 @@
 (in-package :pak)
 
+(defparameter *makepkg-binary* "makepkg")
+
 ;;; setup simplified json->lisp translation
 (defun simplified-camel-case-to-lisp (camel-string)
   "We don't want + and * all over the place."
@@ -125,7 +127,7 @@
                     (format s "Add ~S to the PKGBUILD's arch field" (get-carch)))
         (add-carch-to-pkgbuild)
         (retry))))
-  (let ((return-value (run-program "makepkg" nil)))
+  (let ((return-value (run-program *makepkg-binary* nil)))
     (unless (zerop return-value)
       ;; TODO restarts?
       (error "Makepkg failed (status ~D)" return-value))

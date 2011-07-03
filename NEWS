@@ -1,3 +1,15 @@
+0.9.5
+=====
+  * Add support for makepkg alternatives (i.e. unipkg)
+
+  * Add support for -Syu (without the --aur)
+  
+  * Add Support for pacman 3.5 and libaplm 3.6 (Issue #45 etc.)
+
+  * Lots of caching bugfixes
+
+  * Fail gracefully when AUR dependencies cannot be found (Issue #49)
+ 
 0.9.4
 =====
   * Add support for all -Q* and -D* (query and database) combinations.
