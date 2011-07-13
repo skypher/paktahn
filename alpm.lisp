@@ -233,7 +233,6 @@ objects."
 (defcfun "alpm_pkg_get_provides" :pointer (pkg :pointer))
 
 (defun find-providing-packages (provides-name)
-  ;; TODO: aur support
   (maybe-refresh-cache)
   (let (providers)
     (map-cached-packages
@@ -244,4 +243,7 @@ objects."
                         :key (compose #'first #'parse-dep))
             (push (cons db-name name) providers))))
       :include-groups nil)
+      (loop for (pkg-name local-version . rest) in (installed-aur-packages) do
+         (when (string= provides-name (get-pkg-provides pkg-name local-version))
+            (push (cons "aur" pkg-name) providers)))
     providers))

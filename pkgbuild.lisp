@@ -121,6 +121,26 @@
                 (remove-if-not #'find-package-by-name
                         (mapcar #'first makedeps)))))))
 
+(defun get-pkgbuild-provides (&optional (pkgbuild-filename "./PKGBUILD"))
+  (let ((provides-data (remove-if-not (lambda (key)
+                                   (member key '("provides" )
+                                           :test #'equalp))
+                                 (get-pkgbuild-data pkgbuild-filename)
+                                 :key #'car)))
+    (flet ((field (name)
+             (cdr (assoc name provides-data :test #'equalp))))
+         ;; TODO: use another separator in case someone used spaces
+         ;; in the provides specs themselves.
+      (let ((provides (mapcar #'parse-provides
+                          (split-sequence #\Space (field "provides")
+                                          :remove-empty-subseqs t))))
+        ;; TODO: for now we just ignore version information
+        (loop for pkg in (append provides) do
+                (unless (find-package-by-name (first pkg))
+                        (info "The provides ~a could not be found. It will be ignored." (first pkg))))    
+        (values (remove-if-not #'find-package-by-name
+                        (mapcar #'first provides)))))))
+
 (defun get-pkgbuild (pkg-name)
   (ensure-initial-cache)
   (let ((repo (car (find-package-by-name pkg-name))))
@@ -200,3 +220,13 @@
       (delete-directory-and-files pkgdir))
     (when (probe-file tarball)
       (delete-file tarball))))
+
+(defun get-pkg-provides (pkg-name pkg-version)
+  (let ((last-line nil)
+       (desc-path (format nil "/var/lib/pacman/local/~a-~a/desc"
+                           pkg-name pkg-version)))
+    (with-open-file (in desc-path)
+        (loop for line = (read-line in nil) while line do
+              (if (string= last-line "%PROVIDES%")
+                  (return line)
+                  (setf last-line line))))))

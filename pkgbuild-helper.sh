@@ -19,8 +19,13 @@ echo ${pkgrel}
 echo arch
 echo ${arch[@]}
 
+echo provides
+echo ${provides[@]}
+
 echo depends
 echo ${depends[@]}
 
 echo makedepends
 echo ${makedepends[@]}
+
+
