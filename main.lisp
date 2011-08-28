@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
-(defvar *paktahn-version* "0.9.5.0")
+(defvar *paktahn-version* "0.9.5.2")
 (defvar *pacman-faithful-p* t)
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
@@ -418,7 +418,7 @@ Usage:
      (remove-command argv))
     ((and (plusp argc) (member (subseq (first argv) 0 2)
                                '("-D" "-Q") :test #'equal))
-     (run-pacman argv :force t))
+     (run-pacman argv :sudo-p (string= (subseq (first argv) 0 2) "-D") :force t))
     ((and (= argc 1) (equal (first argv) "-Sy"))
      (sync-command))
     ((and (= argc 1) (equal (first argv) "-Su"))
