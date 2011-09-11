@@ -7,7 +7,13 @@
     (defpackage paktahn
       (:nicknames :pak)
       (:use :cl :cffi)
-      (:import-from :alexandria :compose :curry :rcurry :ensure-list)
-      (:import-from :metatilities :push-end :aif :it)
-      (:import-from :split-sequence :split-sequence)))
+      (:import-from :alexandria #:compose
+                                #:curry
+                                #:rcurry
+                                #:ensure-list
+                                #:with-gensyms)
+      (:import-from :metatilities #:push-end
+                                  #:aif
+                                  #:it)
+      (:import-from :split-sequence #:split-sequence)))
 

@@ -2,7 +2,7 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 1) (space 1)))
 
-(defvar *paktahn-version* "0.9.5.2")
+(defvar *paktahn-version* "0.9.5.3")
 (defvar *pacman-faithful-p* t)
 
 (defun package-installed-p (pkg-name &optional pkg-version) ; TODO groups
@@ -360,33 +360,28 @@ Returns T upon successful installation, NIL otherwise."
 
 (defun installed-aur-packages ()
   (ensure-initial-cache)
-  (let ((results))
-    (dolist (pkg-spec (reverse (gethash "local" *cache-contents*)))
-      (unless (stringp pkg-spec)
-        (when (aur-package-p (first pkg-spec))
-          (push pkg-spec results))))
-    results))
+  (loop for pkg-spec in (reverse (gethash "local" *cache-contents*))
+     when (and (not (stringp pkg-spec))
+               (aur-package-p (first pkg-spec)))
+     collect pkg-spec))
 
 (defun upgrade-aur-packages ()
-  (let ((out-of-date nil))
+  (let ((ignore-pkgs (get-ignorepkg)))
     (loop for (pkg-name local-version . rest) in (installed-aur-packages) do
          (let ((remote-version (package-remote-version pkg-name)))
            (cond ((null remote-version)
-                  (format t "~a: Package no longer exists.~%" pkg-name))
+                  (info "~a: Package no longer exists." pkg-name))
+                 ((member pkg-name ignore-pkgs :test #'string=)
+                  (info "~a: Package will be ignored." pkg-name))
                  ((version= local-version remote-version)
-                  (format t "~a: Up to date.~%" pkg-name))
+                  (info "~a: Up to date." pkg-name))
                  ((version< local-version remote-version)
-                  (format t "~a: Remote version is ~a.~%"
-                          pkg-name remote-version)
-                  (push (list pkg-name local-version remote-version)
-                        out-of-date)))))
-    (prompt-to-upgrade out-of-date)))
+                  (prompt-to-upgrade pkg-name local-version remote-version)))))))
 
-(defun prompt-to-upgrade (packages)
-  (loop for (name local-version remote-version) in packages do
-    (when (ask-y/n (format nil "Upgrade ~a from ~a to ~a"
-                           name local-version remote-version))
-      (install-aur-package name))))
+(defun prompt-to-upgrade (name local-version remote-version)
+  (when (ask-y/n (format nil "Upgrade ~a from ~a to ~a"
+                         name local-version remote-version))
+    (install-aur-package name)))
 
 (defun display-help ()
   (format t "~

@@ -81,6 +81,14 @@
   (py-configparser:read-files
     (py-configparser:make-config) '("/etc/pacman.conf")))
 
+(defun get-ignorepkg (&optional (config (get-pacman-config)))
+  ;; God this was unpleasant. Is there an alternative to py-configparser?
+  ;; Dare I fork it and add a restart to make this unnecessary?
+  (let ((conf-options (py-configparser::section-options
+                        (py-configparser::%get-section config "options"))))
+    (split-sequence #\Space
+                    (rest (assoc "IgnorePkg" conf-options :test #'equal)))))
+
 (defun get-enabled-repositories (&optional (config (get-pacman-config)))
   (remove "options" (reverse (py-configparser:sections config))
                 :test #'equalp))

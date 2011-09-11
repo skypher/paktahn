@@ -94,52 +94,39 @@
               :interactive read-new-spec
               (return-from parse-dep (parse-dep new-spec)))))))) ; return-from needed?
 
-(defun get-pkgbuild-dependencies (&optional (pkgbuild-filename "./PKGBUILD"))
-  (let ((dep-data (remove-if-not (lambda (key)
-                                   (member key '("depends" "makedepends")
-                                           :test #'equalp))
-                                 (get-pkgbuild-data pkgbuild-filename)
+(defmacro with-pkgbuild ((&key keys (filename "./PKGBUILD"))
+                         &body body)
+  (with-gensyms (data)
+    `(let ((,data (remove-if-not (lambda (key)
+                                   (member key ,keys :test #'equalp))
+                                 (get-pkgbuild-data ,filename)
                                  :key #'car)))
-    (flet ((field (name)
-             (cdr (assoc name dep-data :test #'equalp))))
-         ;; TODO: use another separator in case someone used spaces
-         ;; in the dep specs themselves.
-      (let ((deps (mapcar #'parse-dep
-                          (split-sequence #\Space (field "depends")
-                                          :remove-empty-subseqs t)))
-            (makedeps (mapcar #'parse-dep
-                              (split-sequence #\Space (field "makedepends")
-                                              :remove-empty-subseqs t))))
-        ;(format t "deps: ~A~%" deps)
-        ;(format t "makedeps: ~A~%" makedeps)
-        ;; TODO: for now we just ignore version information
-        (loop for pkg in (append deps makedeps) do
-                (unless (find-package-by-name (first pkg))
-                        (info "The dependency ~a could not be found. It will be ignored." (first pkg))))    
-        (values (remove-if-not #'find-package-by-name
-                        (mapcar #'first deps))
-                (remove-if-not #'find-package-by-name
-                        (mapcar #'first makedeps)))))))
+       (labels ((field (name)
+                  (cdr (assoc name ,data :test #'equalp)))
+                ;; TODO: use another separator in case someone used spaces
+                ;; in the dep specs themselves?
+                (parse-field (name)
+                  (mapcar #'parse-dep (split-sequence #\Space (field name)
+                                                      :remove-empty-subseqs t))))
+         ,@body))))
 
-(defun get-pkgbuild-provides (&optional (pkgbuild-filename "./PKGBUILD"))
-  (let ((provides-data (remove-if-not (lambda (key)
-                                   (member key '("provides" )
-                                           :test #'equalp))
-                                 (get-pkgbuild-data pkgbuild-filename)
-                                 :key #'car)))
-    (flet ((field (name)
-             (cdr (assoc name provides-data :test #'equalp))))
-         ;; TODO: use another separator in case someone used spaces
-         ;; in the provides specs themselves.
-      (let ((provides (mapcar #'parse-provides
-                          (split-sequence #\Space (field "provides")
-                                          :remove-empty-subseqs t))))
-        ;; TODO: for now we just ignore version information
-        (loop for pkg in (append provides) do
-                (unless (find-package-by-name (first pkg))
-                        (info "The provides ~a could not be found. It will be ignored." (first pkg))))    
-        (values (remove-if-not #'find-package-by-name
-                        (mapcar #'first provides)))))))
+(defun get-pkgbuild-dependencies (&optional (filename "./PKGBUILD"))
+  (with-pkgbuild (:keys '("depends" "makedepends") :filename filename)
+    (let ((deps (parse-field "depends"))
+          (makedeps (parse-field "makedepends")))
+      (loop for pkg in (append deps makedeps) do
+           (unless (find-package-by-name (first pkg))
+             (info "The dependency ~a could not be found. It will be ignored."
+                   (first pkg))))
+      (values (remove-if-not #'find-package-by-name
+                             (mapcar #'first deps))
+              (remove-if-not #'find-package-by-name
+                             (mapcar #'first makedeps))))))
+
+(defun get-pkgbuild-provides (&optional (filename "./PKGBUILD"))
+  (with-pkgbuild (:keys '("provides") :filename filename)
+    (let ((provides (parse-field "provides")))
+      (remove-if-not #'find-package-by-name (mapcar #'first provides)))))
 
 (defun get-pkgbuild (pkg-name)
   (ensure-initial-cache)
@@ -223,10 +210,10 @@
 
 (defun get-pkg-provides (pkg-name pkg-version)
   (let ((last-line nil)
-       (desc-path (format nil "/var/lib/pacman/local/~a-~a/desc"
+        (desc-path (format nil "/var/lib/pacman/local/~a-~a/desc"
                            pkg-name pkg-version)))
     (with-open-file (in desc-path)
-        (loop for line = (read-line in nil) while line do
-              (if (string= last-line "%PROVIDES%")
-                  (return line)
-                  (setf last-line line))))))
+      (loop for line = (read-line in nil) while line do
+           (if (string= last-line "%PROVIDES%")
+               (return line)
+               (setf last-line line))))))
