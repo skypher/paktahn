@@ -1,6 +1,7 @@
 Release Procedure:
 
-1) Update the PKGBUILD version to the desired version number. If necessary, update the paktahn-makedeps version.
+0) If necessary, update the *paktahn-version* in main.lisp. Don't commit yet! :)
+1) Update the PKGBUILD version to the desired version number. If necessary, update the paktahn-makedeps version as well.
 2) Run ./build-tarball.sh. This should produce a file named paktahn-{pkgver}.tar.bz2 in the current dir.
 3) Copy that file to redlinernotes.com/docs/. ... You may need redline6561 for this. If necessary, do makedeps too.
 4) Update checksums in the PKGBUILD. Ensure NEWS and README are acceptably ready. Commit PKGBUILD as "{pkgver}: Release - etc"
