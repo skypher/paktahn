@@ -116,9 +116,13 @@
                 (format nil "Running makepkg requires ~a. Install it?" pkg) t)
            (install-binary-package "core" pkg)))))
 
+(define-condition makepkg-failure (error)
+  ((message :initarg :message :reader message)))
+
 (defun run-makepkg ()
   "Run makepkg in the current working directory"
   (ensure-makepkg-deps)
+  ;; STYLE: Indentation and length makes these a bit gross to read. Cleanup.
   (retrying
     (restart-case
         (check-pkgbuild-arch)
@@ -127,11 +131,20 @@
                     (format s "Add ~S to the PKGBUILD's arch field" (get-carch)))
         (add-carch-to-pkgbuild)
         (retry))))
-  (let ((return-value (run-program *makepkg-binary* nil)))
-    (unless (zerop return-value)
-      ;; TODO restarts?
-      (error "Makepkg failed (status ~D)" return-value))
-    t))
+  (let ((args nil))
+    (retrying
+      (restart-case
+          (let ((return-value (run-program *makepkg-binary* args)))
+            (unless (zerop return-value)
+              (error 'makepkg-failure
+                     :message (format nil "Makepkg failed. Status ~D"
+                                      return-value)))
+            t)
+        (ignore-checksums ()
+          :report (lambda (s)
+                    (format s "Ignore checksums for this package."))
+          (setf args '("--skipinteg"))
+          (retry))))))
 
 (defun prompt-user-review (filename) ;; ask user whether they wish to edit a file
   (let ((str (concatenate 'string "Review/edit " filename)))
