@@ -1,12 +1,20 @@
-planned features for 0.9.6:
+planned features for 0.9.7:
+
+  * pak -U support for local packages (Trevis, Issue #57)
+  -- Reported by Zarhn, preliminary work by wh5a/wei_hu.
+
+  * test suite using fiveam or eos. Major source reorg here. (Brit)
+  -- Should have regression tests for all bugfixes to date. What code coverage?
+
+  * pak -Si support and cleanup
+
+planned features for 0.9.8:
 
   * find-package-by-name should return lists of (name ver desc provides) for
     both aur and non-aur packages. currently non-aur are (db name ver desc).
     will this break any callers of f-p-b-n?
 
   * Issue #16, #40, others?
-
-  * Fix up post-install to talk about config file or make readme location known.
 
   * Ensure you can install haskell-criterion or similar packages.
 
@@ -15,8 +23,6 @@ planned features for 0.9.6:
   * CONTRIBUTING or STYLE file. Maybe BUGS too.
 
   * multiple commands in succession
-
-  * test suite with fiveam or stefil. Major source reorg here.
 
 later:
 
