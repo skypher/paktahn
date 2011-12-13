@@ -4,6 +4,7 @@
   :version "0.8.2"
   :author "Leslie Polzer"
   :license "GPL"
+  :pathname "src/"
   :depends-on (:md5 :trivial-backtrace :cl-store :cl-json
                :drakma :cffi :alexandria :metatilities
                :unix-options :cl-ppcre :py-configparser
@@ -22,4 +23,16 @@
                (:file "pkgbuild")
                (:file "aur")
                (:file "cache")
-               (:file "main")))
+               (:file "main"))
+  :in-order-to ((test-op (load-op paktahn-tests)))
+  :perform (test-op :after (op c)
+                    (funcall (intern "RUN!" :paktahn-tests))))
+
+(defsystem #:paktahn-tests
+  :depends-on (paktahn fiveam)
+  :pathname "tests/"
+  :components ((:file "tests")))
+
+(defmethod operation-done-p ((op test-op)
+                             (c (eql (find-system :paktahn))))
+  (values nil))
