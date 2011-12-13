@@ -1,15 +1,18 @@
 Development:
 
-First download the dependency tarball.
+Ensure sbcl is installed. Then...
+wget -c http://beta.quicklisp.org/quicklisp.lisp;
+sbcl --load quicklisp.lisp # and type (quicklisp-quickstart:install) when prompted, then (ql:add-to-init-file)
 
-Then:
+Afterwards, you may work on paktahn as follows:
 
-  % cd paktahn
-  % sbcl
-  * (require :asdf)
-  * (push "/path/to/clbuild.paktahn/" asdf:*central-registry*) ; mind trailing slash
-  * (load "main.lisp") ; repeat this line when you changed the source code
-  * (in-package :pak)
-  * ;; execute functions here (e.g. SEARCH-AND-INSTALL-PACKAGE)
+ % sbcl
+ * (ql:quickload 'paktahn)
+ * (in-package :pak)
+ * (ensure-initial-cache) ; load the package cache. you might need it.
+ ; write some code and test it at the REPL
+ ; write tests for it and run them as follows...
+ * (asdf:oos 'asdf:test-op 'paktahn)
+ * (quit) ; eventually get bored and leave
 
-Also see dev-install.sh
+Also see dev-install.sh if you wish to replace your local paktahn with your development code.
