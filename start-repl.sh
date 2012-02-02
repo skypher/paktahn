@@ -1,2 +1,2 @@
-rlwrap sbcl --eval "(asdf:oos 'asdf:load-op 'paktahn)" \
+rlwrap sbcl --eval "(ql:quickload 'paktahn)" \
             --eval "(in-package :pak)" "$@"

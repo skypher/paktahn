@@ -51,31 +51,30 @@
           collect (alpm-list-getdata iter)))
 
 ;;; main alpm
-(defcfun "alpm_initialize" :int)
-(defcfun "alpm_option_set_root" :int (root :string))
-(defcfun "alpm_option_set_dbpath" :int (root :string))
+(defcfun "alpm_initialize" :pointer (root :string) (dbpath :string) (err :pointer))
 
-(if (>= (car *alpm-version*) 6)
-    (defcfun ("alpm_option_get_localdb" alpm-option-get-localdb) :pointer)
-    (defcfun ("alpm_db_register_local" alpm-db-register-local) :pointer))
+(defcfun ("alpm_option_get_localdb" alpm-option-get-localdb) :pointer (handle :pointer))
 
-(defcfun "alpm_db_register_sync" :pointer (name :string))
+(defcfun "alpm_db_register_sync" :pointer (handle :pointer) (name :string) (siglevel :int))
 
 (defcfun "alpm_db_unregister_all" :int)
 (defcfun "alpm_db_unregister" :int (db :pointer))
 
-(defun alpm-db-unregister-sync-dbs ()
-  (every #'zerop
-         (mapcar (lambda (db-spec)
-                   (alpm-db-unregister (cdr db-spec)))
-                 *sync-dbs*)))
+(defvar *alpm-errno-ptr* (foreign-alloc :int :initial-element 0))
+
+(defcfun "alpm_strerror" :string (errno :int))
+
+
+(defun alpm-last-error ()
+  (values (alpm-strerror (mem-ref *alpm-errno-ptr* :int)) *alpm-errno-ptr*))
+
+(defvar *alpm-handle* nil)
 
 (defun init-alpm ()
-  (alpm-initialize)
-  (alpm-option-set-root "/")
-  (alpm-option-set-dbpath "/var/lib/pacman"))
+  (setf *alpm-handle* (alpm-initialize "/" "/var/lib/pacman" *alpm-errno-ptr*)))
 
 (init-alpm)
+(format t "ALPM initialized.~%")
 
 (defun get-pacman-config ()
   (py-configparser:read-files
@@ -94,13 +93,13 @@
                 :test #'equalp))
 
 (defun init-local-db ()
-  (if (>= (car *alpm-version*) 6)
-      (cons "local" (alpm-option-get-localdb))
-      (cons "local" (alpm-db-register-local))))
+  (unless *alpm-handle* (error "No ALPM handle!"))
+  (cons "local" (alpm-option-get-localdb *alpm-handle*)))
 
 (defun init-sync-dbs ()
+  (unless *alpm-handle* (error "No ALPM handle!"))
   (mapcar (lambda (name)
-            (cons name (alpm-db-register-sync name)))
+            (cons name (alpm-db-register-sync *alpm-handle* name (logior 1 2 5 6)))) ; FIXME enum grovel
           (get-enabled-repositories)))
 
 (defparameter *local-db* nil)
@@ -111,6 +110,13 @@
   (setf *sync-dbs* (init-sync-dbs)))
 
 (init-dbs)
+(format t "Databases initialized.~%")
+
+(defun alpm-db-unregister-sync-dbs ()
+  (every #'zerop
+         (mapcar (lambda (db-spec)
+                   (alpm-db-unregister (cdr db-spec)))
+                 *sync-dbs*)))
 
 (defun db-name->db-spec (db-name)
   (let ((db-spec (assoc db-name (cons *local-db* *sync-dbs*)
@@ -124,6 +130,8 @@
 (defcfun "alpm_pkg_get_name" safe-string (pkg :pointer))
 (defcfun "alpm_pkg_get_version" safe-string (pkg :pointer))
 (defcfun "alpm_pkg_get_desc" safe-string (pkg :pointer))
+
+(defcfun "alpm_dep_compute_string" safe-string (dep :pointer))
 
 (defun map-db-packages (fn &key (db-list *sync-dbs*))
   "Search a database for packages. FN will be called for each
@@ -139,19 +147,18 @@ objects."
       (map-db db-spec))))
 
 ;;;; groups
-(defcfun "alpm_db_get_grpcache" :pointer (db :pointer))
-(defcfun "alpm_grp_get_name" safe-string (grp :pointer))
+(defcfun "alpm_db_get_groupcache" :pointer (db :pointer))
 
 (defun map-groups (fn &key (db-list *sync-dbs*))
   "Search a database for groups. FN will be called for each
 matching package group object. DB-LIST must be a list of database
 objects."
   (flet ((map-db (db-spec)
-           (loop for grp-iter = (alpm-db-get-grpcache (cdr db-spec))
+           (loop for grp-iter = (alpm-db-get-groupcache (cdr db-spec))
                  then (alpm-list-next grp-iter)
                  until (null-pointer-p grp-iter)
                  do (let ((grp (alpm-list-getdata grp-iter)))
-                      (funcall fn db-spec grp)))))
+                      (funcall fn db-spec (mem-ref grp 'safe-string))))))
     (dolist (db-spec db-list)
       (map-db db-spec))))
 
@@ -258,3 +265,4 @@ objects."
          (when (string= provides-name (get-pkg-provides pkg-name local-version))
             (push (cons "aur" pkg-name) providers)))
     providers))
+

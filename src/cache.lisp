@@ -113,14 +113,15 @@ the memory and disk caches as needed."
                            (push (list (alpm-pkg-get-name pkg)
                                        (alpm-pkg-get-version pkg)
                                        (alpm-pkg-get-desc pkg)
-                                       (mapcar #'safe-foreign-string-to-lisp (alpm-list->lisp (alpm-pkg-get-provides pkg))))
+                                       (mapcar #'alpm-dep-compute-string
+                                               (alpm-list->lisp (alpm-pkg-get-provides pkg))))
                                  (gethash db-name *cache-contents*)))
                          :db-list (list db-spec))
 
         ;; groups
         (map-groups (lambda (db-spec grp)
                       (declare (ignore db-spec))
-                      (push (alpm-grp-get-name grp) (gethash db-name *cache-contents*)))
+                        (push grp (gethash db-name *cache-contents*)))
                     :db-list (list db-spec))
 
         ;; update time
@@ -158,9 +159,7 @@ for a db to disk."
 
 (defun get-alpm-last-update-time (db-name)
   "Get the date of the last ALPM db update, in universal time."
-  (if (>= (car *alpm-version*) 6)
-      (file-write-date (alpm-db-folder (concatenate 'string db-name ".db")))
-      (file-write-date (alpm-db-folder db-name))))
+  (file-write-date (alpm-db-folder (concatenate 'string db-name ".db"))))
 
 (defun maybe-refresh-cache ()
   ;; TODO: this will produce incorrect results when called for the
