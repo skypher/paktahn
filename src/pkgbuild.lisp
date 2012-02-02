@@ -76,19 +76,19 @@
                   (get-carch)) (get-pkgext)))))
 
 (defun parse-dep (dep-spec)
-  "Parse a versioned dependency specification into a list
+  "Parse a versioned dependency/provides specification into a list
 (PKGNAME RELATION VERSION)."
   ;; TODO: intern the relation
   (let* ((matches (nth-value 1 (cl-ppcre:scan-to-strings
-                                 "^([^<>=]+?)(?:(=|<|>|<=|>=)([^<>=]+))?$"
+                                 "^([^<>=]+?)(?:(=|<|>|<=|>=)([^<>=]*))?$"
                                  dep-spec)))
          (result (remove nil (coerce matches 'list))))
     (or result
         (flet ((read-new-spec ()
-                 (format t "Enter new dependency spec: ") (force-output)
+                 (format t "Enter new dependency/provides spec: ") (force-output)
                  (list (read-line))))
           (restart-case
-              (error "Couldn't parse dependency spec ~S" dep-spec)
+              (error "Couldn't parse dependency/provides spec ~S" dep-spec)
             (correct (new-spec)
               :report "Correct it by entering a new one"
               :interactive read-new-spec
