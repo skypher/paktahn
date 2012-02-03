@@ -1,3 +1,9 @@
+0.9.7
+=====
+  * Support pacman 4/libalpm 7. (Issue #63, Leslie)
+
+  * Support pkgspecs of the form "foo=". (Issue #62, Leslie)
+
 0.9.6
 =====
   * Support AUR packages as providers. (Trevis)
