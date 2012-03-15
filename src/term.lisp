@@ -12,6 +12,7 @@
                                       :pkg-name white
                                       :pkg-version green
                                       :pkg-installed (:fg green :invertp t)
+                                      :pkg-provided (:fg yellow :invertp t)
                                       :pkg-outofdate red
                                       :pkg-old (:fg red :invertp t)
                                       :pkg-description nil))

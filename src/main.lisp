@@ -18,7 +18,7 @@
                                (when (member pkg-name provides
                                              :test #'equalp
                                              :key (compose #'first #'parse-dep))
-                                 (return-from package-installed-p (values version :provided))))))
+                                 (return-from package-installed-p (values version :provided name))))))
                        :db-list (list *local-db*))
   nil)
 
@@ -72,10 +72,14 @@
     (with-term-colors/id :pkg-version
       (format t "~A" version))
     ;; installation status
-    (let ((installed-version (package-installed-p name)))
+    (multiple-value-bind (installed-version type provider)
+        (package-installed-p name)
       (when installed-version
         (format t " ")
         (cond
+          ((eq type :provided)
+           (with-term-colors/id :pkg-provided
+             (format t "[provided by ~A ~A]" provider installed-version)))
           ((version< installed-version version)
            (with-term-colors/id :pkg-old
              (format t "[~A installed]" installed-version)))
@@ -201,57 +205,64 @@ Returns T upon successful installation, NIL otherwise."
    ; FIXME: show all packages that provide PKG-NAME too (?)
   (let ((db-name (or db-name (first (find-package-by-name pkg-name)))))
     (labels ((do-install ()
-               (cond
-                 ((and (package-installed-p pkg-name)
-                       (not force)
-                       (not (versioned-package-p pkg-name)))
-                  (let ((local-version (package-installed-p pkg-name))
-                        (remote-version (package-remote-version pkg-name)))
-                    (flet ((force-install ()
-                             (setf force t)
-                             (do-install)))
-                      (cond
-                        ((version< local-version remote-version)
-                         (when (ask-y/n (format nil "Package ~A is out of date. Upgrade it to version ~A"
-                                                pkg-name remote-version)
-                                        t)
-                           (force-install)))
-                        ((and (version= local-version remote-version)
-                              (equalp *root-package* pkg-name))
-                         (when (ask-y/n (format nil "Package ~A already installed. Reinstall it"
-                                                pkg-name)
-                                        nil)
-                           (force-install)))
-                        ((and (version> local-version remote-version))
-                         (when (ask-y/n (format nil "Package ~A is more recent than remote version. ~
-                                                Downgrade it to version ~A" pkg-name remote-version)
-                                        nil)
-                           (force-install)))
-                        (t
-                         (info "Package ~S is already installed." pkg-name)
-                         t)))))
-                 ((not db-name)
-                  (unless (find-providing-packages pkg-name)
-                    (restart-case
-                        (error "Couldn't find package ~S anywhere" pkg-name)
-                      (resync-db ()
-                        :report "Resync pacman databases (-Sy) and try again"
-                        (sync-command)
-                        (do-install)))))
-                 ((and (equalp db-name "aur")
-                       (not (equalp *root-package* pkg-name)))
-                  (install-aur-package pkg-name :as-dep t))
-                 ((and (equalp db-name "aur")
-                       (equalp *root-package* pkg-name))
-                  (install-aur-package pkg-name))
-                 ((not (equalp *root-package* pkg-name))
-                  (install-binary-package db-name pkg-name :dep-of *root-package*))
-                 ((or (eq db-name 'group)
-                      (member db-name (mapcar #'car *sync-dbs*) :test #'equalp))
-                  (install-binary-package db-name pkg-name :force force))
-                 #+(or)
-                 (t
-                  (error "BUG: missing DO-INSTALL case")))))
+               (multiple-value-bind (installed-version type provider)
+                   (package-installed-p pkg-name)
+                 (cond
+                   ((and installed-version
+                         (not force)
+                         (not (versioned-package-p pkg-name)))
+                    (let ((local-version installed-version)
+                          (remote-version (package-remote-version pkg-name)))
+                      (flet ((force-install ()
+                               (setf force t)
+                               (do-install)))
+                        (cond
+                          ((eq type :provided)
+                           (when (ask-y/n (format nil "Package ~A is provided by ~A ~A. Install anyway"
+                                                  pkg-name provider installed-version)
+                                          t)
+                             (force-install)))
+                          ((version< local-version remote-version)
+                           (when (ask-y/n (format nil "Package ~A is out of date. Upgrade it to version ~A"
+                                                  pkg-name remote-version)
+                                          t)
+                             (force-install)))
+                          ((and (version= local-version remote-version)
+                                (equalp *root-package* pkg-name))
+                           (when (ask-y/n (format nil "Package ~A already installed. Reinstall it"
+                                                  pkg-name)
+                                          nil)
+                             (force-install)))
+                          ((and (version> local-version remote-version))
+                           (when (ask-y/n (format nil "Package ~A is more recent than remote version. ~
+                                                  Downgrade it to version ~A" pkg-name remote-version)
+                                          nil)
+                             (force-install)))
+                          (t
+                           (info "Package ~S is already installed." pkg-name)
+                           t)))))
+                   ((not db-name)
+                    (unless (find-providing-packages pkg-name)
+                      (restart-case
+                          (error "Couldn't find package ~S anywhere" pkg-name)
+                        (resync-db ()
+                          :report "Resync pacman databases (-Sy) and try again"
+                          (sync-command)
+                          (do-install)))))
+                   ((and (equalp db-name "aur")
+                         (not (equalp *root-package* pkg-name)))
+                    (install-aur-package pkg-name :as-dep t))
+                   ((and (equalp db-name "aur")
+                         (equalp *root-package* pkg-name))
+                    (install-aur-package pkg-name))
+                   ((not (equalp *root-package* pkg-name))
+                    (install-binary-package db-name pkg-name :dep-of *root-package*))
+                   ((or (eq db-name 'group)
+                        (member db-name (mapcar #'car *sync-dbs*) :test #'equalp))
+                    (install-binary-package db-name pkg-name :force force))
+                   #+(or)
+                   (t
+                    (error "BUG: missing DO-INSTALL case"))))))
       ;; either we're installing a root package and need to set up our
       ;; environment to reflect this, or we're installing a dep and
       ;; should check that the environment has been set up properly.

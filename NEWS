@@ -1,3 +1,8 @@
+0.9.7
+=====
+  * Refine provider handling. (Leslie)
+    -- Reported by tukan
+
 0.9.6
 =====
   * Support AUR packages as providers. (Trevis)
