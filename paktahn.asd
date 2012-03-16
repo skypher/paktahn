@@ -1,7 +1,7 @@
 (defsystem :paktahn
   :name "Paktahn"
   :description "A package management wrapper to replace Yaourt on Arch Linux"
-  :version "0.8.2"
+  :version "0.9.8"
   :author "Leslie Polzer"
   :license "GPL"
   :pathname "src/"

@@ -1,8 +1,10 @@
-0.9.7
+0.9.8
 =====
   * Refine provider handling. (Leslie)
     -- Reported by tukan
 
+0.9.7
+=====
   * Support pacman 4/libalpm 7. (Issue #63, Leslie)
 
   * Support pkgspecs of the form "foo=". (Issue #62, Leslie)
