@@ -1,3 +1,8 @@
+0.9.9
+=====
+  * Fix an AUR update bug.
+    -- Reported by jbigler
+
 0.9.8
 =====
   * Refine provider handling. (Leslie)
