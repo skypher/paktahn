@@ -377,7 +377,9 @@ Returns T upon successful installation, NIL otherwise."
      collect pkg-spec))
 
 (defun upgrade-aur-packages ()
-  (let ((ignore-pkgs (get-ignorepkg)))
+  (maybe-refresh-cache)
+  (let ((ignore-pkgs (get-ignorepkg))
+        (*inhibit-cache-updates* t))
     (loop for (pkg-name local-version . rest) in (installed-aur-packages) do
          (let ((remote-version (package-remote-version pkg-name)))
            (cond ((null remote-version)

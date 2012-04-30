@@ -4,6 +4,8 @@
 
 (defparameter *cache-format-version* 3)
 
+(defvar *inhibit-cache-updates* nil)
+
 (flet ((conf (type name)
          (config-file (make-pathname :directory '(:relative "cache")
                                      :name (format nil "~(~A.~A~)" name type)))))
@@ -162,20 +164,21 @@ for a db to disk."
   (file-write-date (alpm-db-folder (concatenate 'string db-name ".db"))))
 
 (defun maybe-refresh-cache ()
-  ;; TODO: this will produce incorrect results when called for the
-  ;; second time. detect this case and call reset-cache.
-  (dolist (db-spec (cons *local-db* *sync-dbs*))
-    (let ((db-name (car db-spec)))
-      (with-cache-lock db-name
-        ;; first ensure that the disk cache is synced to dbs
-        (maybe-update-disk-cache db-name)
-        ;; now we can be sure to have a valid disk cache. Use it
-        ;; to update the memory cache unless it is already synced
-        ;; to the disk cache.
-        (when (or (null *cache-meta*)
-                  (null (nth-value 1 (gethash db-name *cache-meta*))))
-          (init-cache-vars)
-          (load-memory-cache-from-disk db-name))))))
+  (unless *inhibit-cache-updates*
+    ;; TODO: this will produce incorrect results when called for the
+    ;; second time. detect this case and call reset-cache.
+    (dolist (db-spec (cons *local-db* *sync-dbs*))
+      (let ((db-name (car db-spec)))
+        (with-cache-lock db-name
+          ;; first ensure that the disk cache is synced to dbs
+          (maybe-update-disk-cache db-name)
+          ;; now we can be sure to have a valid disk cache. Use it
+          ;; to update the memory cache unless it is already synced
+          ;; to the disk cache.
+          (when (or (null *cache-meta*)
+                    (null (nth-value 1 (gethash db-name *cache-meta*))))
+            (init-cache-vars)
+            (load-memory-cache-from-disk db-name)))))))
 
 (defun ensure-initial-cache ()
   (unless *cache-loaded-p*
