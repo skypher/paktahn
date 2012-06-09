@@ -1,4 +1,5 @@
 set -e
+set -x
 
 ./build-tarball.sh
 source ./PKGBUILD
@@ -9,5 +10,5 @@ ln -sf ../PKGBUILD
 ln -sf ../paktahn.install
 ln -sf ../paktahn-$pkgver.tar.bz2
 makepkg -f
-sudo pacman -U paktahn*.pkg.tar.*
+sudo pacman -U paktahn*$pkgver*.pkg.tar.*
 cd ..

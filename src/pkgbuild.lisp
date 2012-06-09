@@ -172,29 +172,44 @@
   (format nil "~a: The pkgbuild is in ~a~a/"
           pkg-name (namestring pathspec) pkg-name))
 
+(defvar *save-packages-only* nil)
+(defvar *save-packages* nil)
+
 (defun install-pkg-tarball (&key (tarball (get-pkgbuild-tarball-name))
                             (location (get-pkgdest))
                             (as-dep nil))
   (let ((pkg-location (concatenate 'string (ensure-trailing-slash location) tarball))
         force)
-    (retrying
-     (restart-case
-         (let ((exit-code
-                 (run-pacman (append (list (if force "-Uf" "-U"))
-                                     (when as-dep (list "--asdeps"))
-                                     (list pkg-location)) :force t)))
-           (unless (zerop exit-code)
-             (error "Failed to install package (error ~D)" exit-code)))
-       (retry ()
-         :report "Retry installation"
-         (retry))
-       (force-install ()
-         :report "Force installation (-Uf)"
-         (setf force t)
-         (retry))
-       (save-package ()
-         :report (lambda (s) (format s "Save the package to ~A~A" (config-file "packages/") tarball))
-         (run-program "mv" (list tarball (format nil "~A~A" (config-file "packages/") tarball))))))))
+    (when *save-packages*
+      (check-type *save-packages* string)
+      (let ((exit-code (run-program "cp" (list "-abv" tarball *save-packages*))))
+        (with-term-colors/id :info
+          (if (zerop exit-code)
+            (format t "Package tarball saved to ~S" *save-packages*)
+            (format t "Couldn't save package tarball to ~S: cp exited with code ~D"
+                    *save-packages* exit-code)))))
+    (check-type *save-packages-only* boolean)
+    (unless *save-packages-only*
+      (retrying
+       (restart-case
+           (let ((exit-code
+                   (run-pacman (append (list (if force "-Uf" "-U"))
+                                       (when as-dep (list "--asdeps"))
+                                       (list pkg-location)) :force t)))
+             (unless (zerop exit-code)
+               (error "Failed to install package (error ~D)" exit-code)))
+         (retry ()
+           :report "Retry installation"
+           (retry))
+         (force-install ()
+           :report "Force installation (-Uf)"
+           (setf force t)
+           (retry))
+         (save-package ()
+           :report (lambda (s)
+                     (format s "Save the package to ~A~A" (config-file "packages/") tarball))
+           (run-program "mv" (list tarball
+                                   (format nil "~A~A" (config-file "packages/") tarball)))))))))
 
 (defun cleanup-temp-files (pkg-name)
   (let ((pkgdir (merge-pathnames

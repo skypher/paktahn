@@ -1,7 +1,7 @@
 (in-package :pak)
 
 (define-foreign-library libalpm
-  (:unix (:or "libalpm.so.6" "libalpm.so.5" "libalpm.so.3" "libalpm.so"))
+  (:unix (:or "libalpm.so.7" "libalpm.so.6" "libalpm.so.5" "libalpm.so.3" "libalpm.so"))
   (t (:default "libalpm")))
 
 (use-foreign-library libalpm)

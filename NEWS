@@ -1,7 +1,12 @@
 0.9.9
 =====
   * Fix an AUR update bug.
-    -- Reported by jbigler
+      -- Reported by jbigler
+
+  * New config options *save-packages* and *save-packages-only*
+    Set *save-packages* to a directory to have Paktahn save
+    packages it installs there.
+      -- Requested by gbursson
 
 0.9.8
 =====
