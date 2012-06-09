@@ -86,8 +86,21 @@ and *color-scheme-lightbg*.
 
 == Use unipkg instead of makepkg
 
-   (in-pakage :pak)
+   (in-package :pak)
    (setf *makepkg-binary* "unipkg")
+
+
+== Storing built packages
+
+  (in-package :pak)
+  (setf *save-packages* "/tmp/mypackages/") ; mind the trailing slash
+
+Just store packages, don't install them:
+
+  (in-package :pak)
+  (setf *save-packages* "/tmp/mypackages/") ; mind the trailing slash
+  (setf *save-packages-only* t)
+
 
 How do I build this thing?!
 ===========================
