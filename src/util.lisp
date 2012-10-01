@@ -173,7 +173,7 @@ cd to START-DIR, execute BODY in an UNWIND-PROTECT and cd to END-DIR."
 (defun getcwd ()
   #+sbcl(sb-posix:getcwd)
   #+ecl(namestring (ext:getcwd))
-  #+ccl(namestring (current-directory))
+  #+ccl(namestring (ccl::current-directory-name))
   #-(or sbcl ecl ccl)(error "no getcwd"))
 
 (defun current-directory ()
