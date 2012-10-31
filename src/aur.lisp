@@ -103,8 +103,10 @@
            (remove nil (mapcar #'inform-or-name aur-pkgs))))))
 
 (defun aur-tarball-uri (pkg-name)
-  (format nil "http://aur.archlinux.org/packages/~(~A~)/~(~A~).tar.gz"
-          pkg-name pkg-name))
+  (let ((prefix (subseq pkg-name 0 2))
+        (tarball (aur-tarball-name pkg-name)))
+    (format nil "http://aur.archlinux.org/packages/~(~A~)/~(~A~)/~A"
+            prefix pkg-name tarball)))
 
 (defun aur-tarball-name (pkg-name)
   (format nil "~(~A~).tar.gz" pkg-name))
