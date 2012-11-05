@@ -48,6 +48,6 @@ build() {
 }
 
 md5sums=('aa71c5e639e86bee3afe7d4e27653649'
-         '50dd4014905af3e92c335bc5c2975c95')
+         '92c1236a5dc8ed11ec23e2a68b68244e')
 sha1sums=('1fb3e04732d00c68e7b8aa7ae0a18e9f98359e5f'
-          '0e71c9b24347c22eb1c24be174267d305a7c07a3')
+          '42e5f884d5ce6ebb6b1b7c76b3ed311648ca6e34')
