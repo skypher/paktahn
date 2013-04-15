@@ -31,7 +31,9 @@ build() {
                     '(\"$srcdir/\" \"$srcdir/clbuild.paktahn/systems/\"))" \
        --eval "(asdf:oos 'asdf:load-op 'paktahn)" \
        --eval "(pak::build-core :forkp nil)"
+}
 
+package () {
   # install binary
   mkdir -p $pkgdir/usr/bin
   install -m755 paktahn $pkgdir/usr/bin
@@ -47,14 +49,6 @@ build() {
   ln -s paktahn pak
 }
 
-md5sums=('aa71c5e639e86bee3afe7d4e27653649'
-         '92c1236a5dc8ed11ec23e2a68b68244e')
-sha1sums=('1fb3e04732d00c68e7b8aa7ae0a18e9f98359e5f'
-          '42e5f884d5ce6ebb6b1b7c76b3ed311648ca6e34')
-md5sums=('aa71c5e639e86bee3afe7d4e27653649'
-         'f4a479e51f1f82602f248a43d1d5d658')
-sha1sums=('1fb3e04732d00c68e7b8aa7ae0a18e9f98359e5f'
-          '8c1f7f4334ebfd99b1f8626d48c9b7192ef784ff')
 md5sums=('aa71c5e639e86bee3afe7d4e27653649'
          'c724ddca867cac0bbf7fce248e1c2748')
 sha1sums=('1fb3e04732d00c68e7b8aa7ae0a18e9f98359e5f'
