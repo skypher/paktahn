@@ -13,8 +13,8 @@ license=('GPL')
 url="http://github.com/skypher/paktahn"
 options=(!strip)
 install="paktahn.install"
-source=("http://viridian-project.de/paktahn/paktahn-makedeps-$libver.tbz2"
-        "http://viridian-project.de/paktahn/paktahn-${pkgver}.tar.bz2")
+source=("http://paktahn.port-zero.com/src/paktahn-makedeps-$libver.tbz2"
+        "http://paktahn.port-zero.com/src/paktahn-${pkgver}.tar.bz2")
 
 build() {
   cd "$srcdir"
