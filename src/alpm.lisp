@@ -1,7 +1,7 @@
 (in-package :pak)
 
 (define-foreign-library libalpm
-  (:unix (:or "libalpm.so.7" "libalpm.so.6" "libalpm.so.5" "libalpm.so.3" "libalpm.so"))
+  (:unix (:or "libalpm.so.8" "libalpm.so.7" "libalpm.so.6" "libalpm.so.5" "libalpm.so.3" "libalpm.so"))
   (t (:default "libalpm")))
 
 (use-foreign-library libalpm)
@@ -42,7 +42,13 @@
 
 ;;; lists helper
 (defcfun "alpm_list_next" :pointer (pkg-iterator :pointer))
-(defcfun "alpm_list_getdata" :pointer (pkg-iterator :pointer))
+(defcstruct alpm-list-struct
+    (data :pointer)
+    (next :pointer)
+    (prev :pointer))
+(defctype alpm-list alpm-list-struct)
+
+(defun alpm-list-getdata (item) (foreign-slot-value item 'alpm-list 'data))
 
 (defun alpm-list->lisp (alpm-list)
   (loop for iter = alpm-list
@@ -53,11 +59,11 @@
 ;;; main alpm
 (defcfun "alpm_initialize" :pointer (root :string) (dbpath :string) (err :pointer))
 
-(defcfun ("alpm_option_get_localdb" alpm-option-get-localdb) :pointer (handle :pointer))
+(defcfun ("alpm_get_localdb" alpm-option-get-localdb) :pointer (handle :pointer))
 
-(defcfun "alpm_db_register_sync" :pointer (handle :pointer) (name :string) (siglevel :int))
+(defcfun "alpm_register_syncdb" :pointer (handle :pointer) (name :string) (siglevel :int))
 
-(defcfun "alpm_db_unregister_all" :int)
+(defcfun "alpm_unregister_all_syncdbs" :int)
 (defcfun "alpm_db_unregister" :int (db :pointer))
 
 (defvar *alpm-errno-ptr* (foreign-alloc :int :initial-element 0))
@@ -99,7 +105,7 @@
 (defun init-sync-dbs ()
   (unless *alpm-handle* (error "No ALPM handle!"))
   (mapcar (lambda (name)
-            (cons name (alpm-db-register-sync *alpm-handle* name (logior 1 2 5 6)))) ; FIXME enum grovel
+            (cons name (alpm-register-syncdb *alpm-handle* name (logior 1 2 5 6)))) ; FIXME enum grovel
           (get-enabled-repositories)))
 
 (defparameter *local-db* nil)
